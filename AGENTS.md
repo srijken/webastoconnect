@@ -49,7 +49,9 @@ If the repository becomes a monorepo, additional `AGENTS.md` files may exist in 
 
 The Python communication module source code is maintained in:
 
-- `/development/github/homeassistant/pywebasto`
+- GitHub: `https://github.com/srijken/pywebasto` (fork of the archived `MTrab/pywebasto`)
+- Local checkout: a sibling directory of this repository (`../pywebasto`)
+- Published on PyPI as `pywebasto-ng`; the import name stays `pywebasto`
 
 From this workspace, the agent has access to work in that repository as well, including creating branches, making edits, committing, and pushing.
 
@@ -57,7 +59,7 @@ All module changes MUST be made in dedicated branches intended for merge (no dir
 
 When testing integration changes in this repository that depend on in-progress `pywebasto` module changes, the agent MUST update `custom_components/webastoconnect/manifest.json` to point to the specific `pywebasto` branch being used for that test cycle.
 
-When asked to merge, revert the `custom_components/webastoconnect/manifest.json` requirement changes and check if there is a newer version of the `pywebasto` module, available from PyPI.
+When asked to merge, revert the `custom_components/webastoconnect/manifest.json` requirement changes and check if there is a newer version of the `pywebasto` module, available from PyPI (`pywebasto-ng`).
 
 
 ## Environment & Setup
@@ -66,7 +68,7 @@ The agent must use the exact versions defined in the project configuration files
 
 ### Requirements
 
-- Runtime: Python 3.13
+- Runtime: Python 3.14 (required by the pinned `homeassistant` version in `requirements.txt`)
 
 ## Webasto Connect Integration Rules
 
