@@ -50,7 +50,9 @@ async def test_async_create_timer_appends_and_saves_full_list() -> None:
     coordinator.cloud.get_timers.assert_awaited_once()
     assert _line_value(coordinator.cloud.get_timers.await_args.kwargs["line"]) == "OUTV"
     coordinator.cloud.save_timers.assert_awaited_once()
-    assert _line_value(coordinator.cloud.save_timers.await_args.kwargs["line"]) == "OUTV"
+    assert (
+        _line_value(coordinator.cloud.save_timers.await_args.kwargs["line"]) == "OUTV"
+    )
     saved = coordinator.cloud.save_timers.await_args.kwargs["timers"]
     assert len(saved) == 2
     assert saved[1].start == 700
@@ -68,7 +70,9 @@ async def test_async_create_timer_uses_heater_when_not_in_ventilation_mode() -> 
 
     await async_create_timer(coordinator, device, new_timer)
 
-    assert _line_value(coordinator.cloud.save_timers.await_args.kwargs["line"]) == "OUTH"
+    assert (
+        _line_value(coordinator.cloud.save_timers.await_args.kwargs["line"]) == "OUTH"
+    )
 
 
 @pytest.mark.asyncio
@@ -90,7 +94,9 @@ async def test_async_update_timer_replaces_selected_index() -> None:
         line=LINE_VENTILATION,
     )
 
-    assert _line_value(coordinator.cloud.save_timers.await_args.kwargs["line"]) == "OUTV"
+    assert (
+        _line_value(coordinator.cloud.save_timers.await_args.kwargs["line"]) == "OUTV"
+    )
     saved = coordinator.cloud.save_timers.await_args.kwargs["timers"]
     assert saved[0].start == 600
     assert saved[1].start == 900
@@ -120,7 +126,9 @@ async def test_async_update_timer_without_line_uses_combined_index() -> None:
         hass=SimpleNamespace(config=SimpleNamespace(time_zone="UTC")),
     )
 
-    assert _line_value(coordinator.cloud.save_timers.await_args.kwargs["line"]) == "OUTV"
+    assert (
+        _line_value(coordinator.cloud.save_timers.await_args.kwargs["line"]) == "OUTV"
+    )
     saved = coordinator.cloud.save_timers.await_args.kwargs["timers"]
     assert len(saved) == 1
     assert saved[0].enabled is True
@@ -139,7 +147,9 @@ async def test_async_delete_timer_removes_selected_index() -> None:
 
     await async_delete_timer(coordinator, device, timer_index=0)
 
-    assert _line_value(coordinator.cloud.save_timers.await_args.kwargs["line"]) == "OUTV"
+    assert (
+        _line_value(coordinator.cloud.save_timers.await_args.kwargs["line"]) == "OUTV"
+    )
     saved = coordinator.cloud.save_timers.await_args.kwargs["timers"]
     assert len(saved) == 1
     assert saved[0].start == 900
@@ -166,7 +176,9 @@ async def test_async_update_timer_raises_for_invalid_index() -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_update_timer_without_line_invalid_index_has_friendly_error() -> None:
+async def test_async_update_timer_without_line_invalid_index_has_friendly_error() -> (
+    None
+):
     """Combined-index update should return clear range guidance on invalid index."""
     coordinator = _CoordinatorStub([])
     coordinator.cloud.get_timers = AsyncMock(
@@ -212,7 +224,9 @@ async def test_async_delete_timer_uses_heater_when_not_in_ventilation_mode() -> 
 
     await async_delete_timer(coordinator, device, timer_index=0)
 
-    assert _line_value(coordinator.cloud.save_timers.await_args.kwargs["line"]) == "OUTH"
+    assert (
+        _line_value(coordinator.cloud.save_timers.await_args.kwargs["line"]) == "OUTH"
+    )
 
 
 @pytest.mark.asyncio

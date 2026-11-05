@@ -69,7 +69,7 @@ class WebastoConnectSwitchEntityDescription(
     # allow command_fn to accept (webasto, id, state) by using a variadic Callable
     command_fn: Callable[..., Any] | None = None
     type_fn: Callable[[WebastoConnect], None] | None = None
-    name_fn: Callable[["WebastoDevice"], str | bool] | None = None
+    name_fn: Callable[[WebastoDevice], str | bool] | None = None
 
 
 @dataclass(frozen=True)
@@ -80,7 +80,7 @@ class WebastoConnectNumberEntityDescription(
 
     value_fn: Callable[[Any], Any]
     set_fn: Callable[[WebastoConnect, WebastoDevice, float], Any] | None = None
-    unit_fn: Callable[["WebastoDevice"], Any] | None = None
+    unit_fn: Callable[[WebastoDevice], Any] | None = None
 
 
 class WebastoBaseEntity(CoordinatorEntity[DataUpdateCoordinator[None]]):
