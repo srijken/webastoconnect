@@ -1,6 +1,6 @@
-[![Current Release](https://img.shields.io/github/release/mtrab/webastoconnect/all.svg?style=plastic)](https://github.com/mtrab/webastoconnect/releases) [![Github All Releases](https://img.shields.io/github/downloads/mtrab/webastoconnect/total.svg?style=plastic)](https://github.com/mtrab/webastoconnect/releases) [![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=plastic)](https://github.com/hacs/integration)
+[![Current Release](https://img.shields.io/github/release/srijken/webastoconnect/all.svg?style=plastic)](https://github.com/srijken/webastoconnect/releases) [![Github All Releases](https://img.shields.io/github/downloads/srijken/webastoconnect/total.svg?style=plastic)](https://github.com/srijken/webastoconnect/releases) [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=plastic)](https://github.com/hacs/integration)
 
-<a href="https://www.buymeacoffee.com/mtrab" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
+Originally created by [MTrab](https://github.com/MTrab/webastoconnect), now maintained by [srijken](https://github.com/srijken).
 
 This integration provides support for Webasto ThermoConnect devices.
 
@@ -18,6 +18,7 @@ Webasto <b>DOES NOT</b> provide any public API or documentation for it, so I can
 ### Option 1 (easy) - HACS:
 
 - Ensure that HACS is installed.
+- Add `https://github.com/srijken/webastoconnect` as a custom repository (type: Integration).
 - Search for and install the "Webasto Connect" integration.
 - Restart Home Assistant.
 

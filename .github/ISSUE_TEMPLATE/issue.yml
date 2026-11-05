@@ -2,7 +2,7 @@ name: Report a bug / issue
 description: Report an issue with the Webasto Connect (ThermoConnect) integration
 labels: ["bug"]
 assignees:
-  - MTrab
+  - srijken
 body:
   - type: markdown
     attributes:
