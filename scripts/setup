@@ -2,15 +2,16 @@
 
 set -e
 
-mkdir ~/.codex
-cp /etc/codex/auth.json ~/.codex/auth.json
-
 # Ensure the mounted GitHub CLI config volume is writable by the vscode user.
 sudo mkdir -p /home/vscode/.config/gh
 sudo chown -R vscode:vscode /home/vscode/.config/gh
 chmod 700 /home/vscode/.config/gh
 
-sudo curl -L https://github.com/AlexxIT/go2rtc/releases/download/v1.9.14/go2rtc_linux_amd64 --output /bin/go2rtc
+case "$(uname -m)" in
+    aarch64 | arm64) go2rtc_arch="arm64" ;;
+    *) go2rtc_arch="amd64" ;;
+esac
+sudo curl -fL "https://github.com/AlexxIT/go2rtc/releases/download/v1.9.14/go2rtc_linux_${go2rtc_arch}" --output /bin/go2rtc
 sudo chmod a+x /bin/go2rtc
 
 cd "$(dirname "$0")/.."
