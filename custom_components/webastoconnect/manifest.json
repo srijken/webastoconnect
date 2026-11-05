@@ -6,12 +6,12 @@
         "lovelace"
     ],
     "codeowners": [
-        "@MTrab"
+        "@srijken"
     ],
     "config_flow": true,
-    "documentation": "https://github.com/MTrab/webastoconnect/blob/master/README.md",
+    "documentation": "https://github.com/srijken/webastoconnect/blob/main/README.md",
     "iot_class": "cloud_polling",
-    "issue_tracker": "https://github.com/MTrab/webastoconnect/issues",
+    "issue_tracker": "https://github.com/srijken/webastoconnect/issues",
     "requirements": [
         "pywebasto==3.0.1"
     ],
