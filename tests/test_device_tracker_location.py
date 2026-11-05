@@ -6,7 +6,9 @@ from unittest.mock import Mock
 from custom_components.webastoconnect.device_tracker import WebastoConnectDeviceTracker
 
 
-def _build_tracker(location, prev_lat=None, prev_lon=None) -> WebastoConnectDeviceTracker:
+def _build_tracker(
+    location, prev_lat=None, prev_lon=None
+) -> WebastoConnectDeviceTracker:
     """Create a minimal tracker instance for unit tests."""
     tracker = object.__new__(WebastoConnectDeviceTracker)
     tracker._device_id = 1
@@ -47,4 +49,3 @@ def test_tracker_update_writes_state_when_location_changes() -> None:
     assert tracker._prev_lat == 55.0
     assert tracker._prev_lon == 12.0
     tracker.async_write_ha_state.assert_called_once()
-

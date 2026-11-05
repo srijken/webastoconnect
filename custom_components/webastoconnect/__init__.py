@@ -4,7 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 import logging
 from pathlib import Path
-from typing import Any, TypeAlias
+from typing import Any
 
 from homeassistant.components.lovelace.const import (
     CONF_RESOURCE_TYPE_WS,
@@ -56,7 +56,7 @@ class WebastoRuntimeData:
     update_listener: Callable[[], None]
 
 
-WebastoConfigEntry: TypeAlias = ConfigEntry[WebastoRuntimeData]
+type WebastoConfigEntry = ConfigEntry[WebastoRuntimeData]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: WebastoConfigEntry) -> bool:
