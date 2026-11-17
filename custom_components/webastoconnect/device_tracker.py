@@ -2,12 +2,10 @@
 
 import logging
 
-from homeassistant.components import device_tracker
 from homeassistant.components.device_tracker import TrackerEntity
 from homeassistant.components.device_tracker.const import SourceType
 from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityDescription
-from homeassistant.util import slugify as util_slugify
 
 from . import WebastoConfigEntry
 from custom_components.webastoconnect.base import WebastoBaseEntity
@@ -50,10 +48,6 @@ class WebastoConnectDeviceTracker(WebastoBaseEntity, TrackerEntity):
         """Initialize a Webasto Connect device tracker."""
         super().__init__(device_id, coordinator, description)
 
-        self.entity_id = device_tracker.ENTITY_ID_FORMAT.format(  # type: ignore
-            util_slugify(f"{self._device_name} {self._attr_name}")
-        )
-
         location = self._location_data
         self._prev_lat = location["lat"] if location else None
         self._prev_lon = location["lon"] if location else None
@@ -77,10 +71,8 @@ class WebastoConnectDeviceTracker(WebastoBaseEntity, TrackerEntity):
 
     @property
     def available(self) -> bool:
-        """Handle the location states."""
-        is_available = self._location_data is not None
-        self._attr_available = is_available
-        return is_available
+        """Unavailable when updates fail or no location is known."""
+        return self._coordinator_ok and self._location_data is not None
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -89,12 +81,10 @@ class WebastoConnectDeviceTracker(WebastoBaseEntity, TrackerEntity):
         lat = location["lat"] if location else None
         lon = location["lon"] if location else None
 
-        if lat != self._prev_lat or lon != self._prev_lon:
-            self._prev_lat = lat
-            self._prev_lon = lon
-            self._attributes = {}
-
-            self.async_write_ha_state()
+        changed = lat != self._prev_lat or lon != self._prev_lon
+        self._prev_lat = lat
+        self._prev_lon = lon
+        self._async_write_if_changed(changed)
 
     @property
     def source_type(self) -> SourceType | str | None:

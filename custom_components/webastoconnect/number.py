@@ -3,10 +3,8 @@
 import logging
 from typing import cast
 
-from homeassistant.components import number
 from homeassistant.components.number import NumberEntity
 from homeassistant.const import EntityCategory
-from homeassistant.util import slugify as util_slugify
 
 from . import WebastoConfigEntry
 from .api import WebastoConnectUpdateCoordinator
@@ -83,10 +81,6 @@ class WebastoConnectNumber(WebastoBaseEntity, NumberEntity):
                 self._cloud.devices[self._device_id]
             )
 
-        self.entity_id = number.ENTITY_ID_FORMAT.format(
-            util_slugify(f"{self._device_name} {self._attr_name}")
-        )
-
     @property
     def native_value(self) -> float | None:
         """Get the native value."""
@@ -97,9 +91,8 @@ class WebastoConnectNumber(WebastoBaseEntity, NumberEntity):
 
     @property
     def available(self) -> bool:
-        """Return False when the device is explicitly disconnected."""
-        self._attr_available = self._is_device_connected
-        return self._attr_available
+        """Unavailable when updates fail or the device is disconnected."""
+        return self._coordinator_ok and self._is_device_connected
 
     async def async_set_native_value(self, value: float) -> None:
         """Set new value."""

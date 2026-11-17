@@ -3,11 +3,9 @@
 import logging
 from typing import Any, cast
 
-from homeassistant.components import switch
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
-from homeassistant.util import slugify as util_slugify
 
 from . import WebastoConfigEntry
 from .api import WebastoConnectUpdateCoordinator
@@ -103,22 +101,16 @@ class WebastoConnectSwitch(WebastoBaseEntity, SwitchEntity):
 
         self._handle_states()
 
-        self.entity_id = switch.ENTITY_ID_FORMAT.format(
-            util_slugify(f"{self._device_name} {self._attr_name}")
-        )
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._handle_states()
-        self._attr_available = self._is_device_connected
         self.async_write_ha_state()
 
     @property
     def available(self) -> bool:
-        """Return False when the device is explicitly disconnected."""
-        self._attr_available = self._is_device_connected
-        return self._attr_available
+        """Unavailable when updates fail or the device is disconnected."""
+        return self._coordinator_ok and self._is_device_connected
 
     def _handle_states(self) -> None:
         """Handle the switch states."""

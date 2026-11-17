@@ -4,6 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from homeassistant.core import callback
 from homeassistant.components.binary_sensor import BinarySensorEntityDescription
 from homeassistant.components.number import NumberEntityDescription
 from homeassistant.components.sensor import SensorEntityDescription
@@ -146,6 +147,27 @@ class WebastoBaseEntity(CoordinatorEntity[DataUpdateCoordinator[None]]):
         coordinator = getattr(self, "coordinator", None)
         device_names = getattr(coordinator, "device_names", {})
         return webasto_device_name(self._device, device_names.get(str(self._device_id)))
+
+    @property
+    def _coordinator_ok(self) -> bool:
+        """Return whether the last coordinator update succeeded."""
+        coordinator = getattr(self, "coordinator", None)
+        if coordinator is None:
+            return True
+        return bool(coordinator.last_update_success)
+
+    @property
+    def available(self) -> bool:
+        """Unavailable when the last update from the cloud failed."""
+        return self._coordinator_ok
+
+    @callback
+    def _async_write_if_changed(self, changed: bool) -> None:
+        """Write state when the value or the availability changed."""
+        available = self.available
+        if changed or available != getattr(self, "_written_available", True):
+            self._written_available = available
+            self.async_write_ha_state()
 
     @property
     def _is_device_connected(self) -> bool:

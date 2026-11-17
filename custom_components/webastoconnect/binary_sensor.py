@@ -3,14 +3,12 @@
 import logging
 from typing import cast
 
-from homeassistant.components import binary_sensor
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
-from homeassistant.util import slugify as util_slugify
 
 from . import WebastoConfigEntry
 from .api import WebastoConnectUpdateCoordinator
@@ -102,10 +100,6 @@ class WebastoConnectBinarySensor(
         """Initialize a Webasto Connect Binary Sensor."""
         super().__init__(device_id, coordinator, description)
 
-        self.entity_id = binary_sensor.ENTITY_ID_FORMAT.format(
-            util_slugify(f"{self._device_name} {self._attr_name}")
-        )
-
         self._attr_is_on = self.entity_description.value_fn(  # type: ignore
             self._cloud.devices[self._device_id]
         )
@@ -126,7 +120,7 @@ class WebastoConnectBinarySensor(
             if new_is_on
             else self.entity_description.icon_off  # type: ignore
         )
-        if new_is_on != self._attr_is_on or new_icon != self._attr_icon:
-            self._attr_is_on = new_is_on
-            self._attr_icon = new_icon
-            self.async_write_ha_state()
+        changed = new_is_on != self._attr_is_on or new_icon != self._attr_icon
+        self._attr_is_on = new_is_on
+        self._attr_icon = new_icon
+        self._async_write_if_changed(changed)

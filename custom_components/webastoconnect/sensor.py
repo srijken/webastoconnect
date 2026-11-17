@@ -4,7 +4,6 @@ from datetime import UTC, datetime, timedelta
 import logging
 from typing import Any
 
-from homeassistant.components import sensor
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -12,7 +11,6 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import EntityCategory, UnitOfLength, UnitOfTime
 from homeassistant.core import callback
-from homeassistant.util import slugify as util_slugify
 
 from . import WebastoConfigEntry
 from .api import WebastoConnectUpdateCoordinator
@@ -398,10 +396,6 @@ class WebastoConnectSensor(WebastoBaseEntity, SensorEntity):
                 self._cloud.devices[self._device_id]
             )
 
-        self.entity_id = sensor.ENTITY_ID_FORMAT.format(
-            util_slugify(f"{self._device_name} {self._attr_name}")
-        )
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -420,12 +414,12 @@ class WebastoConnectSensor(WebastoBaseEntity, SensorEntity):
                 self._cloud.devices[self._device_id]
             )
 
-        if (
+        changed = (
             new_name != self._attr_name
             or new_value != self._attr_native_value
             or new_attributes != current_attributes
-        ):
-            self._attr_name = new_name
-            self._attr_native_value = new_value
-            self._attr_extra_state_attributes = new_attributes
-            self.async_write_ha_state()
+        )
+        self._attr_name = new_name
+        self._attr_native_value = new_value
+        self._attr_extra_state_attributes = new_attributes
+        self._async_write_if_changed(changed)
