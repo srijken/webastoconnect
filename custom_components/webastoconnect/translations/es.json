@@ -28,26 +28,10 @@
                 "description": "Vuelve a autenticar tu cuenta de Webasto Connect para continuar.",
                 "title": "Reautenticar cuenta de Webasto Connect",
                 "data": {
-                    "email": "Correo electrónico",
                     "password": "Contraseña"
                 }
             },
             "user": {
-                "data": {
-                    "email": "Correo electrónico",
-                    "password": "Contraseña"
-                }
-            }
-        }
-    },
-    "options": {
-        "error": {
-            "cannot_connect": "No se puede conectar",
-            "invalid_auth": "Autenticación no válida",
-            "ratelimit": "Se ha excedido el límite de peticiones - inténtalo de nuevo más tarde"
-        },
-        "step": {
-            "init": {
                 "data": {
                     "email": "Correo electrónico",
                     "password": "Contraseña"

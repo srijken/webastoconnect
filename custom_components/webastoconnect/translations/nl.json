@@ -16,7 +16,8 @@
     "config": {
         "abort": {
             "already_configured": "Dit account is al geconfigureerd",
-            "reauth_successful": "Opnieuw verifiëren is geslaagd"
+            "reauth_successful": "Opnieuw geauthenticeerd",
+            "reconfigure_successful": "Wachtwoord bijgewerkt"
         },
         "error": {
             "cannot_connect": "Kan geen verbinding maken",
@@ -25,10 +26,9 @@
         },
         "step": {
             "reauth_confirm": {
-                "description": "Log opnieuw in op je Webasto Connect-account om door te gaan.",
+                "description": "Voer het wachtwoord voor {email} in om verder te gaan.",
                 "title": "Webasto Connect-account opnieuw verifiëren",
                 "data": {
-                    "email": "E-mail",
                     "password": "Wachtwoord"
                 }
             },
@@ -37,19 +37,11 @@
                     "email": "E-mail",
                     "password": "Wachtwoord"
                 }
-            }
-        }
-    },
-    "options": {
-        "error": {
-            "cannot_connect": "Kan geen verbinding maken",
-            "invalid_auth": "Ongeldige authenticatie",
-            "ratelimit": "Limiet voor verzoeken overschreden - probeer het later opnieuw"
-        },
-        "step": {
-            "init": {
+            },
+            "reconfigure": {
+                "title": "Webasto Connect-wachtwoord wijzigen",
+                "description": "Voer het nieuwe wachtwoord voor {email} in.",
                 "data": {
-                    "email": "E-mail",
                     "password": "Wachtwoord"
                 }
             }

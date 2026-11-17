@@ -28,26 +28,10 @@
                 "description": "Pro pokračování se znovu přihlaste ke svému účtu Webasto Connect.",
                 "title": "Znovu ověřit účet Webasto Connect",
                 "data": {
-                    "email": "E-mail",
                     "password": "Heslo"
                 }
             },
             "user": {
-                "data": {
-                    "email": "E-mail",
-                    "password": "Heslo"
-                }
-            }
-        }
-    },
-    "options": {
-        "error": {
-            "cannot_connect": "Nelze se připojit",
-            "invalid_auth": "Neplatné přihlašovací údaje",
-            "ratelimit": "Byl překročen limit požadavků - zkuste to později"
-        },
-        "step": {
-            "init": {
                 "data": {
                     "email": "E-mail",
                     "password": "Heslo"

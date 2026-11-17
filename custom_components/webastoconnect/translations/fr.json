@@ -28,26 +28,10 @@
                 "description": "Veuillez vous reconnecter à votre compte Webasto Connect pour continuer.",
                 "title": "Réauthentifier le compte Webasto Connect",
                 "data": {
-                    "email": "E-mail",
                     "password": "Mot de passe"
                 }
             },
             "user": {
-                "data": {
-                    "email": "E-mail",
-                    "password": "Mot de passe"
-                }
-            }
-        }
-    },
-    "options": {
-        "error": {
-            "cannot_connect": "Connexion impossible",
-            "invalid_auth": "Identifiants invalides",
-            "ratelimit": "Limite de requêtes dépassée - réessayez plus tard"
-        },
-        "step": {
-            "init": {
                 "data": {
                     "email": "E-mail",
                     "password": "Mot de passe"

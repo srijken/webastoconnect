@@ -28,26 +28,10 @@
                 "description": "Logg inn på Webasto Connect-kontoen din på nytt for å fortsette.",
                 "title": "Autentiser Webasto Connect-kontoen på nytt",
                 "data": {
-                    "email": "E-post",
                     "password": "Passord"
                 }
             },
             "user": {
-                "data": {
-                    "email": "E-post",
-                    "password": "Passord"
-                }
-            }
-        }
-    },
-    "options": {
-        "error": {
-            "cannot_connect": "Kan ikke koble til",
-            "invalid_auth": "Ugyldig autentisering",
-            "ratelimit": "Ratebegrensning overskredet - prøv igjen senere"
-        },
-        "step": {
-            "init": {
                 "data": {
                     "email": "E-post",
                     "password": "Passord"

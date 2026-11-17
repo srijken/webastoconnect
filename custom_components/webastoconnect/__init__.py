@@ -12,7 +12,7 @@ from homeassistant.components.lovelace.const import (
     MODE_STORAGE,
 )
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
-from homeassistant.const import CONF_EMAIL, CONF_TYPE, CONF_URL
+from homeassistant.const import CONF_EMAIL, CONF_PASSWORD, CONF_TYPE, CONF_URL
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import (
     ConfigEntryAuthFailed,
@@ -57,6 +57,29 @@ class WebastoRuntimeData:
 
 
 type WebastoConfigEntry = ConfigEntry[WebastoRuntimeData]
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Migrate old config entries.
+
+    1.2: credentials move from the entry options (written by the removed
+    options flow) to the entry data, and are removed from the options.
+    """
+    if entry.version > 1:
+        return False
+
+    if entry.minor_version < 2:
+        data = dict(entry.data)
+        options = dict(entry.options)
+        for key in (CONF_EMAIL, CONF_PASSWORD):
+            if key in options:
+                data[key] = options.pop(key)
+        hass.config_entries.async_update_entry(
+            entry, data=data, options=options, minor_version=2
+        )
+        LOGGER.debug("Migrated config entry %s to version 1.2", entry.entry_id)
+
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: WebastoConfigEntry) -> bool:
@@ -226,7 +249,7 @@ async def _async_setup(
         await coordinator.cloud.connect()
         LOGGER.debug(
             "Connected to Webasto API for %s",
-            entry.options.get(CONF_EMAIL, entry.data.get(CONF_EMAIL)),
+            entry.data.get(CONF_EMAIL),
         )
     except UnauthorizedException:
         await coordinator.cloud.close()
