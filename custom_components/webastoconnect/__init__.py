@@ -1,6 +1,5 @@
 """Add Webasto ThermoConnect support to Home Assistant."""
 
-from collections.abc import Callable
 from dataclasses import dataclass
 import logging
 from pathlib import Path
@@ -53,7 +52,6 @@ class WebastoRuntimeData:
     """Runtime data for the Webasto config entry."""
 
     coordinator: WebastoConnectUpdateCoordinator
-    update_listener: Callable[[], None]
 
 
 type WebastoConfigEntry = ConfigEntry[WebastoRuntimeData]
@@ -86,11 +84,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: WebastoConfigEntry) -> b
     """Set up cloud API connector from a config entry."""
     coordinator = await _async_setup(hass, entry)
     async_register_services(hass)
-    update_listener = entry.add_update_listener(async_reload_entry)
-    entry.runtime_data = WebastoRuntimeData(
-        coordinator=coordinator,
-        update_listener=update_listener,
-    )
+    # No update listener: the reauth and reconfigure flows schedule the reload.
+    entry.runtime_data = WebastoRuntimeData(coordinator=coordinator)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -373,7 +368,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: WebastoConfigEntry) -> 
 
     if unload_ok:
         await entry.runtime_data.coordinator.cloud.close()
-        entry.runtime_data.update_listener()
         loaded_entries = [
             config_entry
             for config_entry in hass.config_entries.async_entries(DOMAIN)
@@ -383,9 +377,3 @@ async def async_unload_entry(hass: HomeAssistant, entry: WebastoConfigEntry) -> 
         if not loaded_entries:
             async_unregister_services(hass)
     return unload_ok
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: WebastoConfigEntry) -> None:
-    """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)

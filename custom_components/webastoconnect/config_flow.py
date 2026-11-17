@@ -164,8 +164,8 @@ class WebastoConnectConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self.hass, email, user_input[CONF_PASSWORD], entry
             )
             if not errors:
-                # The entry's update listener reloads the integration.
-                return self.async_update_and_abort(
+                # Schedules a reload, also when setup had failed on the old password.
+                return self.async_update_reload_and_abort(
                     entry,
                     data_updates={CONF_PASSWORD: user_input[CONF_PASSWORD]},
                     reason=(

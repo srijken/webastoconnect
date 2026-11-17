@@ -55,7 +55,7 @@ def _flow(entry) -> WebastoConnectConfigFlow:
     )
     flow._get_reauth_entry = Mock(return_value=entry)
     flow._get_reconfigure_entry = Mock(return_value=entry)
-    flow.async_update_and_abort = Mock(return_value={"type": "abort"})
+    flow.async_update_reload_and_abort = Mock(return_value={"type": "abort"})
     flow.async_show_form = Mock(return_value={"type": "form"})
     return flow
 
@@ -111,7 +111,7 @@ async def test_password_step_stores_password_in_entry_data(
     assert init_mock.call_args.kwargs["username"] == "user@test"
     assert init_mock.call_args.kwargs["password"] == "new"
     assert "credential_load" in init_mock.call_args.kwargs
-    flow.async_update_and_abort.assert_called_once_with(
+    flow.async_update_reload_and_abort.assert_called_once_with(
         entry, data_updates={"password": "new"}, reason=reason
     )
     assert result == {"type": "abort"}
@@ -133,7 +133,7 @@ async def test_password_step_shows_errors(monkeypatch, error, expected) -> None:
 
     result = await flow.async_step_reconfigure({"password": "new"})
 
-    flow.async_update_and_abort.assert_not_called()
+    flow.async_update_reload_and_abort.assert_not_called()
     assert flow.async_show_form.call_args.kwargs["errors"] == {"base": expected}
     assert result == {"type": "form"}
 

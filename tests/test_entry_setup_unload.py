@@ -1,4 +1,4 @@
-"""Tests for deterministic options reload behavior."""
+"""Tests for config entry setup and unload."""
 
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
@@ -19,8 +19,10 @@ def mock_integration_version(monkeypatch) -> None:
 
 
 @pytest.mark.asyncio
-async def test_async_setup_entry_registers_update_listener(monkeypatch) -> None:
-    """Setup should register a config entry update listener."""
+async def test_async_setup_entry_stores_coordinator_without_listener(
+    monkeypatch,
+) -> None:
+    """Setup stores the coordinator and registers no update listener."""
     services = SimpleNamespace(
         has_service=Mock(return_value=False),
         async_register=Mock(),
@@ -44,15 +46,13 @@ async def test_async_setup_entry_registers_update_listener(monkeypatch) -> None:
     result = await integration.async_setup_entry(hass, entry)
 
     assert result is True
-    entry.add_update_listener.assert_called_once_with(integration.async_reload_entry)
+    entry.add_update_listener.assert_not_called()
     assert entry.runtime_data.coordinator is coordinator
-    assert entry.runtime_data.update_listener is remove_listener
 
 
 @pytest.mark.asyncio
-async def test_async_unload_entry_calls_remove_listener_on_success() -> None:
-    """Unload should unsubscribe update listener before removing entry data."""
-    remove_listener = Mock()
+async def test_async_unload_entry_closes_cloud_on_success() -> None:
+    """Unload should close the cloud session."""
     close_mock = AsyncMock()
     services = SimpleNamespace(
         has_service=Mock(return_value=True),
@@ -62,7 +62,6 @@ async def test_async_unload_entry_calls_remove_listener_on_success() -> None:
     entry = SimpleNamespace(
         entry_id="entry-1",
         runtime_data=SimpleNamespace(
-            update_listener=remove_listener,
             coordinator=SimpleNamespace(cloud=SimpleNamespace(close=close_mock)),
         ),
     )
@@ -78,4 +77,3 @@ async def test_async_unload_entry_calls_remove_listener_on_success() -> None:
 
     assert unload_ok is True
     close_mock.assert_awaited_once()
-    remove_listener.assert_called_once()
