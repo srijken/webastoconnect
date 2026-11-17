@@ -9,7 +9,7 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.util import dt as dt_util
@@ -87,23 +87,54 @@ WEEKDAY_TO_MASK = {
     "sunday": 64,
 }
 
+MAX_DURATION_MINUTES = 1440
+MAX_REPEAT_MASK = 127  # Monday..Sunday bits
+
+
+def _geo_string(validator: Any) -> Any:
+    """Validate a legacy latitude/longitude string field.
+
+    Empty and "none"-like values pass through so they can clear a location;
+    anything else must be a valid coordinate and is returned as a string.
+    """
+
+    def _validate(value: Any) -> Any:
+        if value is None:
+            return None
+        if isinstance(value, str) and value.strip().lower() in {
+            "",
+            "null",
+            "none",
+            "nan",
+        }:
+            return value
+        return str(validator(value))
+
+    return _validate
+
+
+_DURATION_MINUTES = vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_DURATION_MINUTES))
+_REPEAT = vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_REPEAT_MASK))
+_LOCATION_SCHEMA = vol.Schema(
+    {
+        vol.Required("latitude"): cv.latitude,
+        vol.Required("longitude"): cv.longitude,
+        vol.Optional("radius"): vol.Coerce(float),
+    }
+)
+
 _BASE_SCHEMA = vol.Schema({vol.Required(ATTR_DEVICE_ID): cv.string})
 _CREATE_TIMER_SCHEMA = _BASE_SCHEMA.extend(
     {
+        vol.Optional(ATTR_LINE): vol.In(VALID_TIMER_LINES),
         vol.Required(ATTR_START_TIME): cv.string,
-        vol.Required(ATTR_DURATION_MINUTES): vol.All(vol.Coerce(int), vol.Range(min=1)),
+        vol.Required(ATTR_DURATION_MINUTES): _DURATION_MINUTES,
         vol.Optional(ATTR_REPEAT_DAYS, default=[]): [vol.In(tuple(WEEKDAY_TO_MASK))],
-        vol.Optional(ATTR_REPEAT): vol.All(vol.Coerce(int), vol.Range(min=0)),
+        vol.Optional(ATTR_REPEAT): _REPEAT,
         vol.Optional(ATTR_ENABLED, default=True): cv.boolean,
-        vol.Optional(ATTR_LOCATION): vol.Schema(
-            {
-                vol.Required("latitude"): vol.Coerce(float),
-                vol.Required("longitude"): vol.Coerce(float),
-                vol.Optional("radius"): vol.Coerce(float),
-            }
-        ),
-        vol.Optional(ATTR_LATITUDE): cv.string,
-        vol.Optional(ATTR_LONGITUDE): cv.string,
+        vol.Optional(ATTR_LOCATION): _LOCATION_SCHEMA,
+        vol.Optional(ATTR_LATITUDE): _geo_string(cv.latitude),
+        vol.Optional(ATTR_LONGITUDE): _geo_string(cv.longitude),
     }
 )
 _UPDATE_TIMER_SCHEMA = _BASE_SCHEMA.extend(
@@ -111,20 +142,14 @@ _UPDATE_TIMER_SCHEMA = _BASE_SCHEMA.extend(
         vol.Optional(ATTR_LINE, default=LINE_HEATER): vol.In(VALID_TIMER_LINES),
         vol.Required(ATTR_TIMER_INDEX): vol.All(vol.Coerce(int), vol.Range(min=0)),
         vol.Optional(ATTR_START_TIME): cv.string,
-        vol.Optional(ATTR_DURATION_MINUTES): vol.All(vol.Coerce(int), vol.Range(min=1)),
+        vol.Optional(ATTR_DURATION_MINUTES): _DURATION_MINUTES,
         vol.Optional(ATTR_REPEAT_DAYS): [vol.In(tuple(WEEKDAY_TO_MASK))],
-        vol.Optional(ATTR_REPEAT): vol.All(vol.Coerce(int), vol.Range(min=0)),
+        vol.Optional(ATTR_REPEAT): _REPEAT,
         vol.Optional(ATTR_ENABLED): cv.boolean,
         vol.Optional(ATTR_CLEAR_LOCATION): cv.boolean,
-        vol.Optional(ATTR_LOCATION): vol.Schema(
-            {
-                vol.Required("latitude"): vol.Coerce(float),
-                vol.Required("longitude"): vol.Coerce(float),
-                vol.Optional("radius"): vol.Coerce(float),
-            }
-        ),
-        vol.Optional(ATTR_LATITUDE): vol.Any(cv.string, None),
-        vol.Optional(ATTR_LONGITUDE): vol.Any(cv.string, None),
+        vol.Optional(ATTR_LOCATION): _LOCATION_SCHEMA,
+        vol.Optional(ATTR_LATITUDE): _geo_string(cv.latitude),
+        vol.Optional(ATTR_LONGITUDE): _geo_string(cv.longitude),
     }
 )
 _DELETE_TIMER_SCHEMA = _BASE_SCHEMA.extend(
@@ -463,6 +488,8 @@ async def _async_handle_create_timer(hass: HomeAssistant, call: ServiceCall) -> 
 
     try:
         await async_create_timer(coordinator, device, timer, line)
+    except ValueError as err:
+        raise ServiceValidationError(f"Invalid timer: {err}") from err
     except (InvalidRequestException, UnauthorizedException) as err:
         raise HomeAssistantError(f"Failed to create timer: {err}") from err
 
@@ -487,6 +514,8 @@ async def _async_handle_update_timer(hass: HomeAssistant, call: ServiceCall) -> 
             line,
             hass=hass,
         )
+    except ValueError as err:
+        raise ServiceValidationError(f"Invalid timer: {err}") from err
     except (InvalidRequestException, UnauthorizedException) as err:
         raise HomeAssistantError(f"Failed to update timer: {err}") from err
 
@@ -499,6 +528,8 @@ async def _async_handle_delete_timer(hass: HomeAssistant, call: ServiceCall) -> 
 
     try:
         await async_delete_timer(coordinator, device, timer_index)
+    except ValueError as err:
+        raise ServiceValidationError(f"Invalid timer: {err}") from err
     except (InvalidRequestException, UnauthorizedException) as err:
         raise HomeAssistantError(f"Failed to delete timer: {err}") from err
 

@@ -1,6 +1,7 @@
 """Device tracker for Webasto Connect."""
 
 import logging
+from typing import Any
 
 from homeassistant.components import device_tracker
 from homeassistant.components.device_tracker import TrackerEntity
@@ -36,6 +37,14 @@ async def async_setup_entry(hass, entry: WebastoConfigEntry, async_add_devices):
         trackers.append(entity)
 
     async_add_devices(trackers)
+
+
+def _coordinate(value: Any) -> float | None:
+    """Parse a coordinate from cloud data, returning None when it is invalid."""
+    try:
+        return float(value)
+    except TypeError, ValueError:
+        return None
 
 
 class WebastoConnectDeviceTracker(WebastoBaseEntity, TrackerEntity):
@@ -111,7 +120,7 @@ class WebastoConnectDeviceTracker(WebastoBaseEntity, TrackerEntity):
         if location is None:
             return None
 
-        return float(location["lat"])
+        return _coordinate(location.get("lat"))
 
     @property
     def longitude(self) -> float | None:
@@ -120,4 +129,4 @@ class WebastoConnectDeviceTracker(WebastoBaseEntity, TrackerEntity):
         if location is None:
             return None
 
-        return float(location["lon"])
+        return _coordinate(location.get("lon"))

@@ -167,13 +167,25 @@ def _next_timer_sensor_payload(
     next_timer: dict[str, Any] | None = None
 
     for index, timer in enumerate(timers):
-        start = int(timer.get("start", 0))
-        repeat = int(timer.get("repeat", 0))
+        try:
+            start = int(timer.get("start") or 0)
+            repeat = int(timer.get("repeat") or 0)
+            duration = int(timer.get("duration") or 0)
+        except TypeError, ValueError:
+            # Keep the index aligned with the timer services, but do not let
+            # one malformed timer from the cloud break the whole sensor.
+            LOGGER.debug("Skipping malformed timer at index %s", index)
+            continue
         enabled = bool(timer.get("enabled", False))
-        duration = int(timer.get("duration", 0))
         location = timer.get("location")
-        latitude = location.get("lat") if isinstance(location, dict) else None
-        longitude = location.get("lon") if isinstance(location, dict) else None
+        # Only expose whether a location is set: attributes end up in the
+        # recorder and are visible to every user, and the coordinates are
+        # usually home or work. Services keep the stored location as-is.
+        has_location = (
+            isinstance(location, dict)
+            and location.get("lat") is not None
+            and location.get("lon") is not None
+        )
 
         occurrence = None
         if enabled and start > 0:
@@ -192,8 +204,7 @@ def _next_timer_sensor_payload(
             "duration": duration,
             "repeat": repeat,
             "enabled": enabled,
-            "latitude": latitude,
-            "longitude": longitude,
+            "has_location": has_location,
             "next_run_utc": occurrence.isoformat() if occurrence else None,
         }
         timer_items.append(item)

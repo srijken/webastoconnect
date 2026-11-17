@@ -37,7 +37,11 @@ except ImportError:
     InvalidResponseException = InvalidRequestException
     TooManyRequestsException = InvalidRequestException
 
-from .api import WebastoConnectUpdateCoordinator
+from .api import (
+    WebastoConnectUpdateCoordinator,
+    _credential_store_path,
+    _remove_credentials,
+)
 from .base import webasto_device_name
 from .card_install import ensure_card_installed
 from .const import CARD_FILENAME, CARD_WWW_SUBDIR, DOMAIN, PLATFORMS, STARTUP
@@ -360,6 +364,13 @@ async def _async_ensure_lovelace_card_resource(
         {CONF_URL: resource_url, CONF_RESOURCE_TYPE_WS: "module"}
     )
     LOGGER.info("Created Lovelace resource for %s", resource_url)
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Delete the stored app client credentials when the entry is removed."""
+    await hass.async_add_executor_job(
+        _remove_credentials, Path(_credential_store_path(hass, entry))
+    )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: WebastoConfigEntry) -> bool:

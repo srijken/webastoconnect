@@ -13,6 +13,7 @@ from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util.file import write_utf8_file_atomic
 from pywebasto import WebastoConnect
 from pywebasto.exceptions import InvalidRequestException, UnauthorizedException
 
@@ -49,18 +50,29 @@ def _load_credentials(path: Path) -> dict[str, str] | None:
 
 
 def _save_credentials(path: Path, credentials: Any) -> None:
-    """Save pywebasto app credentials."""
+    """Save pywebasto app credentials, readable by the owner only.
+
+    The client secret is a bearer credential for the heater, so the file is
+    written atomically with mode 0600, like Home Assistant's own storage.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8") as credential_file:
-        json.dump(
+    write_utf8_file_atomic(
+        str(path),
+        json.dumps(
             {
                 "client_id": credentials.client_id,
                 "client_secret": credentials.client_secret,
             },
-            credential_file,
             indent=2,
         )
-        credential_file.write("\n")
+        + "\n",
+        private=True,
+    )
+
+
+def _remove_credentials(path: Path) -> None:
+    """Delete stored pywebasto app credentials, if present."""
+    path.unlink(missing_ok=True)
 
 
 def _credential_callbacks(
