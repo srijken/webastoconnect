@@ -37,6 +37,33 @@ BINARY_SENSORS = [
         icon_off="mdi:map-marker-off",
         entity_registry_enabled_default=False,
     ),
+    WebastoConnectBinarySensorEntityDescription(
+        key="low_voltage_warning",
+        name="Low Battery Voltage",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda webasto: getattr(webasto, "low_voltage_warning", None),
+        icon_on="mdi:car-battery",
+        icon_off="mdi:car-battery",
+    ),
+    WebastoConnectBinarySensorEntityDescription(
+        key="geofence_enabled",
+        name="Geofence",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda webasto: getattr(webasto, "geofence_enabled", None),
+        icon_on="mdi:map-marker-radius",
+        icon_off="mdi:map-marker-off",
+        entity_registry_enabled_default=False,
+    ),
+    WebastoConnectBinarySensorEntityDescription(
+        key="signal_lost_shutdown_enabled",
+        name="Switch Off On Signal Loss",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value_fn=lambda webasto: getattr(webasto, "signal_lost_shutdown_enabled", None),
+        icon_on="mdi:signal-off",
+        icon_off="mdi:signal",
+        entity_registry_enabled_default=False,
+    ),
 ]
 
 

@@ -15,6 +15,15 @@ from .base import WebastoBaseEntity, WebastoConnectSwitchEntityDescription
 
 LOGGER = logging.getLogger(__name__)
 
+
+def _supports_ventilation_mode(device: Any) -> bool:
+    """Return False only when the device reports ventilation mode as unavailable."""
+    features = getattr(device, "output_main_features", None)
+    if not isinstance(features, dict):
+        return True
+    return features.get("ventilation_mode_available") is not False
+
+
 SWITCHES = [
     WebastoConnectSwitchEntityDescription(
         key="main_output",
@@ -64,6 +73,9 @@ async def async_setup_entry(hass, entry: WebastoConfigEntry, async_add_devices):
         LOGGER.debug("Setting up switches for device: %s", device.name)
         for swi in SWITCHES:
             LOGGER.debug("Testing '%s'", swi.name)
+            if swi.key == "ventilation_mode" and not _supports_ventilation_mode(device):
+                LOGGER.debug("Skipping ventilation mode: not supported by device")
+                continue
             if (
                 isinstance(swi.name_fn, type(None))
                 or swi.name_fn(coordinator.cloud.devices[id]) is not False
