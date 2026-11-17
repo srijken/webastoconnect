@@ -7,7 +7,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant
 from homeassistant.loader import async_get_integration
 from pywebasto import WebastoConnect
 from pywebasto.exceptions import InvalidRequestException, UnauthorizedException
@@ -36,57 +36,84 @@ CONF_SCHEME = vol.Schema(
 )
 
 
+PASSWORD_SCHEME = vol.Schema({vol.Required(CONF_PASSWORD): str})
+
+
+async def _async_validate_credentials(
+    hass: HomeAssistant,
+    email: str,
+    password: str,
+    entry: config_entries.ConfigEntry | None = None,
+) -> dict[str, str]:
+    """Log in with the given credentials and return form errors, if any.
+
+    With an existing entry, the stored app client credentials are reused so
+    validating does not register a new app client.
+    """
+    integration = await async_get_integration(hass, DOMAIN)
+    kwargs: dict[str, Any] = {}
+    if entry is not None:
+        credential_load, credential_save = _credential_callbacks(hass, entry)
+        kwargs = {
+            "credential_load": credential_load,
+            "credential_save": credential_save,
+        }
+
+    webasto = WebastoConnect(
+        username=email,
+        password=password,
+        client_info=f"HomeAssistant-Webasto {integration.version} {int(datetime.now().timestamp())}",
+        **kwargs,
+    )
+    errors: dict[str, str] = {}
+    try:
+        await webasto.connect()
+        LOGGER.debug("Authorization OK")
+    except UnauthorizedException:
+        LOGGER.debug("Authorization ERROR")
+        errors["base"] = "invalid_auth"
+    except (
+        InvalidRequestException,
+        ForbiddenException,
+        InvalidResponseException,
+    ):
+        LOGGER.debug("Connection validation failed")
+        errors["base"] = "cannot_connect"
+    except TooManyRequestsException:
+        LOGGER.debug("Connection validation rate limited")
+        errors["base"] = "ratelimit"
+    finally:
+        await webasto.close()
+    return errors
+
+
 class WebastoConnectConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Webasto Connect."""
+    """Handle a config flow for Webasto Connect.
+
+    Credentials live in the entry data only. They are changed with the
+    reauth and reconfigure flows, not with an options flow, so the password is
+    never stored in options or pre-filled in a form.
+    """
 
     VERSION = 1
+    MINOR_VERSION = 2
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ):
-        """Get the options flow for this handler."""
-        return WebastoConnectOptionsFlow()
 
     async def async_step_user(self, user_input: Any | None = None):
         """Handle the initial config flow step."""
-        errors = {}
+        errors: dict[str, str] = {}
 
         if user_input is not None:
-            integration = await async_get_integration(self.hass, DOMAIN)
             if any(
-                entry.data[CONF_EMAIL] == user_input[CONF_EMAIL]
+                entry.data.get(CONF_EMAIL) == user_input[CONF_EMAIL]
                 for entry in self._async_current_entries()
             ):
                 return self.async_abort(reason="already_configured")
 
-            webasto = WebastoConnect(
-                username=user_input[CONF_EMAIL],
-                password=user_input[CONF_PASSWORD],
-                client_info=f"HomeAssistant-Webasto {integration.version} {int(datetime.now().timestamp())}",
+            errors = await _async_validate_credentials(
+                self.hass, user_input[CONF_EMAIL], user_input[CONF_PASSWORD]
             )
-            try:
-                await webasto.connect()
-                LOGGER.debug("Authorization OK")
-            except UnauthorizedException:
-                LOGGER.debug("Authorization ERROR")
-                errors["base"] = "invalid_auth"
-            except (
-                InvalidRequestException,
-                ForbiddenException,
-                InvalidResponseException,
-            ):
-                LOGGER.debug("Connection validation failed")
-                errors["base"] = "cannot_connect"
-            except TooManyRequestsException:
-                LOGGER.debug("Connection validation failed")
-                errors["base"] = "ratelimit"
-            finally:
-                await webasto.close()
-
-            if "base" not in errors:
+            if not errors:
                 await self.async_set_unique_id(f"{user_input[CONF_EMAIL]}")
 
                 return self.async_create_entry(
@@ -109,129 +136,48 @@ class WebastoConnectConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_reauth_confirm(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Dialog that informs the user that reauthorization is required."""
-        reauth_entry = self._get_reauth_entry()
-        errors = {}
-
-        if user_input is not None:
-            integration = await async_get_integration(self.hass, DOMAIN)
-            credential_load, credential_save = _credential_callbacks(
-                self.hass, reauth_entry
-            )
-            webasto = WebastoConnect(
-                username=user_input[CONF_EMAIL],
-                password=user_input[CONF_PASSWORD],
-                credential_load=credential_load,
-                credential_save=credential_save,
-                client_info=f"HomeAssistant-Webasto {integration.version} {int(datetime.now().timestamp())}",
-            )
-            try:
-                await webasto.connect()
-                LOGGER.debug("Re-authorization OK")
-            except UnauthorizedException:
-                LOGGER.debug("Re-authorization ERROR")
-                errors["base"] = "invalid_auth"
-            except (
-                InvalidRequestException,
-                ForbiddenException,
-                InvalidResponseException,
-            ):
-                LOGGER.debug("Re-authorization connection validation failed")
-                errors["base"] = "cannot_connect"
-            except TooManyRequestsException:
-                LOGGER.debug("Re-authorization rate limited")
-                errors["base"] = "ratelimit"
-            finally:
-                await webasto.close()
-
-            if "base" not in errors:
-                self._async_abort_entries_match({CONF_EMAIL: user_input[CONF_EMAIL]})
-                return self.async_update_reload_and_abort(
-                    reauth_entry,
-                    data_updates={},
-                    options=user_input,
-                )
-
-        return self.async_show_form(
-            step_id="reauth_confirm",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_EMAIL,
-                        default=reauth_entry.options.get(
-                            CONF_EMAIL, reauth_entry.data.get(CONF_EMAIL)
-                        ),
-                    ): str,
-                    vol.Required(CONF_PASSWORD): str,
-                }
-            ),
-            errors=errors,
+        """Ask for the account password again after an authentication failure."""
+        return await self._async_step_password(
+            "reauth_confirm", self._get_reauth_entry(), user_input
         )
 
-
-class WebastoConnectOptionsFlow(config_entries.OptionsFlow):
-    """Handle Webasto Connect options."""
-
-    async def async_step_init(
+    async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
-        """Manage the Webasto Connect options."""
-        errors = {}
+        """Change the account password."""
+        return await self._async_step_password(
+            "reconfigure", self._get_reconfigure_entry(), user_input
+        )
+
+    async def _async_step_password(
+        self,
+        step_id: str,
+        entry: config_entries.ConfigEntry,
+        user_input: dict[str, Any] | None,
+    ) -> config_entries.ConfigFlowResult:
+        """Validate a new password for an entry and store it in the entry data."""
+        email = entry.data[CONF_EMAIL]
+        errors: dict[str, str] = {}
 
         if user_input is not None:
-            integration = await async_get_integration(self.hass, DOMAIN)
-            credential_load, credential_save = _credential_callbacks(
-                self.hass, self.config_entry
+            errors = await _async_validate_credentials(
+                self.hass, email, user_input[CONF_PASSWORD], entry
             )
-            webasto = WebastoConnect(
-                username=user_input[CONF_EMAIL],
-                password=user_input[CONF_PASSWORD],
-                credential_load=credential_load,
-                credential_save=credential_save,
-                client_info=f"HomeAssistant-Webasto {integration.version} {int(datetime.now().timestamp())}",
-            )
-            try:
-                await webasto.connect()
-                LOGGER.debug("Authorization OK")
-            except UnauthorizedException:
-                LOGGER.debug("Authorization ERROR")
-                errors["base"] = "invalid_auth"
-            except (
-                InvalidRequestException,
-                ForbiddenException,
-                InvalidResponseException,
-            ):
-                LOGGER.debug("Connection validation failed")
-                errors["base"] = "cannot_connect"
-            except TooManyRequestsException:
-                LOGGER.debug("Connection validation rate limited")
-                errors["base"] = "ratelimit"
-            finally:
-                await webasto.close()
-
-            if "base" not in errors:
-                return self.async_create_entry(
-                    title=user_input[CONF_EMAIL], data=user_input
+            if not errors:
+                # Schedules a reload, also when setup had failed on the old password.
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data_updates={CONF_PASSWORD: user_input[CONF_PASSWORD]},
+                    reason=(
+                        "reconfigure_successful"
+                        if step_id == "reconfigure"
+                        else "reauth_successful"
+                    ),
                 )
 
-        data_schema = vol.Schema(
-            {
-                vol.Required(
-                    CONF_EMAIL,
-                    default=self.config_entry.options.get(
-                        CONF_EMAIL, self.config_entry.data.get(CONF_EMAIL)
-                    ),
-                ): str,
-                vol.Required(
-                    CONF_PASSWORD,
-                    default=self.config_entry.options.get(
-                        CONF_PASSWORD, self.config_entry.data.get(CONF_PASSWORD)
-                    ),
-                ): str,
-            }
-        )
         return self.async_show_form(
-            step_id="init",
-            data_schema=data_schema,
+            step_id=step_id,
+            data_schema=PASSWORD_SCHEME,
+            description_placeholders={CONF_EMAIL: email},
             errors=errors,
         )

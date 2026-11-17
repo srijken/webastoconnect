@@ -99,8 +99,8 @@ class WebastoConnectUpdateCoordinator(DataUpdateCoordinator[None]):
         self.config_entry = entry
         credential_load, credential_save = _credential_callbacks(hass, entry)
         self.cloud: WebastoConnect = WebastoConnect(
-            username=entry.options.get(CONF_EMAIL, entry.data.get(CONF_EMAIL)),
-            password=entry.options.get(CONF_PASSWORD, entry.data.get(CONF_PASSWORD)),
+            username=entry.data.get(CONF_EMAIL),
+            password=entry.data.get(CONF_PASSWORD),
             credential_load=credential_load,
             credential_save=credential_save,
             client_info=f"HomeAssistant-Webasto {version} {int(datetime.now().timestamp())}",

@@ -28,26 +28,10 @@
                 "description": "Bitte authentifiziere dein Webasto-Connect-Konto erneut, um fortzufahren.",
                 "title": "Webasto-Connect-Konto erneut authentifizieren",
                 "data": {
-                    "email": "E-Mail",
                     "password": "Passwort"
                 }
             },
             "user": {
-                "data": {
-                    "email": "E-Mail",
-                    "password": "Passwort"
-                }
-            }
-        }
-    },
-    "options": {
-        "error": {
-            "cannot_connect": "Verbindung nicht möglich",
-            "invalid_auth": "Ungültige Anmeldedaten",
-            "ratelimit": "Rate-Limit überschritten - bitte später erneut versuchen"
-        },
-        "step": {
-            "init": {
                 "data": {
                     "email": "E-Mail",
                     "password": "Passwort"

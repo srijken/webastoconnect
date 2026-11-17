@@ -28,26 +28,10 @@
                 "description": "Kirjaudu uudelleen Webasto Connect -tilillesi jatkaaksesi.",
                 "title": "Todenna Webasto Connect -tili uudelleen",
                 "data": {
-                    "email": "Sähköposti",
                     "password": "Salasana"
                 }
             },
             "user": {
-                "data": {
-                    "email": "Sähköposti",
-                    "password": "Salasana"
-                }
-            }
-        }
-    },
-    "options": {
-        "error": {
-            "cannot_connect": "Yhteyden muodostaminen epäonnistui",
-            "invalid_auth": "Virheelliset tunnistetiedot",
-            "ratelimit": "Pyyntöraja ylittynyt - yritä uudelleen myöhemmin"
-        },
-        "step": {
-            "init": {
                 "data": {
                     "email": "Sähköposti",
                     "password": "Salasana"

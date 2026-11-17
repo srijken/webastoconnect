@@ -28,26 +28,10 @@
                 "description": "Venligst genautentificer din Webasto Connect konto for at fortsætte.",
                 "title": "Genautentificer Webasto Connect konto",
                 "data": {
-                    "email": "Email",
                     "password": "Kodeord"
                 }
             },
             "user": {
-                "data": {
-                    "email": "Email",
-                    "password": "Kodeord"
-                }
-            }
-        }
-    },
-    "options": {
-        "error": {
-            "cannot_connect": "Kan ikke oprette forbindelse",
-            "invalid_auth": "Ugyldig autentificering",
-            "ratelimit": "Ratelimit overskredet - prøv igen senere"
-        },
-        "step": {
-            "init": {
                 "data": {
                     "email": "Email",
                     "password": "Kodeord"

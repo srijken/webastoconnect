@@ -39,6 +39,8 @@ Add "Webasto Connect (ThermoConnect)" integration *(If it doesn't appear, try a 
 
 Enter your Webasto account email and password
 
+To change the password later, open the integration and choose **Reconfigure**.
+
 # Known Issues
 
 ## My heater doesn't show up

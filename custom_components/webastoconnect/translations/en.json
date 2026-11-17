@@ -16,7 +16,8 @@
     "config": {
         "abort": {
             "already_configured": "This account is already configured",
-            "reauth_successful": "Sucessfully re-authenticated"
+            "reauth_successful": "Successfully re-authenticated",
+            "reconfigure_successful": "Password updated"
         },
         "error": {
             "cannot_connect": "Cannot connect",
@@ -25,10 +26,9 @@
         },
         "step": {
             "reauth_confirm": {
-                "description": "Please re-authenticate your Webasto Connect account to continue.",
+                "description": "Enter the password for {email} to continue.",
                 "title": "Re-authenticate Webasto Connect account",
                 "data": {
-                    "email": "Email",
                     "password": "Password"
                 }
             },
@@ -37,19 +37,11 @@
                     "email": "Email",
                     "password": "Password"
                 }
-            }
-        }
-    },
-    "options": {
-        "error": {
-            "cannot_connect": "Cannot connect",
-            "invalid_auth": "Invalid authentication",
-            "ratelimit": "Rate limit exceeded - try again later"
-        },
-        "step": {
-            "init": {
+            },
+            "reconfigure": {
+                "title": "Change Webasto Connect password",
+                "description": "Enter the new password for {email}.",
                 "data": {
-                    "email": "Email",
                     "password": "Password"
                 }
             }
