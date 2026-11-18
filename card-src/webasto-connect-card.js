@@ -319,6 +319,10 @@ class WebastoConnectCard extends HTMLElement {
 
   _openTimersPopup() {
     this._timersPopupOpen = true;
+    // Start on the active output; the user can switch to the other output.
+    this._timerLine = this._activeLine(
+      this._getState(this._resolveEntities().ventilation_mode_entity)
+    );
     this._render();
   }
 
@@ -326,6 +330,7 @@ class WebastoConnectCard extends HTMLElement {
     this._timersPopupOpen = false;
     this._timerDraftOpen = false;
     this._timerDraft = undefined;
+    this._timerLine = undefined;
     this._render();
   }
 
@@ -411,10 +416,9 @@ class WebastoConnectCard extends HTMLElement {
     if (timer) {
       this._timerDraft = this._draftFromTimer(timer);
     } else {
-      const ventilationMode = this._getState(this._resolveEntities().ventilation_mode_entity);
       this._timerDraft = {
         ...this._defaultTimerDraft(),
-        line_code: this._activeLine(ventilationMode),
+        line_code: this._selectedTimerLine(),
       };
     }
     this._render();
@@ -646,6 +650,28 @@ class WebastoConnectCard extends HTMLElement {
     return this._resolveMode(ventilationMode) === "ventilation" ? "OUTV" : "OUTH";
   }
 
+  // The ventilation mode switch only exists for devices that support
+  // ventilation, so it decides whether timers can be shown per output.
+  _supportsVentilation() {
+    return this._isModeSelectable(this._resolveEntities().ventilation_mode_entity);
+  }
+
+  // The output whose timers the popup lists and new timers are created for.
+  _selectedTimerLine() {
+    if (this._supportsVentilation() && (this._timerLine === "OUTH" || this._timerLine === "OUTV")) {
+      return this._timerLine;
+    }
+    return this._activeLine(this._getState(this._resolveEntities().ventilation_mode_entity));
+  }
+
+  _setTimerLine(lineCode) {
+    if ((lineCode !== "OUTH" && lineCode !== "OUTV") || this._timerDraftOpen) {
+      return;
+    }
+    this._timerLine = lineCode;
+    this._render();
+  }
+
   _formatTimerRepeat(timer) {
     if (!timer.repeat) {
       return localize(this._hass, "card.ui.timer_once");
@@ -794,9 +820,10 @@ class WebastoConnectCard extends HTMLElement {
     const connected = this._getState(entities.connected_entity);
     const nextTimer = this._getState(entities.next_timer_entity);
     const isConnected = this._isConnected(connected);
-    const activeLine = this._activeLine(ventilationMode);
+    const timerLine = this._selectedTimerLine();
+    const showTimerLineSwitch = this._supportsVentilation();
     const timers = this._timerItems(nextTimer).filter(
-      (timer) => timer.line_code === activeLine
+      (timer) => timer.line_code === timerLine
     );
     const isMainAvailable = Boolean(main);
     const isOn = isMainAvailable && main.state === "on";
@@ -1253,11 +1280,13 @@ class WebastoConnectCard extends HTMLElement {
           grid-template-columns: 1fr 1fr;
           gap: 12px;
         }
-        .timer-type {
+        .timer-type,
+        .timer-line {
           display: flex;
           gap: 8px;
         }
-        .timer-type-option {
+        .timer-type-option,
+        .timer-line-option {
           flex: 1;
           border: 1px solid var(--divider-color, #ddd);
           border-radius: 12px;
@@ -1267,16 +1296,28 @@ class WebastoConnectCard extends HTMLElement {
           cursor: pointer;
           font: inherit;
         }
-        .timer-type-option.selected {
+        .timer-type-option.selected,
+        .timer-line-option.selected {
           background: var(--primary-color, #03a9f4);
           color: var(--text-primary-color, #fff);
           border-color: var(--primary-color, #03a9f4);
         }
-        .timer-type-option[disabled] {
+        .timer-type-option[disabled],
+        .timer-line-option[disabled] {
           cursor: default;
         }
-        .timer-type-option[disabled]:not(.selected) {
+        .timer-type-option[disabled]:not(.selected),
+        .timer-line-option[disabled]:not(.selected) {
           opacity: 0.45;
+        }
+        .timer-field {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .timer-field-label {
+          color: var(--primary-text-color, #111);
+          font-size: 14px;
         }
         .timer-badge {
           display: inline-block;
@@ -1456,6 +1497,13 @@ class WebastoConnectCard extends HTMLElement {
             <button class="modal-close" id="timers-modal-close">${escapeAttr(closeText)}</button>
           </div>
           <div class="timers-modal-body">
+            ${showTimerLineSwitch ? `
+            <div class="timer-line" role="group" aria-label="${escapeAttr(localize(this._hass, "card.ui.output"))}">
+              ${[["OUTH", "card.ui.timer_line_heater"], ["OUTV", "card.ui.timer_line_ventilation"]].map(([line, key]) => `
+              <button class="timer-line-option ${timerLine === line ? "selected" : ""}" data-timer-line="${escapeAttr(line)}" type="button" aria-pressed="${timerLine === line ? "true" : "false"}" ${timerDraftOpen ? "disabled" : ""}>${escapeAttr(localize(this._hass, key))}</button>
+              `).join("")}
+            </div>
+            ` : ""}
             ${timerDraftOpen ? `
             <div class="timer-form">
               <div class="timer-type" role="group" aria-label="${escapeAttr(localize(this._hass, "card.ui.timer_type"))}">
@@ -1463,6 +1511,16 @@ class WebastoConnectCard extends HTMLElement {
                 <button class="timer-type-option ${timerDraft.type === type ? "selected" : ""}" data-timer-type="${escapeAttr(type)}" type="button" aria-pressed="${timerDraft.type === type ? "true" : "false"}" ${Number.isInteger(timerDraft.timer_index) ? "disabled" : ""}>${escapeAttr(localize(this._hass, key))}</button>
                 `).join("")}
               </div>
+              ${showTimerLineSwitch ? `
+              <div class="timer-field">
+                <span class="timer-field-label" id="timer-draft-line-label">${escapeAttr(localize(this._hass, "card.ui.output"))}</span>
+                <div class="timer-line" role="group" aria-labelledby="timer-draft-line-label">
+                  ${[["OUTH", "card.ui.timer_line_heater"], ["OUTV", "card.ui.timer_line_ventilation"]].map(([line, key]) => `
+                  <button class="timer-line-option ${timerDraft.line_code === line ? "selected" : ""}" data-draft-line="${escapeAttr(line)}" type="button" aria-pressed="${timerDraft.line_code === line ? "true" : "false"}" ${Number.isInteger(timerDraft.timer_index) ? "disabled" : ""}>${escapeAttr(localize(this._hass, key))}</button>
+                  `).join("")}
+                </div>
+              </div>
+              ` : ""}
               ${timerDraft.type === "smart" ? `
               <div class="timer-form-grid">
                 <label>${escapeAttr(localize(this._hass, "card.ui.departure_time"))}
@@ -1533,7 +1591,8 @@ class WebastoConnectCard extends HTMLElement {
               <button class="timer-add" id="timer-add" type="button">${escapeAttr(localize(this._hass, "card.ui.add_timer"))}</button>
             </div>
             ` : ""}
-            <div class="timers-note">${escapeAttr(canManageTimers ? localize(this._hass, "card.ui.timers_manage_note") : localize(this._hass, "card.ui.timers_readonly_note"))}</div>
+            <div class="timers-note">${escapeAttr(localize(this._hass, timerLine === "OUTV" ? "card.ui.timers_showing_ventilation" : "card.ui.timers_showing_heater"))}</div>
+            ${canManageTimers ? "" : `<div class="timers-note">${escapeAttr(localize(this._hass, "card.ui.timers_readonly_note"))}</div>`}
           </div>
         </div>
       </div>
@@ -1719,6 +1778,22 @@ class WebastoConnectCard extends HTMLElement {
             this._setTimerDraftField(field, ev.currentTarget.value);
           });
         }
+      });
+
+      this.shadowRoot.querySelectorAll(".timer-line-option[data-timer-line]").forEach((button) => {
+        button.onclick = (ev) => {
+          this._setTimerLine(ev.currentTarget?.dataset?.timerLine);
+        };
+      });
+
+      this.shadowRoot.querySelectorAll(".timer-line-option[data-draft-line]").forEach((button) => {
+        button.onclick = (ev) => {
+          const line = ev.currentTarget?.dataset?.draftLine;
+          // The output of an existing timer cannot be changed.
+          if ((line === "OUTH" || line === "OUTV") && !Number.isInteger(this._timerDraft?.timer_index)) {
+            this._setTimerDraftField("line_code", line);
+          }
+        };
       });
 
       this.shadowRoot.querySelectorAll(".timer-type-option").forEach((button) => {
