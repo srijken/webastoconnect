@@ -193,6 +193,9 @@
             "subscription_expiration": {
                 "name": "Konec předplatného"
             },
+            "subscription_days_left": {
+                "name": "Zbývající dny předplatného"
+            },
             "main_output_end_time": {
                 "name": "Konec: {output_name}"
             },

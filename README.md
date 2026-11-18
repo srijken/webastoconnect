@@ -54,7 +54,7 @@ version afterwards creates duplicate entities (with a `_2` suffix).
 
 ## Subscription expiry reminder
 
-The ThermoConnect subscription does not renew automatically. From 30 days before the expiration date (the *Subscription expiration* sensor), a repair issue in Home Assistant (Settings > System > Repairs) reminds you to renew it on [My Webasto Connect](https://my.webastoconnect.com); once it has expired the issue becomes an error, because the service is suspended and a reactivation fee applies. The issue goes away by itself after the renewal shows up in the cloud data.
+The ThermoConnect subscription does not renew automatically. From 30 days before the expiration date (the *Subscription expiration* sensor), a repair issue in Home Assistant (Settings > System > Repairs) reminds you to renew it on [My Webasto Connect](https://my.webastoconnect.com); once it has expired the issue becomes an error, because the service is suspended and a reactivation fee applies. The issue goes away by itself after the renewal shows up in the cloud data. The *Subscription days left* sensor shows the same count of days (0 on the last day, negative once expired), for use in your own automations or dashboards.
 
 ## Entity names and languages
 
