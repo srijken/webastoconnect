@@ -18,29 +18,29 @@ from custom_components.webastoconnect.const import DOMAIN
 from .fake_webasto import DEVICE_ID, FakeWebastoCloud
 
 EXPECTED_ENTITY_IDS = {
-    "binary_sensor.defender_allow_location_services",
-    "binary_sensor.defender_connected",
-    "binary_sensor.defender_geofence",
-    "binary_sensor.defender_low_battery_voltage",
-    "binary_sensor.defender_switch_off_on_signal_loss",
-    "device_tracker.defender_location",
-    "number.defender_low_voltage_cutoff",
-    "number.defender_temperature_compensation",
-    "sensor.defender_alarm_state",
-    "sensor.defender_battery",
-    "sensor.defender_default_output",
-    "sensor.defender_emulation_mode",
-    "sensor.defender_external_software_version",
-    "sensor.defender_geofence_radius",
-    "sensor.defender_heater_ends",
-    "sensor.defender_last_seen",
-    "sensor.defender_next_start",
-    "sensor.defender_subscription_expiration",
-    "sensor.defender_subscription_status",
-    "sensor.defender_switch_off_after_signal_loss",
-    "sensor.defender_temperature",
-    "switch.defender_heater",
-    "switch.defender_ventilation_mode",
+    "binary_sensor.camper_allow_location_services",
+    "binary_sensor.camper_connected",
+    "binary_sensor.camper_geofence",
+    "binary_sensor.camper_low_battery_voltage",
+    "binary_sensor.camper_switch_off_on_signal_loss",
+    "device_tracker.camper_location",
+    "number.camper_low_voltage_cutoff",
+    "number.camper_temperature_compensation",
+    "sensor.camper_alarm_state",
+    "sensor.camper_battery",
+    "sensor.camper_default_output",
+    "sensor.camper_emulation_mode",
+    "sensor.camper_external_software_version",
+    "sensor.camper_geofence_radius",
+    "sensor.camper_heater_ends",
+    "sensor.camper_last_seen",
+    "sensor.camper_next_start",
+    "sensor.camper_subscription_expiration",
+    "sensor.camper_subscription_status",
+    "sensor.camper_switch_off_after_signal_loss",
+    "sensor.camper_temperature",
+    "switch.camper_heater",
+    "switch.camper_ventilation_mode",
 }
 
 
@@ -60,7 +60,7 @@ async def test_setup_and_unload(
         (DOMAIN, DEVICE_ID), config_entry.entry_id
     )
     assert device is not None
-    assert device.name == "Defender"
+    assert device.name == "Camper"
     assert device.manufacturer == "Webasto"
     assert device.hw_version == "35.0"
 
@@ -71,15 +71,15 @@ async def test_setup_and_unload(
     assert all(entry.unique_id.startswith(f"{DEVICE_ID}_") for entry in entries)
     assert all(entry.device_id == device.id for entry in entries)
 
-    assert hass.states.get("switch.defender_heater").state == STATE_OFF
-    temperature = hass.states.get("sensor.defender_temperature")
+    assert hass.states.get("switch.camper_heater").state == STATE_OFF
+    temperature = hass.states.get("sensor.camper_temperature")
     assert temperature.state == "9"
     assert temperature.attributes["unit_of_measurement"] == "°C"
-    assert hass.states.get("sensor.defender_battery").state == "10.1"
-    assert hass.states.get("binary_sensor.defender_low_battery_voltage").state == (
+    assert hass.states.get("sensor.camper_battery").state == "10.1"
+    assert hass.states.get("binary_sensor.camper_low_battery_voltage").state == (
         STATE_ON
     )
-    assert hass.states.get("binary_sensor.defender_connected").state == STATE_ON
+    assert hass.states.get("binary_sensor.camper_connected").state == STATE_ON
 
     assert await hass.config_entries.async_unload(config_entry.entry_id)
     await hass.async_block_till_done()
@@ -98,14 +98,14 @@ async def test_switch_turn_on_sends_command(
     await hass.services.async_call(
         "switch",
         "turn_on",
-        {"entity_id": "switch.defender_heater"},
+        {"entity_id": "switch.camper_heater"},
         blocking=True,
     )
 
     assert ("POST", f"/remote/client/fake-client-id/device/{DEVICE_ID}/cmd") in {
         (method, path) for method, path, _ in fake_cloud.requests
     }
-    assert hass.states.get("switch.defender_heater").state == STATE_ON
+    assert hass.states.get("switch.camper_heater").state == STATE_ON
 
 
 async def test_device_info_versions_are_strings(

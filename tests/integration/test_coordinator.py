@@ -17,10 +17,10 @@ from custom_components.webastoconnect.api import SCAN_INTERVAL
 from .fake_webasto import DEVICE_ID, FakeWebastoCloud
 
 ENTITY_IDS = (
-    "switch.defender_heater",
-    "sensor.defender_temperature",
-    "binary_sensor.defender_low_battery_voltage",
-    "device_tracker.defender_location",
+    "switch.camper_heater",
+    "sensor.camper_temperature",
+    "binary_sensor.camper_low_battery_voltage",
+    "device_tracker.camper_location",
 )
 
 
@@ -56,19 +56,19 @@ async def test_update_failure_and_recovery(
     requests = len(fake_cloud.requests)
     await _tick(hass, freezer, SCAN_INTERVAL)
     assert len(fake_cloud.requests) == requests
-    assert hass.states.get("switch.defender_heater").state == STATE_UNAVAILABLE
+    assert hass.states.get("switch.camper_heater").state == STATE_UNAVAILABLE
 
     # The heater was switched on in the app while the cloud was unreachable.
     fake_cloud.devices[DEVICE_ID]["outputs"][0]["state"] = "ON"
     fake_cloud.devices[DEVICE_ID]["temperature"] = "12C"
     await _tick(hass, freezer, timedelta(seconds=300) - SCAN_INTERVAL)
 
-    assert hass.states.get("switch.defender_heater").state == STATE_ON
-    assert hass.states.get("sensor.defender_temperature").state == "12"
-    assert hass.states.get("binary_sensor.defender_low_battery_voltage").state == (
+    assert hass.states.get("switch.camper_heater").state == STATE_ON
+    assert hass.states.get("sensor.camper_temperature").state == "12"
+    assert hass.states.get("binary_sensor.camper_low_battery_voltage").state == (
         STATE_ON
     )
-    assert hass.states.get("device_tracker.defender_location").state != (
+    assert hass.states.get("device_tracker.camper_location").state != (
         STATE_UNAVAILABLE
     )
 
@@ -83,13 +83,13 @@ async def test_update_picks_up_state_changes(
     """A scheduled update writes the new cloud state to the entities."""
     assert await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
-    assert hass.states.get("switch.defender_heater").state == STATE_OFF
+    assert hass.states.get("switch.camper_heater").state == STATE_OFF
 
     fake_cloud.devices[DEVICE_ID]["outputs"][0]["state"] = "ON"
     fake_cloud.devices[DEVICE_ID]["vwarn"] = False
     await _tick(hass, freezer, SCAN_INTERVAL)
 
-    assert hass.states.get("switch.defender_heater").state == STATE_ON
-    assert hass.states.get("binary_sensor.defender_low_battery_voltage").state == (
+    assert hass.states.get("switch.camper_heater").state == STATE_ON
+    assert hass.states.get("binary_sensor.camper_low_battery_voltage").state == (
         STATE_OFF
     )

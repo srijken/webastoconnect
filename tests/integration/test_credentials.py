@@ -47,7 +47,7 @@ async def test_reauth_after_failed_setup_loads_entry(
     assert config_entry.data == {CONF_EMAIL: EMAIL, CONF_PASSWORD: NEW_PASSWORD}
     assert config_entry.state is ConfigEntryState.LOADED
     assert config_entry.runtime_data.coordinator.cloud.password == NEW_PASSWORD
-    assert hass.states.get("switch.defender_heater") is not None
+    assert hass.states.get("switch.camper_heater") is not None
 
 
 async def test_reauth_on_loaded_entry_reloads(

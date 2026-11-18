@@ -13,18 +13,18 @@ from .fake_webasto import DEVICE_ID, EMAIL, PASSWORD, FakeWebastoCloud
 
 # (domain, name the entity had before 1.3, entity_id, description key)
 OLD_ENTITIES = [
-    ("sensor", "Temperature", "sensor.defender_temperature", "temperature"),
+    ("sensor", "Temperature", "sensor.camper_temperature", "temperature"),
     (
         "binary_sensor",
         "Low Battery Voltage",
-        "binary_sensor.defender_low_battery_voltage",
+        "binary_sensor.camper_low_battery_voltage",
         "low_voltage_warning",
     ),
     # The main output switch was named after the output in the Webasto app.
-    ("switch", "Heater", "switch.defender_heater", "main_output"),
+    ("switch", "Heater", "switch.camper_heater", "main_output"),
     # The end-time sensor was named after the main output too.
-    ("sensor", "Heater ends", "sensor.defender_heater_ends", "main_output_end_time"),
-    ("device_tracker", "Location", "device_tracker.defender_location", "devicetracker"),
+    ("sensor", "Heater ends", "sensor.camper_heater_ends", "main_output_end_time"),
+    ("device_tracker", "Location", "device_tracker.camper_location", "devicetracker"),
 ]
 
 
@@ -97,7 +97,7 @@ async def test_unique_id_migration_runs_once(
     assert registry.async_get(leftover.entity_id).unique_id == leftover.unique_id
     assert (
         registry.async_get_entity_id("sensor", DOMAIN, f"{DEVICE_ID}_battery_voltage")
-        == "sensor.defender_battery"
+        == "sensor.camper_battery"
     )
 
 
