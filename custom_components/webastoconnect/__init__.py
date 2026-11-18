@@ -244,6 +244,8 @@ async def _async_setup(
     await _async_ensure_lovelace_card_resource(hass, card_hash)
 
     coordinator = WebastoConnectUpdateCoordinator(hass, entry, integration.version)
+    # Closes the cloud session on unload and on every failed setup path.
+    entry.async_on_unload(coordinator.cloud.close)
     try:
         await coordinator.cloud.connect()
         LOGGER.debug(
@@ -251,21 +253,16 @@ async def _async_setup(
             entry.data.get(CONF_EMAIL),
         )
     except UnauthorizedException:
-        await coordinator.cloud.close()
         raise ConfigEntryAuthFailed("Invalid email or password specified") from None
-    except (InvalidRequestException, ForbiddenException) as err:
-        await coordinator.cloud.close()
+    except InvalidRequestException as err:
         raise ConfigEntryError(f"Webasto API rejected setup request: {err}") from err
-    except InvalidResponseException as err:
-        await coordinator.cloud.close()
+    except (InvalidResponseException, ForbiddenException) as err:
         raise ConfigEntryNotReady(
             f"Error connecting to the API - try again later: {err}"
         ) from err
     except TooManyRequestsException as err:
-        await coordinator.cloud.close()
-        raise ConfigEntryError(
-            f"Rate limited - reload the integration later: {err}"
-        ) from err
+        # Temporary: let Home Assistant retry setup with backoff.
+        raise ConfigEntryNotReady(f"Rate limited by the Webasto API: {err}") from err
 
     webapi_device_names = await _async_webapi_device_names(coordinator)
     coordinator.device_names = webapi_device_names
@@ -294,7 +291,6 @@ async def _async_setup(
             translation_key="pending_approval",
             translation_placeholders={"devices": devices},
         )
-        await coordinator.cloud.close()
         raise ConfigEntryError(
             "Webasto device association is pending approval in the ThermoConnect app"
         )

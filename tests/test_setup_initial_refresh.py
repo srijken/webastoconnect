@@ -9,6 +9,7 @@ from homeassistant.const import CONF_EMAIL
 from homeassistant.exceptions import (
     ConfigEntryAuthFailed,
     ConfigEntryError,
+    ConfigEntryNotReady,
 )
 from pywebasto.exceptions import (
     InvalidRequestException,
@@ -26,6 +27,21 @@ def mock_issue_delete(monkeypatch) -> None:
     monkeypatch.setattr(
         integration, "_async_webapi_device_names", AsyncMock(return_value={})
     )
+
+
+def _entry() -> SimpleNamespace:
+    """Build a config entry stub that records on-unload callbacks."""
+    entry = SimpleNamespace(
+        entry_id="entry-1", data={CONF_EMAIL: "a@b.c"}, options={}, on_unload=[]
+    )
+    entry.async_on_unload = entry.on_unload.append
+    return entry
+
+
+async def _run_on_unload(entry: SimpleNamespace) -> None:
+    """Run on-unload callbacks like Home Assistant does after a failed setup."""
+    for func in entry.on_unload:
+        await func()
 
 
 def _mock_hass_for_setup() -> SimpleNamespace:
@@ -55,7 +71,9 @@ async def test_setup_skips_first_refresh_when_connect_hydrates_devices(
 
     def coordinator_factory(*_args, **_kwargs):
         coordinator = SimpleNamespace(
-            cloud=SimpleNamespace(connect=AsyncMock(), devices={1: device}),
+            cloud=SimpleNamespace(
+                connect=AsyncMock(), close=AsyncMock(), devices={1: device}
+            ),
             async_config_entry_first_refresh=AsyncMock(),
             async_set_updated_data=Mock(),
         )
@@ -78,7 +96,7 @@ async def test_setup_skips_first_refresh_when_connect_hydrates_devices(
     )
 
     hass = _mock_hass_for_setup()
-    entry = SimpleNamespace(entry_id="entry-1", data={CONF_EMAIL: "a@b.c"}, options={})
+    entry = _entry()
 
     result = await integration._async_setup(hass, entry)
 
@@ -100,7 +118,7 @@ async def test_setup_runs_first_refresh_when_connect_has_no_devices(
 
     def coordinator_factory(*_args, **_kwargs):
         coordinator = SimpleNamespace(
-            cloud=SimpleNamespace(connect=AsyncMock(), devices={}),
+            cloud=SimpleNamespace(connect=AsyncMock(), close=AsyncMock(), devices={}),
             async_config_entry_first_refresh=AsyncMock(),
             async_set_updated_data=Mock(),
         )
@@ -117,7 +135,7 @@ async def test_setup_runs_first_refresh_when_connect_has_no_devices(
     )
 
     hass = _mock_hass_for_setup()
-    entry = SimpleNamespace(entry_id="entry-1", data={CONF_EMAIL: "a@b.c"}, options={})
+    entry = _entry()
 
     result = await integration._async_setup(hass, entry)
 
@@ -156,11 +174,12 @@ async def test_setup_closes_client_when_connect_auth_fails(monkeypatch) -> None:
     )
 
     hass = _mock_hass_for_setup()
-    entry = SimpleNamespace(entry_id="entry-1", data={CONF_EMAIL: "a@b.c"}, options={})
+    entry = _entry()
 
     with pytest.raises(ConfigEntryAuthFailed):
         await integration._async_setup(hass, entry)
 
+    await _run_on_unload(entry)
     created[0].cloud.close.assert_awaited_once()
 
 
@@ -192,17 +211,18 @@ async def test_setup_closes_client_when_connect_temporarily_fails(monkeypatch) -
     )
 
     hass = _mock_hass_for_setup()
-    entry = SimpleNamespace(entry_id="entry-1", data={CONF_EMAIL: "a@b.c"}, options={})
+    entry = _entry()
 
     with pytest.raises(ConfigEntryError):
         await integration._async_setup(hass, entry)
 
+    await _run_on_unload(entry)
     created[0].cloud.close.assert_awaited_once()
 
 
 @pytest.mark.asyncio
 async def test_setup_closes_client_when_connect_is_rate_limited(monkeypatch) -> None:
-    """Rate-limited setup should close the pywebasto client."""
+    """Rate-limited setup is retried later and closes the pywebasto client."""
     created: list[SimpleNamespace] = []
 
     def coordinator_factory(*_args, **_kwargs):
@@ -228,12 +248,13 @@ async def test_setup_closes_client_when_connect_is_rate_limited(monkeypatch) -> 
     )
 
     hass = _mock_hass_for_setup()
-    entry = SimpleNamespace(entry_id="entry-1", data={CONF_EMAIL: "a@b.c"}, options={})
+    entry = _entry()
 
-    with pytest.raises(ConfigEntryError) as exc_info:
+    with pytest.raises(ConfigEntryNotReady) as exc_info:
         await integration._async_setup(hass, entry)
 
     assert "Rate limited" in str(exc_info.value)
+    await _run_on_unload(entry)
     created[0].cloud.close.assert_awaited_once()
 
 
@@ -276,12 +297,13 @@ async def test_setup_stops_when_device_is_pending_approval(monkeypatch) -> None:
     monkeypatch.setattr(integration.ir, "async_delete_issue", delete_issue)
 
     hass = _mock_hass_for_setup()
-    entry = SimpleNamespace(entry_id="entry-1", data={CONF_EMAIL: "a@b.c"}, options={})
+    entry = _entry()
 
     with pytest.raises(ConfigEntryError) as exc_info:
         await integration._async_setup(hass, entry)
 
     assert "pending approval" in str(exc_info.value)
+    await _run_on_unload(entry)
     created[0].cloud.close.assert_awaited_once()
     created[0].async_set_updated_data.assert_not_called()
     created[0].async_config_entry_first_refresh.assert_not_awaited()
