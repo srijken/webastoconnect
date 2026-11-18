@@ -43,7 +43,17 @@
       "day_thursday": "To",
       "day_friday": "Pe",
       "day_saturday": "La",
-      "day_sunday": "Su"
+      "day_sunday": "Su",
+      "timer_type": "Ajastimen tyyppi",
+      "timer_type_simple": "Yksinkertainen",
+      "timer_type_smart": "Älykäs",
+      "departure_time": "Lähtöaika",
+      "max_duration_minutes": "Enimmäiskesto (min)",
+      "comfort_level": "Mukavuustaso",
+      "smart_timer_help": "Lämmitin käynnistyy itse ennen lähtöaikaa, enintään enimmäiskeston verran aiemmin. Webasto-sovelluksessa on nähty vain mukavuustaso 5.",
+      "timer_departure": "Lähtö {time}",
+      "timer_max_duration": "Enint. {minutes} min",
+      "timer_comfort": "Mukavuus {level}"
     }
   }
 }

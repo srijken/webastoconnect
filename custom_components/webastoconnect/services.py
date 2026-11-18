@@ -23,7 +23,7 @@ from pywebasto.exceptions import (
 )
 
 try:
-    from pywebasto import SimpleTimer
+    from pywebasto import SimpleTimer, SmartTimer
     from pywebasto.enums import Outputs
 except ImportError:
 
@@ -33,6 +33,18 @@ except ImportError:
 
         start: int
         duration: int
+        repeat: int
+        latitude: str | None = None
+        longitude: str | None = None
+        enabled: bool = True
+
+    @dataclass(slots=True)
+    class SmartTimer:  # type: ignore[no-redef]
+        """Fallback smart timer model for local/test environments."""
+
+        start: int
+        max_duration: int
+        comfort_level: int
         repeat: int
         latitude: str | None = None
         longitude: str | None = None
@@ -53,8 +65,10 @@ except ImportError:
 
 from .const import (
     DOMAIN,
+    SERVICE_CREATE_SMART_TIMER,
     SERVICE_CREATE_TIMER,
     SERVICE_DELETE_TIMER,
+    SERVICE_UPDATE_SMART_TIMER,
     SERVICE_UPDATE_TIMER,
 )
 
@@ -74,6 +88,13 @@ ATTR_LATITUDE = "latitude"
 ATTR_LONGITUDE = "longitude"
 ATTR_CLEAR_LOCATION = "clear_location"
 ATTR_LINE = "line"
+ATTR_TYPE = "type"
+ATTR_DEPARTURE_TIME = "departure_time"
+ATTR_MAX_DURATION_MINUTES = "max_duration_minutes"
+ATTR_COMFORT_LEVEL = "comfort_level"
+TIMER_TYPE_SIMPLE = "simple"
+TIMER_TYPE_SMART = "smart"
+TIMER_TYPES = (TIMER_TYPE_SIMPLE, TIMER_TYPE_SMART)
 LINE_HEATER = "heater"
 LINE_VENTILATION = "ventilation"
 LINE_HEATER_LEGACY = "OUTH"
@@ -96,6 +117,16 @@ WEEKDAY_TO_MASK = {
 
 MAX_DURATION_MINUTES = 1440
 MAX_REPEAT_MASK = 127  # Monday..Sunday bits
+# Smart timers: the heater starts by itself before the departure time, for at
+# most `max_duration`. Observed values are 30 minutes (app) and 50 minutes
+# (web dump); 120 minutes matches the longest heater run time setting seen
+# (7200 s) and keeps the start within a sensible window before departure.
+MAX_SMART_DURATION_MINUTES = 120
+# Only comfort level 5 has been observed. The real range is unknown, so a
+# small range around it is accepted; this is not verified against a device.
+MIN_COMFORT_LEVEL = 1
+MAX_COMFORT_LEVEL = 10
+DEFAULT_COMFORT_LEVEL = 5
 
 
 def _geo_string(validator: Any) -> Any:
@@ -121,6 +152,12 @@ def _geo_string(validator: Any) -> Any:
 
 
 _DURATION_MINUTES = vol.All(vol.Coerce(int), vol.Range(min=1, max=MAX_DURATION_MINUTES))
+_MAX_DURATION_MINUTES = vol.All(
+    vol.Coerce(int), vol.Range(min=1, max=MAX_SMART_DURATION_MINUTES)
+)
+_COMFORT_LEVEL = vol.All(
+    vol.Coerce(int), vol.Range(min=MIN_COMFORT_LEVEL, max=MAX_COMFORT_LEVEL)
+)
 _REPEAT = vol.All(vol.Coerce(int), vol.Range(min=0, max=MAX_REPEAT_MASK))
 _LOCATION_SCHEMA = vol.Schema(
     {
@@ -159,9 +196,38 @@ _UPDATE_TIMER_SCHEMA = _BASE_SCHEMA.extend(
         vol.Optional(ATTR_LONGITUDE): _geo_string(cv.longitude),
     }
 )
+_CREATE_SMART_TIMER_SCHEMA = _BASE_SCHEMA.extend(
+    {
+        vol.Optional(ATTR_LINE): vol.In(VALID_TIMER_LINES),
+        vol.Required(ATTR_DEPARTURE_TIME): cv.string,
+        vol.Required(ATTR_MAX_DURATION_MINUTES): _MAX_DURATION_MINUTES,
+        vol.Optional(ATTR_COMFORT_LEVEL, default=DEFAULT_COMFORT_LEVEL): (
+            _COMFORT_LEVEL
+        ),
+        vol.Optional(ATTR_REPEAT_DAYS, default=[]): [vol.In(tuple(WEEKDAY_TO_MASK))],
+        vol.Optional(ATTR_ENABLED, default=True): cv.boolean,
+        vol.Optional(ATTR_LOCATION): _LOCATION_SCHEMA,
+    }
+)
+_UPDATE_SMART_TIMER_SCHEMA = _BASE_SCHEMA.extend(
+    {
+        vol.Optional(ATTR_LINE, default=LINE_HEATER): vol.In(VALID_TIMER_LINES),
+        vol.Required(ATTR_TIMER_INDEX): vol.All(vol.Coerce(int), vol.Range(min=0)),
+        vol.Optional(ATTR_DEPARTURE_TIME): cv.string,
+        vol.Optional(ATTR_MAX_DURATION_MINUTES): _MAX_DURATION_MINUTES,
+        vol.Optional(ATTR_COMFORT_LEVEL): _COMFORT_LEVEL,
+        vol.Optional(ATTR_REPEAT_DAYS): [vol.In(tuple(WEEKDAY_TO_MASK))],
+        vol.Optional(ATTR_ENABLED): cv.boolean,
+        vol.Optional(ATTR_CLEAR_LOCATION): cv.boolean,
+        vol.Optional(ATTR_LOCATION): _LOCATION_SCHEMA,
+    }
+)
 _DELETE_TIMER_SCHEMA = _BASE_SCHEMA.extend(
     {
         vol.Required(ATTR_TIMER_INDEX): vol.All(vol.Coerce(int), vol.Range(min=0)),
+        # Without a line the active output is used, as before.
+        vol.Optional(ATTR_LINE): vol.In(VALID_TIMER_LINES),
+        vol.Optional(ATTR_TYPE, default=TIMER_TYPE_SIMPLE): vol.In(TIMER_TYPES),
     }
 )
 
@@ -245,6 +311,17 @@ def _ensure_timer_api_support(coordinator: Any) -> None:
         )
 
 
+def _ensure_all_timers_api_support(coordinator: Any) -> None:
+    """Validate that installed pywebasto can read and save every timer type."""
+    if not hasattr(coordinator.cloud, "get_all_timers") or not hasattr(
+        coordinator.cloud, "save_all_timers"
+    ):
+        raise HomeAssistantError(
+            translation_domain=DOMAIN,
+            translation_key="timers_not_supported",
+        )
+
+
 def _output_for_line(line: str) -> Any:
     """Map API line id to pywebasto Outputs value."""
     normalized = line.strip().lower()
@@ -289,12 +366,19 @@ def _normalize_geo_value(value: Any) -> str | None:
     return str(value)
 
 
-def _parse_clock_time(value: Any) -> time:
+def _invalid_clock_time(value: str, departure: bool) -> ServiceValidationError:
+    """Return the error for a start or departure time that is not HH:MM."""
+    if departure:
+        return _validation_error("invalid_departure_time", {"departure_time": value})
+    return _validation_error("invalid_start_time", {"start_time": value})
+
+
+def _parse_clock_time(value: Any, *, departure: bool = False) -> time:
     """Parse selector value to clock time."""
     if isinstance(value, time):
         return value
     if not isinstance(value, str):
-        raise _validation_error("invalid_start_time", {"start_time": str(value)})
+        raise _invalid_clock_time(str(value), departure)
 
     candidate = value.strip()
     for fmt in ("%H:%M", "%H:%M:%S"):
@@ -302,13 +386,15 @@ def _parse_clock_time(value: Any) -> time:
             return datetime.strptime(candidate, fmt).time()
         except ValueError:
             continue
-    raise _validation_error("invalid_start_time", {"start_time": candidate})
+    raise _invalid_clock_time(candidate, departure)
 
 
-def _start_minutes_from_local_time(hass: HomeAssistant, value: Any) -> int:
+def _start_minutes_from_local_time(
+    hass: HomeAssistant, value: Any, *, departure: bool = False
+) -> int:
     """Convert local clock time to UTC minutes after midnight."""
     tz = dt_util.get_time_zone(hass.config.time_zone) or UTC
-    clock = _parse_clock_time(value)
+    clock = _parse_clock_time(value, departure=departure)
     now_local = datetime.now(tz)
     local_dt = datetime(
         now_local.year,
@@ -417,6 +503,65 @@ def _coerce_timer(
     )
 
 
+def _coerce_smart_timer(
+    data: dict[str, Any],
+    *,
+    existing: Any | None = None,
+    hass: HomeAssistant | None = None,
+) -> SmartTimer:
+    """Build a SmartTimer from action data, optionally patching an existing one.
+
+    The departure time is stored in `start` (minutes after midnight UTC), as
+    the Webasto cloud returns it.
+    """
+    start = getattr(existing, "start", None)
+    if ATTR_DEPARTURE_TIME in data:
+        if hass is None:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="start_time_conversion_unavailable",
+            )
+        start = _start_minutes_from_local_time(
+            hass, data[ATTR_DEPARTURE_TIME], departure=True
+        )
+
+    max_duration = getattr(existing, "max_duration", None)
+    if ATTR_MAX_DURATION_MINUTES in data:
+        max_duration = int(data[ATTR_MAX_DURATION_MINUTES]) * 60
+
+    comfort_level = data.get(
+        ATTR_COMFORT_LEVEL, getattr(existing, "comfort_level", None)
+    )
+    repeat = getattr(existing, "repeat", None)
+    if ATTR_REPEAT_DAYS in data:
+        repeat = _repeat_mask_from_days(data[ATTR_REPEAT_DAYS])
+    enabled = data.get(ATTR_ENABLED, getattr(existing, "enabled", True))
+    clear_location = bool(data.get(ATTR_CLEAR_LOCATION, False))
+    latitude, longitude = _resolve_location_values(data, existing, clear_location)
+
+    if None in (start, max_duration, comfort_level, repeat):
+        raise _validation_error("missing_smart_timer_values")
+
+    return SmartTimer(
+        start=int(start),
+        max_duration=int(max_duration),
+        comfort_level=int(comfort_level),
+        repeat=int(repeat),
+        enabled=bool(enabled),
+        latitude=latitude,
+        longitude=longitude,
+    )
+
+
+def _smart_positions(timers: list[Any]) -> list[int]:
+    """Return the list positions of the smart timers in a full timer list."""
+    return [
+        position
+        for position, timer in enumerate(timers)
+        if isinstance(timer, SmartTimer)
+    ]
+
+
 async def async_create_timer(
     coordinator: Any,
     device: Any,
@@ -490,15 +635,90 @@ async def async_update_timer(
     coordinator.async_update_listeners()
 
 
+async def async_create_smart_timer(
+    coordinator: Any,
+    device: Any,
+    timer: SmartTimer,
+    line: str | None = None,
+) -> None:
+    """Create a smart timer; every other timer on the line is kept as-is."""
+
+    async def _operation() -> None:
+        output = (
+            _output_for_line(line)
+            if line is not None
+            else _active_output_for_device(device)
+        )
+        timers = await coordinator.cloud.get_all_timers(device=device, line=output)
+        timers.append(timer)
+        await coordinator.cloud.save_all_timers(
+            device=device, timers=timers, line=output
+        )
+
+    await coordinator.async_execute_cloud_call(_operation)
+    coordinator.async_update_listeners()
+
+
+async def async_update_smart_timer(
+    coordinator: Any,
+    device: Any,
+    timer_index: int,
+    timer_data: dict[str, Any],
+    line: str = LINE_HEATER,
+    hass: HomeAssistant | None = None,
+) -> None:
+    """Update the smart timer at `timer_index` (counting smart timers only)."""
+
+    async def _operation() -> None:
+        output = _output_for_line(line)
+        timers = await coordinator.cloud.get_all_timers(device=device, line=output)
+        positions = _smart_positions(timers)
+        if timer_index >= len(positions):
+            _raise_timer_index_error(timer_index, len(positions))
+        position = positions[timer_index]
+        timers[position] = _coerce_smart_timer(
+            timer_data, existing=timers[position], hass=hass
+        )
+        await coordinator.cloud.save_all_timers(
+            device=device, timers=timers, line=output
+        )
+
+    await coordinator.async_execute_cloud_call(_operation)
+    coordinator.async_update_listeners()
+
+
 async def async_delete_timer(
     coordinator: Any,
     device: Any,
     timer_index: int,
+    line: str | None = None,
+    timer_type: str = TIMER_TYPE_SIMPLE,
 ) -> None:
-    """Delete timer at index and persist full timer list."""
+    """Delete a timer by index and persist the full timer list.
+
+    The index counts the timers of `timer_type` on the line only, so the
+    index of a simple timer does not change when smart timers exist.
+    """
 
     async def _operation() -> None:
-        output = _active_output_for_device(device)
+        output = (
+            _output_for_line(line)
+            if line is not None
+            else _active_output_for_device(device)
+        )
+        if timer_type == TIMER_TYPE_SMART:
+            all_timers = await coordinator.cloud.get_all_timers(
+                device=device, line=output
+            )
+            positions = _smart_positions(all_timers)
+            if timer_index >= len(positions):
+                _raise_timer_index_error(timer_index, len(positions))
+            del all_timers[positions[timer_index]]
+            await coordinator.cloud.save_all_timers(
+                device=device, timers=all_timers, line=output
+            )
+            return
+
         timers = await coordinator.cloud.get_timers(device=device, line=output)
         if timer_index >= len(timers):
             _raise_timer_index_error(timer_index, len(timers))
@@ -583,14 +803,66 @@ async def _async_handle_update_timer(hass: HomeAssistant, call: ServiceCall) -> 
         raise _cloud_error("update_timer_failed", err) from err
 
 
+async def _async_handle_create_smart_timer(
+    hass: HomeAssistant, call: ServiceCall
+) -> None:
+    """Handle create_smart_timer service."""
+    coordinator, device = _coordinator_and_device(hass, call.data[ATTR_DEVICE_ID])
+    _ensure_all_timers_api_support(coordinator)
+    timer = _coerce_smart_timer(dict(call.data), hass=hass)
+    line = call.data.get(ATTR_LINE)
+
+    try:
+        await async_create_smart_timer(
+            coordinator, device, timer, None if line is None else str(line)
+        )
+    except ValueError as err:
+        raise _invalid_timer_error(err) from err
+    except _CLOUD_ERRORS as err:
+        raise _cloud_error("create_timer_failed", err) from err
+
+
+async def _async_handle_update_smart_timer(
+    hass: HomeAssistant, call: ServiceCall
+) -> None:
+    """Handle update_smart_timer service."""
+    coordinator, device = _coordinator_and_device(hass, call.data[ATTR_DEVICE_ID])
+    _ensure_all_timers_api_support(coordinator)
+
+    try:
+        await async_update_smart_timer(
+            coordinator,
+            device,
+            int(call.data[ATTR_TIMER_INDEX]),
+            dict(call.data),
+            str(call.data.get(ATTR_LINE) or LINE_HEATER),
+            hass=hass,
+        )
+    except ValueError as err:
+        raise _invalid_timer_error(err) from err
+    except _CLOUD_ERRORS as err:
+        raise _cloud_error("update_timer_failed", err) from err
+
+
 async def _async_handle_delete_timer(hass: HomeAssistant, call: ServiceCall) -> None:
     """Handle delete_timer service."""
     coordinator, device = _coordinator_and_device(hass, call.data[ATTR_DEVICE_ID])
-    _ensure_timer_api_support(coordinator)
+    timer_type = str(call.data.get(ATTR_TYPE, TIMER_TYPE_SIMPLE))
+    if timer_type == TIMER_TYPE_SMART:
+        _ensure_all_timers_api_support(coordinator)
+    else:
+        _ensure_timer_api_support(coordinator)
     timer_index = int(call.data[ATTR_TIMER_INDEX])
+    line = call.data.get(ATTR_LINE)
 
     try:
-        await async_delete_timer(coordinator, device, timer_index)
+        await async_delete_timer(
+            coordinator,
+            device,
+            timer_index,
+            None if line is None else str(line),
+            timer_type,
+        )
     except ValueError as err:
         raise _invalid_timer_error(err) from err
     except _CLOUD_ERRORS as err:
@@ -610,6 +882,12 @@ def async_setup_services(hass: HomeAssistant) -> None:
     async def _handle_delete(call: ServiceCall) -> None:
         await _async_handle_delete_timer(hass, call)
 
+    async def _handle_create_smart(call: ServiceCall) -> None:
+        await _async_handle_create_smart_timer(hass, call)
+
+    async def _handle_update_smart(call: ServiceCall) -> None:
+        await _async_handle_update_smart_timer(hass, call)
+
     hass.services.async_register(
         DOMAIN,
         SERVICE_CREATE_TIMER,
@@ -627,4 +905,16 @@ def async_setup_services(hass: HomeAssistant) -> None:
         SERVICE_DELETE_TIMER,
         _handle_delete,
         schema=_DELETE_TIMER_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_CREATE_SMART_TIMER,
+        _handle_create_smart,
+        schema=_CREATE_SMART_TIMER_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_UPDATE_SMART_TIMER,
+        _handle_update_smart,
+        schema=_UPDATE_SMART_TIMER_SCHEMA,
     )

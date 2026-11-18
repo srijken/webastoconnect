@@ -134,7 +134,7 @@
         },
         "delete_timer": {
             "name": "Timer verwijderen",
-            "description": "Verwijdert een timer op index op de actieve uitgang (verwarmings- of ventilatiemodus).",
+            "description": "Verwijdert een timer op index. De index telt de timers van het gekozen type op de uitgang.",
             "fields": {
                 "device_id": {
                     "name": "Apparaat",
@@ -142,7 +142,99 @@
                 },
                 "timer_index": {
                     "name": "Timerindex",
-                    "description": "Index in de timerlijst van de actieve uitgang, beginnend bij nul."
+                    "description": "Index onder de timers van het gekozen type op de uitgang, beginnend bij nul."
+                },
+                "line": {
+                    "name": "Uitgang",
+                    "description": "De uitgang waarop de timer staat. Laat leeg om de actieve uitgang te gebruiken (ventilatie als de ventilatiemodus aan staat, anders verwarming)."
+                },
+                "type": {
+                    "name": "Timertype",
+                    "description": "Type van de te verwijderen timer. Standaard eenvoudig."
+                }
+            }
+        },
+        "create_smart_timer": {
+            "name": "Slimme timer aanmaken",
+            "description": "Maakt een slimme timer met een vertrektijd. De kachel start zelf voor de vertrektijd, maximaal de maximale duur eerder. Nog niet getest met een echt apparaat.",
+            "fields": {
+                "device_id": {
+                    "name": "Apparaat",
+                    "description": "Het Webasto-apparaat waarvoor de timer wordt aangemaakt."
+                },
+                "line": {
+                    "name": "Uitgang",
+                    "description": "De uitgang waarop de timer draait. Laat leeg om de actieve uitgang te gebruiken (ventilatie als de ventilatiemodus aan staat, anders verwarming)."
+                },
+                "departure_time": {
+                    "name": "Vertrektijd",
+                    "description": "Lokale kloktijd waarop het voertuig warm moet zijn (UU:MM). Seconden zijn optioneel."
+                },
+                "max_duration_minutes": {
+                    "name": "Maximale duur",
+                    "description": "Langste tijd in minuten dat de kachel voor de vertrektijd mag draaien (1 tot 120)."
+                },
+                "comfort_level": {
+                    "name": "Comfortniveau",
+                    "description": "Comfortniveau van de slimme timer. Alleen 5 is gezien in de Webasto-app; andere waarden zijn niet getest."
+                },
+                "repeat_days": {
+                    "name": "Herhaaldagen",
+                    "description": "Dagen waarop de timer moet draaien. Laat leeg voor een eenmalige timer."
+                },
+                "enabled": {
+                    "name": "Ingeschakeld",
+                    "description": "Of de timer is ingeschakeld."
+                },
+                "location": {
+                    "name": "Locatie",
+                    "description": "Optionele kaartlocatie voor de timer."
+                }
+            }
+        },
+        "update_smart_timer": {
+            "name": "Slimme timer bijwerken",
+            "description": "Werkt een bestaande slimme timer op index bij. Alleen de opgegeven velden worden gewijzigd; weggelaten velden behouden hun huidige waarde.",
+            "fields": {
+                "device_id": {
+                    "name": "Apparaat",
+                    "description": "Het Webasto-apparaat met de timer."
+                },
+                "timer_index": {
+                    "name": "Timerindex",
+                    "description": "Index onder de slimme timers van de uitgang, beginnend bij nul."
+                },
+                "line": {
+                    "name": "Uitgang",
+                    "description": "De uitgang waarop de timer staat. Standaard verwarming als dit leeg blijft."
+                },
+                "departure_time": {
+                    "name": "Vertrektijd",
+                    "description": "Lokale kloktijd waarop het voertuig warm moet zijn (UU:MM). Seconden zijn optioneel."
+                },
+                "max_duration_minutes": {
+                    "name": "Maximale duur",
+                    "description": "Langste tijd in minuten dat de kachel voor de vertrektijd mag draaien (1 tot 120)."
+                },
+                "comfort_level": {
+                    "name": "Comfortniveau",
+                    "description": "Comfortniveau van de slimme timer. Alleen 5 is gezien in de Webasto-app; andere waarden zijn niet getest."
+                },
+                "repeat_days": {
+                    "name": "Herhaaldagen",
+                    "description": "Dagen waarop de timer moet draaien. Laat leeg voor een eenmalige timer."
+                },
+                "enabled": {
+                    "name": "Ingeschakeld",
+                    "description": "Of de timer is ingeschakeld."
+                },
+                "clear_location": {
+                    "name": "Locatie wissen",
+                    "description": "Verwijder de opgeslagen locatie van de timer."
+                },
+                "location": {
+                    "name": "Locatie",
+                    "description": "Optionele kaartlocatie voor de timer. Kan niet samen met Locatie wissen worden gebruikt."
                 }
             }
         }
@@ -163,6 +255,12 @@
             "options": {
                 "heater": "Verwarming",
                 "ventilation": "Ventilatie"
+            }
+        },
+        "timer_type": {
+            "options": {
+                "simple": "Eenvoudig",
+                "smart": "Slim"
             }
         }
     },
@@ -336,6 +434,12 @@
         },
         "rate_limited": {
             "message": "De Webasto-cloud beperkt het aantal verzoeken. Probeer het later opnieuw."
+        },
+        "invalid_departure_time": {
+            "message": "Ongeldige vertrektijd {departure_time}. Gebruik het formaat UU:MM."
+        },
+        "missing_smart_timer_values": {
+            "message": "Een slimme timer heeft een vertrektijd, een maximale duur, een comfortniveau en herhaaldagen nodig."
         }
     }
 }

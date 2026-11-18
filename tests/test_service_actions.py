@@ -21,8 +21,10 @@ import custom_components.webastoconnect as integration
 from custom_components.webastoconnect import services
 from custom_components.webastoconnect.const import (
     DOMAIN,
+    SERVICE_CREATE_SMART_TIMER,
     SERVICE_CREATE_TIMER,
     SERVICE_DELETE_TIMER,
+    SERVICE_UPDATE_SMART_TIMER,
     SERVICE_UPDATE_TIMER,
 )
 
@@ -47,7 +49,7 @@ def _hass_with_services() -> SimpleNamespace:
 
 @pytest.mark.asyncio
 async def test_async_setup_registers_each_action_once(monkeypatch) -> None:
-    """async_setup registers the three actions with their schemas."""
+    """async_setup registers the five actions with their schemas."""
     monkeypatch.setattr(integration, "async_register_card", AsyncMock())
     monkeypatch.setattr(integration, "async_remove_legacy_card", AsyncMock())
     hass = _hass_with_services()
@@ -58,11 +60,13 @@ async def test_async_setup_registers_each_action_once(monkeypatch) -> None:
         call.args[1]: call.kwargs["schema"]
         for call in hass.services.async_register.call_args_list
     }
-    assert hass.services.async_register.call_count == 3
+    assert hass.services.async_register.call_count == 5
     assert registered == {
         SERVICE_CREATE_TIMER: services._CREATE_TIMER_SCHEMA,
         SERVICE_UPDATE_TIMER: services._UPDATE_TIMER_SCHEMA,
         SERVICE_DELETE_TIMER: services._DELETE_TIMER_SCHEMA,
+        SERVICE_CREATE_SMART_TIMER: services._CREATE_SMART_TIMER_SCHEMA,
+        SERVICE_UPDATE_SMART_TIMER: services._UPDATE_SMART_TIMER_SCHEMA,
     }
     assert all(
         call.args[0] == DOMAIN for call in hass.services.async_register.call_args_list

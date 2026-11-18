@@ -43,7 +43,17 @@
       "day_thursday": "Thu",
       "day_friday": "Fri",
       "day_saturday": "Sat",
-      "day_sunday": "Sun"
+      "day_sunday": "Sun",
+      "timer_type": "Timer type",
+      "timer_type_simple": "Simple",
+      "timer_type_smart": "Smart",
+      "departure_time": "Departure time",
+      "max_duration_minutes": "Max. duration (min)",
+      "comfort_level": "Comfort level",
+      "smart_timer_help": "The heater starts by itself before the departure time, at most the maximum duration earlier. Only comfort level 5 has been seen in the Webasto app.",
+      "timer_departure": "Departure {time}",
+      "timer_max_duration": "Max. {minutes} min",
+      "timer_comfort": "Comfort {level}"
     }
   }
 }

@@ -43,7 +43,17 @@
       "day_thursday": "Čt",
       "day_friday": "Pá",
       "day_saturday": "So",
-      "day_sunday": "Ne"
+      "day_sunday": "Ne",
+      "timer_type": "Typ časovače",
+      "timer_type_simple": "Jednoduchý",
+      "timer_type_smart": "Chytrý",
+      "departure_time": "Čas odjezdu",
+      "max_duration_minutes": "Max. doba (min)",
+      "comfort_level": "Úroveň komfortu",
+      "smart_timer_help": "Topení se spustí samo před časem odjezdu, nejvýše o maximální dobu dříve. V aplikaci Webasto byla zjištěna jen úroveň komfortu 5.",
+      "timer_departure": "Odjezd {time}",
+      "timer_max_duration": "Max. {minutes} min",
+      "timer_comfort": "Komfort {level}"
     }
   }
 }

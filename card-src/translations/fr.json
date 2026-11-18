@@ -43,7 +43,17 @@
       "day_thursday": "Jeu",
       "day_friday": "Ven",
       "day_saturday": "Sam",
-      "day_sunday": "Dim"
+      "day_sunday": "Dim",
+      "timer_type": "Type de minuterie",
+      "timer_type_simple": "Simple",
+      "timer_type_smart": "Intelligente",
+      "departure_time": "Heure de départ",
+      "max_duration_minutes": "Durée max. (min)",
+      "comfort_level": "Niveau de confort",
+      "smart_timer_help": "Le chauffage démarre de lui-même avant l'heure de départ, au plus tôt de la durée maximale. Seul le niveau de confort 5 a été observé dans l'application Webasto.",
+      "timer_departure": "Départ {time}",
+      "timer_max_duration": "Max. {minutes} min",
+      "timer_comfort": "Confort {level}"
     }
   }
 }

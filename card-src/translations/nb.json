@@ -43,7 +43,17 @@
       "day_thursday": "Tor",
       "day_friday": "Fre",
       "day_saturday": "Lør",
-      "day_sunday": "Søn"
+      "day_sunday": "Søn",
+      "timer_type": "Tidsurtype",
+      "timer_type_simple": "Enkel",
+      "timer_type_smart": "Smart",
+      "departure_time": "Avreisetid",
+      "max_duration_minutes": "Maks. varighet (min)",
+      "comfort_level": "Komfortnivå",
+      "smart_timer_help": "Varmeren starter selv før avreisetiden, høyst den maksimale varigheten før. Bare komfortnivå 5 er sett i Webasto-appen.",
+      "timer_departure": "Avreise {time}",
+      "timer_max_duration": "Maks. {minutes} min",
+      "timer_comfort": "Komfort {level}"
     }
   }
 }

@@ -134,7 +134,7 @@
         },
         "delete_timer": {
             "name": "Timer löschen",
-            "description": "Löscht einen Timer anhand des Index auf dem aktiven Ausgang (Heiz- oder Lüftungsmodus).",
+            "description": "Löscht einen Timer anhand des Index. Der Index zählt die Timer des gewählten Typs auf dem Ausgang.",
             "fields": {
                 "device_id": {
                     "name": "Gerät",
@@ -142,7 +142,99 @@
                 },
                 "timer_index": {
                     "name": "Timer-Index",
-                    "description": "Nullbasierter Index in der Timerliste des aktiven Ausgangs."
+                    "description": "Nullbasierter Index unter den Timern des gewählten Typs auf dem Ausgang."
+                },
+                "line": {
+                    "name": "Ausgang",
+                    "description": "Der Ausgang, auf dem der Timer liegt. Leer lassen, um den aktiven Ausgang zu verwenden (Lüftung bei eingeschaltetem Lüftungsmodus, sonst Heizung)."
+                },
+                "type": {
+                    "name": "Timertyp",
+                    "description": "Typ des zu löschenden Timers. Standard ist einfach."
+                }
+            }
+        },
+        "create_smart_timer": {
+            "name": "Smarten Timer erstellen",
+            "description": "Erstellt einen smarten Timer mit Abfahrtszeit. Die Heizung startet selbstständig vor der Abfahrtszeit, höchstens um die maximale Dauer früher. Noch nicht mit einem echten Gerät geprüft.",
+            "fields": {
+                "device_id": {
+                    "name": "Gerät",
+                    "description": "Das Webasto-Gerät, für das der Timer erstellt wird."
+                },
+                "line": {
+                    "name": "Ausgang",
+                    "description": "Der Ausgang, auf dem der Timer läuft. Leer lassen, um den aktiven Ausgang zu verwenden (Lüftung bei eingeschaltetem Lüftungsmodus, sonst Heizung)."
+                },
+                "departure_time": {
+                    "name": "Abfahrtszeit",
+                    "description": "Lokale Uhrzeit, zu der das Fahrzeug warm sein soll (HH:MM). Sekunden sind optional."
+                },
+                "max_duration_minutes": {
+                    "name": "Maximale Dauer",
+                    "description": "Längste Zeit in Minuten, die die Heizung vor der Abfahrtszeit laufen darf (1 bis 120)."
+                },
+                "comfort_level": {
+                    "name": "Komfortstufe",
+                    "description": "Komfortstufe des smarten Timers. In der Webasto-App wurde nur 5 beobachtet; andere Werte sind nicht geprüft."
+                },
+                "repeat_days": {
+                    "name": "Wiederholungstage",
+                    "description": "Tage, an denen der Timer laufen soll. Für einen einmaligen Timer leer lassen."
+                },
+                "enabled": {
+                    "name": "Aktiviert",
+                    "description": "Ob der Timer aktiviert ist."
+                },
+                "location": {
+                    "name": "Standort",
+                    "description": "Optionaler Kartenstandort für den Timer."
+                }
+            }
+        },
+        "update_smart_timer": {
+            "name": "Smarten Timer aktualisieren",
+            "description": "Aktualisiert einen vorhandenen smarten Timer anhand des Index. Nur die angegebenen Felder werden geändert; weggelassene Felder behalten ihren aktuellen Wert.",
+            "fields": {
+                "device_id": {
+                    "name": "Gerät",
+                    "description": "Das Webasto-Gerät mit dem Timer."
+                },
+                "timer_index": {
+                    "name": "Timer-Index",
+                    "description": "Nullbasierter Index unter den smarten Timern des Ausgangs."
+                },
+                "line": {
+                    "name": "Ausgang",
+                    "description": "Der Ausgang, auf dem sich der Timer befindet. Standardmäßig Heizung, wenn leer gelassen."
+                },
+                "departure_time": {
+                    "name": "Abfahrtszeit",
+                    "description": "Lokale Uhrzeit, zu der das Fahrzeug warm sein soll (HH:MM). Sekunden sind optional."
+                },
+                "max_duration_minutes": {
+                    "name": "Maximale Dauer",
+                    "description": "Längste Zeit in Minuten, die die Heizung vor der Abfahrtszeit laufen darf (1 bis 120)."
+                },
+                "comfort_level": {
+                    "name": "Komfortstufe",
+                    "description": "Komfortstufe des smarten Timers. In der Webasto-App wurde nur 5 beobachtet; andere Werte sind nicht geprüft."
+                },
+                "repeat_days": {
+                    "name": "Wiederholungstage",
+                    "description": "Tage, an denen der Timer laufen soll. Für einen einmaligen Timer leer lassen."
+                },
+                "enabled": {
+                    "name": "Aktiviert",
+                    "description": "Ob der Timer aktiviert ist."
+                },
+                "clear_location": {
+                    "name": "Standort entfernen",
+                    "description": "Entfernt den gespeicherten Standort des Timers."
+                },
+                "location": {
+                    "name": "Standort",
+                    "description": "Optionaler Kartenstandort für den Timer. Kann nicht zusammen mit Standort entfernen verwendet werden."
                 }
             }
         }
@@ -163,6 +255,12 @@
             "options": {
                 "heater": "Heizung",
                 "ventilation": "Lüftung"
+            }
+        },
+        "timer_type": {
+            "options": {
+                "simple": "Einfach",
+                "smart": "Smart"
             }
         }
     },
@@ -336,6 +434,12 @@
         },
         "rate_limited": {
             "message": "Die Webasto-Cloud begrenzt die Anzahl der Anfragen. Versuche es später erneut."
+        },
+        "invalid_departure_time": {
+            "message": "Ungültige Abfahrtszeit {departure_time}. Verwende das Format HH:MM."
+        },
+        "missing_smart_timer_values": {
+            "message": "Ein smarter Timer benötigt eine Abfahrtszeit, eine maximale Dauer, eine Komfortstufe und Wiederholungstage."
         }
     }
 }
