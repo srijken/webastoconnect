@@ -64,6 +64,10 @@
                     "name": "Device",
                     "description": "The Webasto device to create the timer for."
                 },
+                "line": {
+                    "name": "Output",
+                    "description": "The output the timer runs on. Leave empty to use the active output (ventilation when ventilation mode is on, otherwise heater)."
+                },
                 "start_time": {
                     "name": "Start time",
                     "description": "Local clock time for the timer start (HH:MM). Seconds are optional."
@@ -93,6 +97,10 @@
                 "device_id": {
                     "name": "Device",
                     "description": "The Webasto device that has the timer."
+                },
+                "line": {
+                    "name": "Output",
+                    "description": "The output the timer is on. Defaults to heater when left empty."
                 },
                 "timer_index": {
                     "name": "Timer index",
@@ -149,6 +157,12 @@
                 "friday": "Friday",
                 "saturday": "Saturday",
                 "sunday": "Sunday"
+            }
+        },
+        "timer_line": {
+            "options": {
+                "heater": "Heater",
+                "ventilation": "Ventilation"
             }
         }
     },

@@ -64,6 +64,10 @@
                     "name": "Dispositivo",
                     "description": "El dispositivo Webasto para el que se crea el temporizador."
                 },
+                "line": {
+                    "name": "Salida",
+                    "description": "La salida en la que funciona el temporizador. Déjalo vacío para usar la salida activa (ventilación si el modo ventilación está activado; si no, calefacción)."
+                },
                 "start_time": {
                     "name": "Hora de inicio",
                     "description": "Hora local de inicio del temporizador (HH:MM). Los segundos son opcionales."
@@ -93,6 +97,10 @@
                 "device_id": {
                     "name": "Dispositivo",
                     "description": "El dispositivo Webasto que tiene el temporizador."
+                },
+                "line": {
+                    "name": "Salida",
+                    "description": "La salida en la que está el temporizador. Calefacción por defecto si se deja vacío."
                 },
                 "timer_index": {
                     "name": "Índice del temporizador",
@@ -149,6 +157,12 @@
                 "friday": "Viernes",
                 "saturday": "Sábado",
                 "sunday": "Domingo"
+            }
+        },
+        "timer_line": {
+            "options": {
+                "heater": "Calefacción",
+                "ventilation": "Ventilación"
             }
         }
     },

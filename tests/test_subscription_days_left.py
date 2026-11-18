@@ -71,3 +71,9 @@ def test_sensor_description() -> None:
     assert description.entity_category is EntityCategory.DIAGNOSTIC
     assert description.entity_registry_enabled_default is True
     assert description.value_fn(SimpleNamespace(subscription_expiration=None)) is None
+
+
+def test_sensor_shows_whole_days() -> None:
+    """Whole days are shown without the default duration decimals."""
+    description = next(d for d in SENSORS if d.key == "subscription_days_left")
+    assert description.suggested_display_precision == 0
