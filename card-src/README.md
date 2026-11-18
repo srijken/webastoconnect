@@ -44,3 +44,19 @@ Manual entity IDs are still supported as overrides when needed.
   - `title_mode`
   - `title_timers`
   - `title_map`
+
+## Theme / dark mode
+- Text, backgrounds, borders and popups use Home Assistant theme variables
+  (`--primary-text-color`, `--card-background-color`, `--divider-color`,
+  `--primary-color`, ...), so the card follows the active theme.
+- The blue tiles and ring use a built-in palette with a light and a dark
+  variant; the dark variant is used when `hass.themes.darkMode` is true.
+- A theme can override any of these colours:
+  `webasto-card-background`, `webasto-tile-background`,
+  `webasto-tile-hover-background`, `webasto-tile-text-color`,
+  `webasto-gap-color`, `webasto-center-background`,
+  `webasto-center-offline-background`, `webasto-ring-idle-color`,
+  `webasto-ring-active-color`, `webasto-icon-color`, `webasto-text-color`,
+  `webasto-offline-text-color`, `webasto-meta-background`,
+  `webasto-meta-text-color`. Example theme entry:
+  `webasto-ring-active-color: "#ff9800"`.
