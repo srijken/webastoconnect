@@ -52,6 +52,15 @@ behind by an earlier output rename) are left unchanged and can be removed by
 hand. Make a Home Assistant backup before upgrading: going back to an older
 version afterwards creates duplicate entities (with a `_2` suffix).
 
+## Entity names and languages
+
+Entity names follow the Home Assistant language (Czech, Danish, Dutch,
+English, Finnish, French, German, Norwegian Bokmål and Spanish). The names of
+the outputs (main output, AUX1, AUX2) come from the Webasto app and are not
+translated. Existing entity IDs do not change. A new install uses the
+language of Home Assistant for new entity IDs, as Home Assistant does for
+other integrations; with English the entity IDs are the same as before.
+
 # Known Issues
 
 ## My heater doesn't show up

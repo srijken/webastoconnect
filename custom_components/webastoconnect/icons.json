@@ -1,0 +1,95 @@
+{
+    "entity": {
+        "binary_sensor": {
+            "is_connected": {
+                "default": "mdi:wifi-off",
+                "state": {
+                    "on": "mdi:wifi"
+                }
+            },
+            "allow_location": {
+                "default": "mdi:map-marker-off",
+                "state": {
+                    "on": "mdi:map-marker"
+                }
+            },
+            "low_voltage_warning": {
+                "default": "mdi:car-battery"
+            },
+            "geofence_enabled": {
+                "default": "mdi:map-marker-off",
+                "state": {
+                    "on": "mdi:map-marker-radius"
+                }
+            },
+            "signal_lost_shutdown_enabled": {
+                "default": "mdi:signal",
+                "state": {
+                    "on": "mdi:signal-off"
+                }
+            }
+        },
+        "device_tracker": {
+            "devicetracker": {
+                "default": "mdi:car"
+            }
+        },
+        "number": {
+            "low_voltage_cutoff": {
+                "default": "mdi:battery-off"
+            },
+            "ext_temp_comp": {
+                "default": "mdi:thermometer-alert"
+            }
+        },
+        "sensor": {
+            "temperature": {
+                "default": "mdi:thermometer"
+            },
+            "battery_voltage": {
+                "default": "mdi:car-battery"
+            },
+            "subscription_expiration": {
+                "default": "mdi:calendar-end"
+            },
+            "main_output_end_time": {
+                "default": "mdi:timer-outline"
+            },
+            "next_enabled_timer": {
+                "default": "mdi:calendar-clock"
+            },
+            "last_seen": {
+                "default": "mdi:clock-check-outline"
+            },
+            "geofence_radius": {
+                "default": "mdi:map-marker-radius"
+            },
+            "alarm_state": {
+                "default": "mdi:shield-car"
+            },
+            "subscription_status": {
+                "default": "mdi:card-account-details-outline"
+            },
+            "default_output": {
+                "default": "mdi:toggle-switch-outline"
+            },
+            "signal_lost_shutdown_minutes": {
+                "default": "mdi:timer-off-outline"
+            },
+            "emulation_mode": {
+                "default": "mdi:chip"
+            },
+            "software_external_version": {
+                "default": "mdi:information-outline"
+            }
+        },
+        "switch": {
+            "ventilation_mode": {
+                "default": "mdi:fan-off",
+                "state": {
+                    "on": "mdi:fan"
+                }
+            }
+        }
+    }
+}

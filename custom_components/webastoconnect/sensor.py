@@ -26,6 +26,9 @@ LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 0
 MAIN_OUTPUT_LINES = {"OUTH", "OUTV"}
 TIMER_LINES = {"OUTH", "OUTV"}
+# Name of the main output in the end-time sensor name when the cloud has none.
+# Not translated: it keeps the entity ID of a new install at *_output_ends.
+MAIN_OUTPUT_FALLBACK_NAME = "Output"
 WEEKDAY_BITMASK = [1, 2, 4, 8, 16, 32, 64]  # Monday..Sunday
 # Values of the `def_output` and `webasto_emul_mode` settings, as documented in
 # the pywebasto protocol notes.
@@ -96,12 +99,16 @@ def _main_output_end_time(webasto) -> datetime | None:
     return None
 
 
-def _main_output_end_name(webasto) -> str:
-    """Return a mode-aware name for main output end-time sensor."""
+def _main_output_end_placeholders(webasto) -> dict[str, str]:
+    """Return the name placeholders of the main output end-time sensor.
+
+    The translated name is "{output_name} ends"; the output name is the one
+    set in the Webasto app (it follows the heating or ventilation mode).
+    """
     output_name = getattr(webasto, "output_main_name", None)
     if isinstance(output_name, str) and output_name.strip():
-        return f"{output_name} ends"
-    return "Output ends"
+        return {"output_name": output_name}
+    return {"output_name": MAIN_OUTPUT_FALLBACK_NAME}
 
 
 def _extract_simple_timers(webasto: Any) -> list[dict[str, Any]]:
@@ -269,103 +276,94 @@ def _next_timer_sensor_payload(
 SENSORS = [
     WebastoConnectSensorEntityDescription(
         key="temperature",
-        name="Temperature",
+        translation_key="temperature",
         entity_category=None,
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.TEMPERATURE,
         value_fn=lambda webasto: webasto.temperature,
-        icon="mdi:thermometer",
         unit_fn=lambda webasto: webasto.temperature_unit,
         suggested_display_precision=0,
     ),
     WebastoConnectSensorEntityDescription(
         key="battery_voltage",
-        name="Battery",
+        translation_key="battery_voltage",
         entity_category=None,
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.VOLTAGE,
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         value_fn=lambda webasto: webasto.voltage,
-        icon="mdi:car-battery",
         suggested_display_precision=1,
     ),
     WebastoConnectSensorEntityDescription(
         key="subscription_expiration",
-        name="Subscription Expiration",
+        translation_key="subscription_expiration",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
         device_class=SensorDeviceClass.DATE,
         entity_registry_enabled_default=False,
         value_fn=_subscription_expiration_date,
-        icon="mdi:calendar-end",
     ),
     WebastoConnectSensorEntityDescription(
         key="main_output_end_time",
-        name="Output ends",
+        translation_key="main_output_end_time",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
         device_class=SensorDeviceClass.TIMESTAMP,
         entity_registry_enabled_default=False,
         value_fn=_main_output_end_time,
-        name_fn=_main_output_end_name,
-        icon="mdi:timer-outline",
+        placeholders_fn=_main_output_end_placeholders,
     ),
     WebastoConnectSensorEntityDescription(
         key="next_enabled_timer",
-        name="Next start",
+        translation_key="next_enabled_timer",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
         device_class=SensorDeviceClass.TIMESTAMP,
         entity_registry_enabled_default=False,
         value_fn=lambda webasto: _next_timer_sensor_payload(webasto)[0],
-        icon="mdi:calendar-clock",
     ),
     WebastoConnectSensorEntityDescription(
         key="last_seen",
-        name="Last Seen",
+        translation_key="last_seen",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.DURATION,
         native_unit_of_measurement=UnitOfTime.SECONDS,
         entity_registry_enabled_default=False,
         value_fn=lambda webasto: getattr(webasto, "last_seen_seconds", None),
-        icon="mdi:clock-check-outline",
     ),
     WebastoConnectSensorEntityDescription(
         key="geofence_radius",
-        name="Geofence Radius",
+        translation_key="geofence_radius",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
         device_class=SensorDeviceClass.DISTANCE,
         native_unit_of_measurement=UnitOfLength.KILOMETERS,
         entity_registry_enabled_default=False,
         value_fn=lambda webasto: getattr(webasto, "geofence_radius", None),
-        icon="mdi:map-marker-radius",
         suggested_display_precision=1,
     ),
     WebastoConnectSensorEntityDescription(
         key="alarm_state",
-        name="Alarm State",
+        translation_key="alarm_state",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
         device_class=None,
         entity_registry_enabled_default=False,
         value_fn=lambda webasto: getattr(webasto, "alarm_state", None),
-        icon="mdi:shield-car",
     ),
     WebastoConnectSensorEntityDescription(
         key="subscription_status",
-        name="Subscription Status",
+        translation_key="subscription_status",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
         device_class=None,
         entity_registry_enabled_default=False,
         value_fn=lambda webasto: getattr(webasto, "subscription_status", None),
-        icon="mdi:card-account-details-outline",
     ),
     WebastoConnectSensorEntityDescription(
         key="default_output",
-        name="Default Output",
+        translation_key="default_output",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
         device_class=SensorDeviceClass.ENUM,
@@ -376,22 +374,20 @@ SENSORS = [
             getattr(webasto, "default_output", None),
             DEFAULT_OUTPUT_OPTIONS,
         ),
-        icon="mdi:toggle-switch-outline",
     ),
     WebastoConnectSensorEntityDescription(
         key="signal_lost_shutdown_minutes",
-        name="Switch Off After Signal Loss",
+        translation_key="signal_lost_shutdown_minutes",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
         device_class=SensorDeviceClass.DURATION,
         native_unit_of_measurement=UnitOfTime.MINUTES,
         entity_registry_enabled_default=False,
         value_fn=lambda webasto: getattr(webasto, "signal_lost_shutdown_minutes", None),
-        icon="mdi:timer-off-outline",
     ),
     WebastoConnectSensorEntityDescription(
         key="emulation_mode",
-        name="Emulation Mode",
+        translation_key="emulation_mode",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
         device_class=SensorDeviceClass.ENUM,
@@ -402,17 +398,15 @@ SENSORS = [
             getattr(webasto, "emulation_mode", None),
             EMULATION_MODE_OPTIONS,
         ),
-        icon="mdi:chip",
     ),
     WebastoConnectSensorEntityDescription(
         key="software_external_version",
-        name="External Software Version",
+        translation_key="software_external_version",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
         device_class=None,
         entity_registry_enabled_default=False,
         value_fn=lambda webasto: getattr(webasto, "software_external_version", None),
-        icon="mdi:information-outline",
     ),
 ]
 
@@ -427,9 +421,7 @@ async def async_setup_entry(hass, entry: WebastoConfigEntry, async_add_devices):
         LOGGER.debug("Setting up sensors for device: %s", device.name)
         for s in SENSORS:
             entity = WebastoConnectSensor(id, s, coordinator)
-            LOGGER.debug(
-                "Adding sensor '%s' with entity_id '%s'", s.name, entity.entity_id
-            )
+            LOGGER.debug("Adding sensor '%s'", s.key)
             sensors.append(entity)
 
     async_add_devices(sensors)
@@ -447,7 +439,10 @@ class WebastoConnectSensor(WebastoBaseEntity, SensorEntity):
         """Initialize a Webasto Connect Sensor."""
         super().__init__(device_id, coordinator, description)
 
-        self._attr_icon = self.entity_description.icon
+        if description.placeholders_fn is not None:
+            self._attr_translation_placeholders = description.placeholders_fn(
+                self._cloud.devices[self._device_id]
+            )
         self._attr_native_value = self.entity_description.value_fn(  # type: ignore
             self._cloud.devices[self._device_id]
         )
@@ -465,11 +460,7 @@ class WebastoConnectSensor(WebastoBaseEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        new_name = self._attr_name
-        if not isinstance(self.entity_description.name_fn, type(None)):  # type: ignore
-            new_name = self.entity_description.name_fn(  # type: ignore
-                self._cloud.devices[self._device_id]
-            )
+        name_changed = self._update_placeholders()
         new_value = self.entity_description.value_fn(  # type: ignore
             self._cloud.devices[self._device_id]
         )
@@ -481,11 +472,24 @@ class WebastoConnectSensor(WebastoBaseEntity, SensorEntity):
             )
 
         changed = (
-            new_name != self._attr_name
+            name_changed
             or new_value != self._attr_native_value
             or new_attributes != current_attributes
         )
-        self._attr_name = new_name
         self._attr_native_value = new_value
         self._attr_extra_state_attributes = new_attributes
         self._async_write_if_changed(changed)
+
+    def _update_placeholders(self) -> bool:
+        """Update the name placeholders; return True when they changed."""
+        placeholders_fn = self.entity_description.placeholders_fn  # type: ignore
+        if placeholders_fn is None:
+            return False
+        placeholders = placeholders_fn(self._cloud.devices[self._device_id])
+        if placeholders == getattr(self, "_attr_translation_placeholders", None):
+            return False
+        self._attr_translation_placeholders = placeholders
+        # The name is a cached property built from the placeholders, and
+        # setting the placeholders only clears their own cache.
+        self.__dict__.pop("name", None)
+        return True

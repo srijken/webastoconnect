@@ -19,9 +19,8 @@ PARALLEL_UPDATES = 0
 
 TRACKER = EntityDescription(
     key="devicetracker",
-    name="Location",
+    translation_key="devicetracker",
     entity_registry_enabled_default=True,
-    icon="mdi:car",
 )
 
 

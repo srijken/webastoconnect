@@ -21,47 +21,37 @@ PARALLEL_UPDATES = 0
 BINARY_SENSORS = [
     WebastoConnectBinarySensorEntityDescription(
         key="is_connected",
-        name="Connected",
+        translation_key="is_connected",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda webasto: cast(bool | None, webasto.is_connected),
-        icon_on="mdi:wifi",
-        icon_off="mdi:wifi-off",
     ),
     WebastoConnectBinarySensorEntityDescription(
         key="allow_location",
-        name="Allow Location Services",
+        translation_key="allow_location",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda webasto: cast(bool, webasto.allow_location),
-        icon_on="mdi:map-marker",
-        icon_off="mdi:map-marker-off",
         entity_registry_enabled_default=False,
     ),
     WebastoConnectBinarySensorEntityDescription(
         key="low_voltage_warning",
-        name="Low Battery Voltage",
+        translation_key="low_voltage_warning",
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda webasto: getattr(webasto, "low_voltage_warning", None),
-        icon_on="mdi:car-battery",
-        icon_off="mdi:car-battery",
     ),
     WebastoConnectBinarySensorEntityDescription(
         key="geofence_enabled",
-        name="Geofence",
+        translation_key="geofence_enabled",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda webasto: getattr(webasto, "geofence_enabled", None),
-        icon_on="mdi:map-marker-radius",
-        icon_off="mdi:map-marker-off",
         entity_registry_enabled_default=False,
     ),
     WebastoConnectBinarySensorEntityDescription(
         key="signal_lost_shutdown_enabled",
-        name="Switch Off On Signal Loss",
+        translation_key="signal_lost_shutdown_enabled",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda webasto: getattr(webasto, "signal_lost_shutdown_enabled", None),
-        icon_on="mdi:signal-off",
-        icon_off="mdi:signal",
         entity_registry_enabled_default=False,
     ),
 ]
@@ -77,11 +67,7 @@ async def async_setup_entry(hass, entry: WebastoConfigEntry, async_add_devices):
         LOGGER.debug("Setting up binary_sensors for device: %s", device.name)
         for b_s in BINARY_SENSORS:
             entity = WebastoConnectBinarySensor(id, b_s, coordinator)
-            LOGGER.debug(
-                "Adding binary_sensor '%s' with entity_id '%s'",
-                b_s.name,
-                entity.entity_id,
-            )
+            LOGGER.debug("Adding binary_sensor '%s'", b_s.key)
             binarysensors.append(entity)
 
     async_add_devices(binarysensors)
@@ -105,11 +91,6 @@ class WebastoConnectBinarySensor(
         self._attr_is_on = self.entity_description.value_fn(  # type: ignore
             self._cloud.devices[self._device_id]
         )
-        self._attr_icon = (
-            self.entity_description.icon_on  # type: ignore
-            if self._attr_is_on
-            else self.entity_description.icon_off  # type: ignore
-        )
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -117,12 +98,6 @@ class WebastoConnectBinarySensor(
         new_is_on = self.entity_description.value_fn(  # type: ignore
             self._cloud.devices[self._device_id]
         )
-        new_icon = (
-            self.entity_description.icon_on  # type: ignore
-            if new_is_on
-            else self.entity_description.icon_off  # type: ignore
-        )
-        changed = new_is_on != self._attr_is_on or new_icon != self._attr_icon
+        changed = new_is_on != self._attr_is_on
         self._attr_is_on = new_is_on
-        self._attr_icon = new_icon
         self._async_write_if_changed(changed)

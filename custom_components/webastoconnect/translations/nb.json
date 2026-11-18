@@ -144,6 +144,93 @@
             }
         }
     },
+    "entity": {
+        "binary_sensor": {
+            "is_connected": {
+                "name": "Tilkoblet"
+            },
+            "allow_location": {
+                "name": "Tillat posisjonstjenester"
+            },
+            "low_voltage_warning": {
+                "name": "Lav batterispenning"
+            },
+            "geofence_enabled": {
+                "name": "Geofence"
+            },
+            "signal_lost_shutdown_enabled": {
+                "name": "Slå av ved signaltap"
+            }
+        },
+        "device_tracker": {
+            "devicetracker": {
+                "name": "Posisjon"
+            }
+        },
+        "number": {
+            "low_voltage_cutoff": {
+                "name": "Lavspenningsutkobling"
+            },
+            "ext_temp_comp": {
+                "name": "Temperaturkompensasjon"
+            }
+        },
+        "sensor": {
+            "temperature": {
+                "name": "Temperatur"
+            },
+            "battery_voltage": {
+                "name": "Batteri"
+            },
+            "subscription_expiration": {
+                "name": "Abonnementet utløper"
+            },
+            "main_output_end_time": {
+                "name": "{output_name} slutter"
+            },
+            "next_enabled_timer": {
+                "name": "Neste start"
+            },
+            "last_seen": {
+                "name": "Sist sett"
+            },
+            "geofence_radius": {
+                "name": "Geofence-radius"
+            },
+            "alarm_state": {
+                "name": "Alarmstatus"
+            },
+            "subscription_status": {
+                "name": "Abonnementsstatus"
+            },
+            "default_output": {
+                "name": "Standardutgang"
+            },
+            "signal_lost_shutdown_minutes": {
+                "name": "Slå av etter signaltap"
+            },
+            "emulation_mode": {
+                "name": "Emuleringsmodus"
+            },
+            "software_external_version": {
+                "name": "Ekstern programvareversjon"
+            }
+        },
+        "switch": {
+            "main_output": {
+                "name": "Utgang"
+            },
+            "ventilation_mode": {
+                "name": "Ventilasjonsmodus"
+            },
+            "aux1_output": {
+                "name": "AUX1"
+            },
+            "aux2_output": {
+                "name": "AUX2"
+            }
+        }
+    },
     "exceptions": {
         "device_not_found": {
             "message": "Fant ingen Webasto-enhet med enhets-ID {device_id}."

@@ -181,7 +181,8 @@ async def test_defender_entities_move_to_key_unique_ids(registry) -> None:
 )
 def test_every_description_name_maps_to_its_key(domain, description) -> None:
     """Each platform's description name-based ID maps to its key-based ID."""
-    entry = _entry(f"{domain}.defender_x", _old_id(description.name))
+    name = migration.LEGACY_NAMES[(domain, description.key)]
+    entry = _entry(f"{domain}.defender_x", _old_id(name))
 
     plan = migration.plan_unique_id_migration([entry], {DEVICE_ID: _device()})
 

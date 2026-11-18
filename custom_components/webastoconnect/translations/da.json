@@ -144,6 +144,93 @@
             }
         }
     },
+    "entity": {
+        "binary_sensor": {
+            "is_connected": {
+                "name": "Forbundet"
+            },
+            "allow_location": {
+                "name": "Tillad placeringstjenester"
+            },
+            "low_voltage_warning": {
+                "name": "Lav batterispænding"
+            },
+            "geofence_enabled": {
+                "name": "Geofence"
+            },
+            "signal_lost_shutdown_enabled": {
+                "name": "Sluk ved signaltab"
+            }
+        },
+        "device_tracker": {
+            "devicetracker": {
+                "name": "Placering"
+            }
+        },
+        "number": {
+            "low_voltage_cutoff": {
+                "name": "Lavspændingsafbrydelse"
+            },
+            "ext_temp_comp": {
+                "name": "Temperaturkompensation"
+            }
+        },
+        "sensor": {
+            "temperature": {
+                "name": "Temperatur"
+            },
+            "battery_voltage": {
+                "name": "Batteri"
+            },
+            "subscription_expiration": {
+                "name": "Abonnement udløber"
+            },
+            "main_output_end_time": {
+                "name": "{output_name} slutter"
+            },
+            "next_enabled_timer": {
+                "name": "Næste start"
+            },
+            "last_seen": {
+                "name": "Sidst set"
+            },
+            "geofence_radius": {
+                "name": "Geofence-radius"
+            },
+            "alarm_state": {
+                "name": "Alarmtilstand"
+            },
+            "subscription_status": {
+                "name": "Abonnementsstatus"
+            },
+            "default_output": {
+                "name": "Standardudgang"
+            },
+            "signal_lost_shutdown_minutes": {
+                "name": "Sluk efter signaltab"
+            },
+            "emulation_mode": {
+                "name": "Emuleringstilstand"
+            },
+            "software_external_version": {
+                "name": "Ekstern softwareversion"
+            }
+        },
+        "switch": {
+            "main_output": {
+                "name": "Udgang"
+            },
+            "ventilation_mode": {
+                "name": "Ventilationstilstand"
+            },
+            "aux1_output": {
+                "name": "AUX1"
+            },
+            "aux2_output": {
+                "name": "AUX2"
+            }
+        }
+    },
     "exceptions": {
         "device_not_found": {
             "message": "Ingen Webasto-enhed fundet med enheds-ID {device_id}."

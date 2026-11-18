@@ -41,6 +41,37 @@ OUTPUT_SWITCH_LINES = {
 END_TIME_KEY = "main_output_end_time"
 END_TIME_FALLBACK_NAME = "Output ends"
 
+# (domain, description key) -> the English name the entity had before names
+# moved to translations. The pre-1.3 unique IDs were built from these names, so
+# they must not change; translated names do not affect this migration.
+LEGACY_NAMES: dict[tuple[str, str], str] = {
+    ("sensor", "temperature"): "Temperature",
+    ("sensor", "battery_voltage"): "Battery",
+    ("sensor", "subscription_expiration"): "Subscription Expiration",
+    ("sensor", "main_output_end_time"): END_TIME_FALLBACK_NAME,
+    ("sensor", "next_enabled_timer"): "Next start",
+    ("sensor", "last_seen"): "Last Seen",
+    ("sensor", "geofence_radius"): "Geofence Radius",
+    ("sensor", "alarm_state"): "Alarm State",
+    ("sensor", "subscription_status"): "Subscription Status",
+    ("sensor", "default_output"): "Default Output",
+    ("sensor", "signal_lost_shutdown_minutes"): "Switch Off After Signal Loss",
+    ("sensor", "emulation_mode"): "Emulation Mode",
+    ("sensor", "software_external_version"): "External Software Version",
+    ("binary_sensor", "is_connected"): "Connected",
+    ("binary_sensor", "allow_location"): "Allow Location Services",
+    ("binary_sensor", "low_voltage_warning"): "Low Battery Voltage",
+    ("binary_sensor", "geofence_enabled"): "Geofence",
+    ("binary_sensor", "signal_lost_shutdown_enabled"): "Switch Off On Signal Loss",
+    ("switch", "main_output"): "Output",
+    ("switch", "ventilation_mode"): "Ventilation Mode",
+    ("switch", "aux1_output"): "AUX1",
+    ("switch", "aux2_output"): "AUX2",
+    ("number", "low_voltage_cutoff"): "Low Voltage Cutoff",
+    ("number", "ext_temp_comp"): "Temperature Compensation",
+    ("device_tracker", "devicetracker"): "Location",
+}
+
 
 def key_unique_id(device_id: Any, key: str) -> str:
     """Return the unique ID of an entity: device ID and description key."""
@@ -111,8 +142,9 @@ def entity_targets(device: Any) -> list[EntityTarget]:
     """Return the possible pre-1.3 names of every entity of a device."""
     targets = []
     for domain, description in _descriptions():
-        names = {description.name}
-        current_name = description.name
+        legacy_name = LEGACY_NAMES.get((domain, description.key))
+        names = {legacy_name}
+        current_name = legacy_name
         name_fn = getattr(description, "name_fn", None)
         if name_fn is not None:
             try:
@@ -127,7 +159,11 @@ def entity_targets(device: Any) -> list[EntityTarget]:
             lines, default = OUTPUT_SWITCH_LINES[description.key]
             names |= _output_names(device, lines, default)
         elif domain == "sensor" and description.key == END_TIME_KEY:
-            names.add(END_TIME_FALLBACK_NAME)
+            output_name = getattr(device, "output_main_name", None)
+            current_name = _end_time_name(
+                output_name if isinstance(output_name, str) else ""
+            )
+            names.add(current_name)
             names |= {
                 _end_time_name(name)
                 for name in _output_names(device, MAIN_OUTPUT_LINES, "Primary")
