@@ -46,5 +46,167 @@
                 }
             }
         }
+    },
+    "services": {
+        "create_timer": {
+            "name": "Crear temporizador",
+            "description": "Crea un nuevo temporizador simple para un dispositivo Webasto en su salida activa (calefactor o ventilación).",
+            "fields": {
+                "device_id": {
+                    "name": "Dispositivo",
+                    "description": "El dispositivo Webasto para el que se crea el temporizador."
+                },
+                "start_time": {
+                    "name": "Hora de inicio",
+                    "description": "Hora local de inicio del temporizador (HH:MM). Los segundos son opcionales."
+                },
+                "duration_minutes": {
+                    "name": "Duración",
+                    "description": "Duración en minutos."
+                },
+                "repeat_days": {
+                    "name": "Días de repetición",
+                    "description": "Días en los que debe funcionar el temporizador. Déjalo vacío para un temporizador que no se repite."
+                },
+                "enabled": {
+                    "name": "Activado",
+                    "description": "Si el temporizador está activado."
+                },
+                "location": {
+                    "name": "Ubicación",
+                    "description": "Ubicación opcional en el mapa para el temporizador."
+                }
+            }
+        },
+        "update_timer": {
+            "name": "Actualizar temporizador",
+            "description": "Actualiza un temporizador simple existente por su índice. Solo se modifican los campos indicados en la acción; los campos omitidos conservan su valor actual.",
+            "fields": {
+                "device_id": {
+                    "name": "Dispositivo",
+                    "description": "El dispositivo Webasto que tiene el temporizador."
+                },
+                "timer_index": {
+                    "name": "Índice del temporizador",
+                    "description": "Índice del temporizador, empezando por cero."
+                },
+                "start_time": {
+                    "name": "Hora de inicio",
+                    "description": "Hora local de inicio del temporizador (HH:MM). Los segundos son opcionales."
+                },
+                "duration_minutes": {
+                    "name": "Duración",
+                    "description": "Duración en minutos."
+                },
+                "repeat_days": {
+                    "name": "Días de repetición",
+                    "description": "Días en los que debe funcionar el temporizador. Déjalo vacío para un temporizador que no se repite."
+                },
+                "enabled": {
+                    "name": "Activado",
+                    "description": "Si el temporizador está activado."
+                },
+                "clear_location": {
+                    "name": "Borrar ubicación",
+                    "description": "Elimina la ubicación guardada del temporizador."
+                },
+                "location": {
+                    "name": "Ubicación",
+                    "description": "Ubicación opcional en el mapa para el temporizador. No se puede usar junto con Borrar ubicación."
+                }
+            }
+        },
+        "delete_timer": {
+            "name": "Eliminar temporizador",
+            "description": "Elimina un temporizador por su índice en la salida activa (modo calefactor o ventilación).",
+            "fields": {
+                "device_id": {
+                    "name": "Dispositivo",
+                    "description": "El dispositivo Webasto que tiene el temporizador."
+                },
+                "timer_index": {
+                    "name": "Índice del temporizador",
+                    "description": "Índice en la lista de temporizadores de la salida activa, empezando por cero."
+                }
+            }
+        }
+    },
+    "selector": {
+        "weekday": {
+            "options": {
+                "monday": "Lunes",
+                "tuesday": "Martes",
+                "wednesday": "Miércoles",
+                "thursday": "Jueves",
+                "friday": "Viernes",
+                "saturday": "Sábado",
+                "sunday": "Domingo"
+            }
+        }
+    },
+    "exceptions": {
+        "device_not_found": {
+            "message": "No se encontró ningún dispositivo Webasto con el ID de dispositivo {device_id}."
+        },
+        "device_not_reported": {
+            "message": "La cuenta de Webasto ya no informa del dispositivo {device_name}."
+        },
+        "entry_not_loaded": {
+            "message": "La entrada de Webasto Connect {entry_title} no está cargada. Comprueba la integración e inténtalo de nuevo."
+        },
+        "timers_not_supported": {
+            "message": "La biblioteca pywebasto instalada no admite temporizadores. Actualiza la integración."
+        },
+        "no_timers": {
+            "message": "No hay temporizadores que modificar en este dispositivo."
+        },
+        "invalid_timer_index": {
+            "message": "Índice de temporizador {timer_index} no válido. El rango válido es de 0 a {max_index} ({timer_count} temporizadores)."
+        },
+        "invalid_start_time": {
+            "message": "Hora de inicio {start_time} no válida. Usa el formato HH:MM."
+        },
+        "invalid_repeat_days": {
+            "message": "Los días de repetición deben ser una lista de días de la semana."
+        },
+        "unsupported_weekday": {
+            "message": "Día de la semana {day} no admitido."
+        },
+        "invalid_location": {
+            "message": "La ubicación debe ser una ubicación en el mapa con latitud y longitud."
+        },
+        "location_with_coordinates": {
+            "message": "La ubicación no se puede usar junto con la latitud y la longitud."
+        },
+        "clear_location_with_coordinates": {
+            "message": "Borrar ubicación no se puede usar junto con la latitud y la longitud."
+        },
+        "clear_location_with_location": {
+            "message": "Borrar ubicación no se puede usar junto con la ubicación."
+        },
+        "incomplete_coordinates": {
+            "message": "La latitud y la longitud deben indicarse ambas u omitirse ambas."
+        },
+        "start_time_conversion_unavailable": {
+            "message": "La hora de inicio no se puede convertir sin la zona horaria de Home Assistant."
+        },
+        "missing_timer_values": {
+            "message": "Un temporizador necesita una hora de inicio, una duración y días de repetición."
+        },
+        "invalid_timer": {
+            "message": "El temporizador no es válido: {error}"
+        },
+        "create_timer_failed": {
+            "message": "No se pudo crear el temporizador porque falló la solicitud a la nube de Webasto. Inténtalo de nuevo más tarde."
+        },
+        "update_timer_failed": {
+            "message": "No se pudo actualizar el temporizador porque falló la solicitud a la nube de Webasto. Inténtalo de nuevo más tarde."
+        },
+        "delete_timer_failed": {
+            "message": "No se pudo eliminar el temporizador porque falló la solicitud a la nube de Webasto. Inténtalo de nuevo más tarde."
+        },
+        "rate_limited": {
+            "message": "La nube de Webasto está limitando el número de solicitudes. Inténtalo de nuevo más tarde."
+        }
     }
 }

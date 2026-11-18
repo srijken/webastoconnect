@@ -46,5 +46,167 @@
                 }
             }
         }
+    },
+    "services": {
+        "create_timer": {
+            "name": "Timer aanmaken",
+            "description": "Maakt een nieuwe eenvoudige timer aan voor een Webasto-apparaat op de actieve uitgang (verwarming of ventilatie).",
+            "fields": {
+                "device_id": {
+                    "name": "Apparaat",
+                    "description": "Het Webasto-apparaat waarvoor de timer wordt aangemaakt."
+                },
+                "start_time": {
+                    "name": "Starttijd",
+                    "description": "Lokale kloktijd voor de start van de timer (UU:MM). Seconden zijn optioneel."
+                },
+                "duration_minutes": {
+                    "name": "Duur",
+                    "description": "Duur in minuten."
+                },
+                "repeat_days": {
+                    "name": "Herhaaldagen",
+                    "description": "Dagen waarop de timer moet draaien. Laat leeg voor een eenmalige timer."
+                },
+                "enabled": {
+                    "name": "Ingeschakeld",
+                    "description": "Of de timer is ingeschakeld."
+                },
+                "location": {
+                    "name": "Locatie",
+                    "description": "Optionele kaartlocatie voor de timer."
+                }
+            }
+        },
+        "update_timer": {
+            "name": "Timer bijwerken",
+            "description": "Werkt een bestaande eenvoudige timer bij op index. Alleen de velden die in de actie zijn opgegeven worden gewijzigd; weggelaten velden behouden hun huidige waarde.",
+            "fields": {
+                "device_id": {
+                    "name": "Apparaat",
+                    "description": "Het Webasto-apparaat met de timer."
+                },
+                "timer_index": {
+                    "name": "Timerindex",
+                    "description": "Timerindex, beginnend bij nul."
+                },
+                "start_time": {
+                    "name": "Starttijd",
+                    "description": "Lokale kloktijd voor de start van de timer (UU:MM). Seconden zijn optioneel."
+                },
+                "duration_minutes": {
+                    "name": "Duur",
+                    "description": "Duur in minuten."
+                },
+                "repeat_days": {
+                    "name": "Herhaaldagen",
+                    "description": "Dagen waarop de timer moet draaien. Laat leeg voor een eenmalige timer."
+                },
+                "enabled": {
+                    "name": "Ingeschakeld",
+                    "description": "Of de timer is ingeschakeld."
+                },
+                "clear_location": {
+                    "name": "Locatie wissen",
+                    "description": "Verwijder de opgeslagen locatie van de timer."
+                },
+                "location": {
+                    "name": "Locatie",
+                    "description": "Optionele kaartlocatie voor de timer. Kan niet samen met Locatie wissen worden gebruikt."
+                }
+            }
+        },
+        "delete_timer": {
+            "name": "Timer verwijderen",
+            "description": "Verwijdert een timer op index op de actieve uitgang (verwarmings- of ventilatiemodus).",
+            "fields": {
+                "device_id": {
+                    "name": "Apparaat",
+                    "description": "Het Webasto-apparaat met de timer."
+                },
+                "timer_index": {
+                    "name": "Timerindex",
+                    "description": "Index in de timerlijst van de actieve uitgang, beginnend bij nul."
+                }
+            }
+        }
+    },
+    "selector": {
+        "weekday": {
+            "options": {
+                "monday": "Maandag",
+                "tuesday": "Dinsdag",
+                "wednesday": "Woensdag",
+                "thursday": "Donderdag",
+                "friday": "Vrijdag",
+                "saturday": "Zaterdag",
+                "sunday": "Zondag"
+            }
+        }
+    },
+    "exceptions": {
+        "device_not_found": {
+            "message": "Geen Webasto-apparaat gevonden met apparaat-ID {device_id}."
+        },
+        "device_not_reported": {
+            "message": "Het Webasto-account meldt het apparaat {device_name} niet meer."
+        },
+        "entry_not_loaded": {
+            "message": "De Webasto Connect-configuratie {entry_title} is niet geladen. Controleer de integratie en probeer het opnieuw."
+        },
+        "timers_not_supported": {
+            "message": "De geïnstalleerde pywebasto-bibliotheek ondersteunt geen timers. Werk de integratie bij."
+        },
+        "no_timers": {
+            "message": "Er zijn geen timers om te wijzigen op dit apparaat."
+        },
+        "invalid_timer_index": {
+            "message": "Ongeldige timerindex {timer_index}. Het geldige bereik is 0 tot {max_index} ({timer_count} timers)."
+        },
+        "invalid_start_time": {
+            "message": "Ongeldige starttijd {start_time}. Gebruik het formaat UU:MM."
+        },
+        "invalid_repeat_days": {
+            "message": "Herhaaldagen moeten een lijst met weekdagen zijn."
+        },
+        "unsupported_weekday": {
+            "message": "Niet-ondersteunde weekdag {day}."
+        },
+        "invalid_location": {
+            "message": "De locatie moet een kaartlocatie met een breedtegraad en een lengtegraad zijn."
+        },
+        "location_with_coordinates": {
+            "message": "Locatie kan niet samen met breedtegraad en lengtegraad worden gebruikt."
+        },
+        "clear_location_with_coordinates": {
+            "message": "Locatie wissen kan niet samen met breedtegraad en lengtegraad worden gebruikt."
+        },
+        "clear_location_with_location": {
+            "message": "Locatie wissen kan niet samen met locatie worden gebruikt."
+        },
+        "incomplete_coordinates": {
+            "message": "Breedtegraad en lengtegraad moeten allebei worden opgegeven of allebei worden weggelaten."
+        },
+        "start_time_conversion_unavailable": {
+            "message": "De starttijd kan niet worden omgerekend zonder de tijdzone van Home Assistant."
+        },
+        "missing_timer_values": {
+            "message": "Een timer heeft een starttijd, een duur en herhaaldagen nodig."
+        },
+        "invalid_timer": {
+            "message": "De timer is ongeldig: {error}"
+        },
+        "create_timer_failed": {
+            "message": "Kan de timer niet aanmaken omdat het verzoek aan de Webasto-cloud is mislukt. Probeer het later opnieuw."
+        },
+        "update_timer_failed": {
+            "message": "Kan de timer niet bijwerken omdat het verzoek aan de Webasto-cloud is mislukt. Probeer het later opnieuw."
+        },
+        "delete_timer_failed": {
+            "message": "Kan de timer niet verwijderen omdat het verzoek aan de Webasto-cloud is mislukt. Probeer het later opnieuw."
+        },
+        "rate_limited": {
+            "message": "De Webasto-cloud beperkt het aantal verzoeken. Probeer het later opnieuw."
+        }
     }
 }

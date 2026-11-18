@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from custom_components.webastoconnect.services import (
     LINE_VENTILATION,
@@ -162,7 +162,7 @@ async def test_async_update_timer_raises_for_invalid_index() -> None:
     coordinator = _CoordinatorStub([SimpleTimer(start=600, duration=1800, repeat=64)])
     device = SimpleNamespace(device_id="dev1")
 
-    with pytest.raises(HomeAssistantError) as exc_info:
+    with pytest.raises(ServiceValidationError) as exc_info:
         await async_update_timer(
             coordinator,
             device,
@@ -172,7 +172,12 @@ async def test_async_update_timer_raises_for_invalid_index() -> None:
         )
 
     coordinator.cloud.save_timers.assert_not_awaited()
-    assert "Valid range is 0..0" in str(exc_info.value)
+    assert exc_info.value.translation_key == "invalid_timer_index"
+    assert exc_info.value.translation_placeholders == {
+        "timer_index": "4",
+        "max_index": "0",
+        "timer_count": "1",
+    }
 
 
 @pytest.mark.asyncio
@@ -190,7 +195,7 @@ async def test_async_update_timer_without_line_invalid_index_has_friendly_error(
     coordinator.cloud.save_timers = AsyncMock()
     device = SimpleNamespace(device_id="dev1")
 
-    with pytest.raises(HomeAssistantError) as exc_info:
+    with pytest.raises(ServiceValidationError) as exc_info:
         await async_update_timer(
             coordinator,
             device,
@@ -199,9 +204,8 @@ async def test_async_update_timer_without_line_invalid_index_has_friendly_error(
             hass=SimpleNamespace(config=SimpleNamespace(time_zone="UTC")),
         )
 
-    message = str(exc_info.value)
-    assert "edit timer index" in message
-    assert "Valid range is 0..0" in message
+    assert exc_info.value.translation_key == "invalid_timer_index"
+    assert exc_info.value.translation_placeholders["max_index"] == "0"
 
 
 @pytest.mark.asyncio
@@ -210,10 +214,23 @@ async def test_async_delete_timer_raises_for_invalid_index() -> None:
     coordinator = _CoordinatorStub([SimpleTimer(start=600, duration=1800, repeat=64)])
     device = SimpleNamespace(device_id="dev1", is_ventilation=True)
 
-    with pytest.raises(HomeAssistantError):
+    with pytest.raises(ServiceValidationError) as exc_info:
         await async_delete_timer(coordinator, device, timer_index=7)
 
     coordinator.cloud.save_timers.assert_not_awaited()
+    assert exc_info.value.translation_key == "invalid_timer_index"
+
+
+@pytest.mark.asyncio
+async def test_async_delete_timer_without_timers_has_no_timers_error() -> None:
+    """Delete on an empty timer list reports that there are no timers."""
+    coordinator = _CoordinatorStub([])
+    device = SimpleNamespace(device_id="dev1", is_ventilation=False)
+
+    with pytest.raises(ServiceValidationError) as exc_info:
+        await async_delete_timer(coordinator, device, timer_index=0)
+
+    assert exc_info.value.translation_key == "no_timers"
 
 
 @pytest.mark.asyncio
@@ -293,7 +310,7 @@ def test_coerce_timer_rejects_clear_location_together_with_lat_lon() -> None:
     """clear_location cannot be used together with latitude/longitude."""
     hass = SimpleNamespace(config=SimpleNamespace(time_zone="UTC"))
 
-    with pytest.raises(HomeAssistantError):
+    with pytest.raises(ServiceValidationError) as exc_info:
         _coerce_timer(
             {
                 "start_time": "10:15",
@@ -305,6 +322,8 @@ def test_coerce_timer_rejects_clear_location_together_with_lat_lon() -> None:
             },
             hass=hass,
         )
+
+    assert exc_info.value.translation_key == "clear_location_with_coordinates"
 
 
 def test_coerce_timer_accepts_location_map_selector_payload() -> None:
@@ -329,7 +348,7 @@ def test_coerce_timer_rejects_clear_location_together_with_location() -> None:
     """clear_location cannot be combined with location selector payload."""
     hass = SimpleNamespace(config=SimpleNamespace(time_zone="UTC"))
 
-    with pytest.raises(HomeAssistantError):
+    with pytest.raises(ServiceValidationError) as exc_info:
         _coerce_timer(
             {
                 "start_time": "10:15",
@@ -340,6 +359,8 @@ def test_coerce_timer_rejects_clear_location_together_with_location() -> None:
             },
             hass=hass,
         )
+
+    assert exc_info.value.translation_key == "clear_location_with_location"
 
 
 def test_coerce_timer_supports_start_time_and_duration_minutes() -> None:
@@ -393,3 +414,48 @@ def test_coerce_timer_allows_empty_repeat_days_for_one_time_timer() -> None:
     )
 
     assert timer.repeat == 0
+
+
+def test_coerce_timer_rejects_invalid_start_time() -> None:
+    """A start time that is not HH:MM is a translated validation error."""
+    hass = SimpleNamespace(config=SimpleNamespace(time_zone="UTC"))
+
+    with pytest.raises(ServiceValidationError) as exc_info:
+        _coerce_timer(
+            {"start_time": "25:99", "duration_minutes": 30, "repeat_days": []},
+            hass=hass,
+        )
+
+    assert exc_info.value.translation_key == "invalid_start_time"
+    assert exc_info.value.translation_placeholders == {"start_time": "25:99"}
+
+
+def test_coerce_timer_rejects_half_a_coordinate() -> None:
+    """Latitude without longitude is a translated validation error."""
+    hass = SimpleNamespace(config=SimpleNamespace(time_zone="UTC"))
+
+    with pytest.raises(ServiceValidationError) as exc_info:
+        _coerce_timer(
+            {
+                "start_time": "10:15",
+                "duration_minutes": 30,
+                "repeat_days": [],
+                "latitude": "56.1",
+            },
+            hass=hass,
+        )
+
+    assert exc_info.value.translation_key == "incomplete_coordinates"
+
+
+def test_errors_use_the_integration_translation_domain() -> None:
+    """Validation errors name this integration as translation domain."""
+    hass = SimpleNamespace(config=SimpleNamespace(time_zone="UTC"))
+
+    with pytest.raises(HomeAssistantError) as exc_info:
+        _coerce_timer(
+            {"start_time": "x", "duration_minutes": 30, "repeat_days": []},
+            hass=hass,
+        )
+
+    assert exc_info.value.translation_domain == "webastoconnect"

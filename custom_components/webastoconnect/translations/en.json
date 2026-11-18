@@ -46,5 +46,167 @@
                 }
             }
         }
+    },
+    "services": {
+        "create_timer": {
+            "name": "Create timer",
+            "description": "Creates a new simple timer for a Webasto device on its active output (heater or ventilation).",
+            "fields": {
+                "device_id": {
+                    "name": "Device",
+                    "description": "The Webasto device to create the timer for."
+                },
+                "start_time": {
+                    "name": "Start time",
+                    "description": "Local clock time for the timer start (HH:MM). Seconds are optional."
+                },
+                "duration_minutes": {
+                    "name": "Duration",
+                    "description": "Duration in minutes."
+                },
+                "repeat_days": {
+                    "name": "Repeat days",
+                    "description": "Days when the timer should run. Leave empty for a non-repeating timer."
+                },
+                "enabled": {
+                    "name": "Enabled",
+                    "description": "Whether the timer is enabled."
+                },
+                "location": {
+                    "name": "Location",
+                    "description": "Optional map location for the timer."
+                }
+            }
+        },
+        "update_timer": {
+            "name": "Update timer",
+            "description": "Updates an existing simple timer by index. Only the fields provided in the action are changed; omitted fields keep their current value.",
+            "fields": {
+                "device_id": {
+                    "name": "Device",
+                    "description": "The Webasto device that has the timer."
+                },
+                "timer_index": {
+                    "name": "Timer index",
+                    "description": "Zero-based timer index."
+                },
+                "start_time": {
+                    "name": "Start time",
+                    "description": "Local clock time for the timer start (HH:MM). Seconds are optional."
+                },
+                "duration_minutes": {
+                    "name": "Duration",
+                    "description": "Duration in minutes."
+                },
+                "repeat_days": {
+                    "name": "Repeat days",
+                    "description": "Days when the timer should run. Leave empty for a non-repeating timer."
+                },
+                "enabled": {
+                    "name": "Enabled",
+                    "description": "Whether the timer is enabled."
+                },
+                "clear_location": {
+                    "name": "Clear location",
+                    "description": "Remove the stored timer location."
+                },
+                "location": {
+                    "name": "Location",
+                    "description": "Optional map location for the timer. Cannot be used with Clear location."
+                }
+            }
+        },
+        "delete_timer": {
+            "name": "Delete timer",
+            "description": "Deletes a timer by index on the active output line (heater or ventilation mode).",
+            "fields": {
+                "device_id": {
+                    "name": "Device",
+                    "description": "The Webasto device that has the timer."
+                },
+                "timer_index": {
+                    "name": "Timer index",
+                    "description": "Zero-based index in the timer list of the active output line."
+                }
+            }
+        }
+    },
+    "selector": {
+        "weekday": {
+            "options": {
+                "monday": "Monday",
+                "tuesday": "Tuesday",
+                "wednesday": "Wednesday",
+                "thursday": "Thursday",
+                "friday": "Friday",
+                "saturday": "Saturday",
+                "sunday": "Sunday"
+            }
+        }
+    },
+    "exceptions": {
+        "device_not_found": {
+            "message": "No Webasto device found with device ID {device_id}."
+        },
+        "device_not_reported": {
+            "message": "The Webasto account no longer reports the device {device_name}."
+        },
+        "entry_not_loaded": {
+            "message": "The Webasto Connect entry {entry_title} is not loaded. Check the integration and try again."
+        },
+        "timers_not_supported": {
+            "message": "The installed pywebasto library does not support timers. Update the integration."
+        },
+        "no_timers": {
+            "message": "There are no timers to change on this device."
+        },
+        "invalid_timer_index": {
+            "message": "Invalid timer index {timer_index}. The valid range is 0 to {max_index} ({timer_count} timers)."
+        },
+        "invalid_start_time": {
+            "message": "Invalid start time {start_time}. Use the format HH:MM."
+        },
+        "invalid_repeat_days": {
+            "message": "Repeat days must be a list of weekdays."
+        },
+        "unsupported_weekday": {
+            "message": "Unsupported weekday {day}."
+        },
+        "invalid_location": {
+            "message": "The location must be a map location with a latitude and a longitude."
+        },
+        "location_with_coordinates": {
+            "message": "Location cannot be used together with latitude and longitude."
+        },
+        "clear_location_with_coordinates": {
+            "message": "Clear location cannot be used together with latitude and longitude."
+        },
+        "clear_location_with_location": {
+            "message": "Clear location cannot be used together with location."
+        },
+        "incomplete_coordinates": {
+            "message": "Latitude and longitude must both be provided or both be omitted."
+        },
+        "start_time_conversion_unavailable": {
+            "message": "The start time cannot be converted without the Home Assistant time zone."
+        },
+        "missing_timer_values": {
+            "message": "A timer needs a start time, a duration and repeat days."
+        },
+        "invalid_timer": {
+            "message": "The timer is not valid: {error}"
+        },
+        "create_timer_failed": {
+            "message": "Could not create the timer because the request to the Webasto cloud failed. Try again later."
+        },
+        "update_timer_failed": {
+            "message": "Could not update the timer because the request to the Webasto cloud failed. Try again later."
+        },
+        "delete_timer_failed": {
+            "message": "Could not delete the timer because the request to the Webasto cloud failed. Try again later."
+        },
+        "rate_limited": {
+            "message": "The Webasto cloud is limiting the number of requests. Try again later."
+        }
     }
 }

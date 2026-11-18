@@ -46,5 +46,167 @@
                 }
             }
         }
+    },
+    "services": {
+        "create_timer": {
+            "name": "Opret timer",
+            "description": "Opretter en ny simpel timer for en Webasto-enhed på den aktive udgang (varmer eller ventilation).",
+            "fields": {
+                "device_id": {
+                    "name": "Enhed",
+                    "description": "Webasto-enheden, som timeren oprettes for."
+                },
+                "start_time": {
+                    "name": "Starttidspunkt",
+                    "description": "Lokalt klokkeslæt for timerens start (TT:MM). Sekunder er valgfrie."
+                },
+                "duration_minutes": {
+                    "name": "Varighed",
+                    "description": "Varighed i minutter."
+                },
+                "repeat_days": {
+                    "name": "Gentagelsesdage",
+                    "description": "Dage, hvor timeren skal køre. Lad feltet være tomt for en timer, der ikke gentages."
+                },
+                "enabled": {
+                    "name": "Aktiveret",
+                    "description": "Om timeren er aktiveret."
+                },
+                "location": {
+                    "name": "Placering",
+                    "description": "Valgfri kortplacering for timeren."
+                }
+            }
+        },
+        "update_timer": {
+            "name": "Opdater timer",
+            "description": "Opdaterer en eksisterende simpel timer ud fra indeks. Kun de felter, der angives i handlingen, ændres; udeladte felter beholder deres nuværende værdi.",
+            "fields": {
+                "device_id": {
+                    "name": "Enhed",
+                    "description": "Webasto-enheden med timeren."
+                },
+                "timer_index": {
+                    "name": "Timerindeks",
+                    "description": "Nulbaseret timerindeks."
+                },
+                "start_time": {
+                    "name": "Starttidspunkt",
+                    "description": "Lokalt klokkeslæt for timerens start (TT:MM). Sekunder er valgfrie."
+                },
+                "duration_minutes": {
+                    "name": "Varighed",
+                    "description": "Varighed i minutter."
+                },
+                "repeat_days": {
+                    "name": "Gentagelsesdage",
+                    "description": "Dage, hvor timeren skal køre. Lad feltet være tomt for en timer, der ikke gentages."
+                },
+                "enabled": {
+                    "name": "Aktiveret",
+                    "description": "Om timeren er aktiveret."
+                },
+                "clear_location": {
+                    "name": "Ryd placering",
+                    "description": "Fjern timerens gemte placering."
+                },
+                "location": {
+                    "name": "Placering",
+                    "description": "Valgfri kortplacering for timeren. Kan ikke bruges sammen med Ryd placering."
+                }
+            }
+        },
+        "delete_timer": {
+            "name": "Slet timer",
+            "description": "Sletter en timer ud fra indeks på den aktive udgang (varmer- eller ventilationstilstand).",
+            "fields": {
+                "device_id": {
+                    "name": "Enhed",
+                    "description": "Webasto-enheden med timeren."
+                },
+                "timer_index": {
+                    "name": "Timerindeks",
+                    "description": "Nulbaseret indeks i timerlisten for den aktive udgang."
+                }
+            }
+        }
+    },
+    "selector": {
+        "weekday": {
+            "options": {
+                "monday": "Mandag",
+                "tuesday": "Tirsdag",
+                "wednesday": "Onsdag",
+                "thursday": "Torsdag",
+                "friday": "Fredag",
+                "saturday": "Lørdag",
+                "sunday": "Søndag"
+            }
+        }
+    },
+    "exceptions": {
+        "device_not_found": {
+            "message": "Ingen Webasto-enhed fundet med enheds-ID {device_id}."
+        },
+        "device_not_reported": {
+            "message": "Webasto-kontoen rapporterer ikke længere enheden {device_name}."
+        },
+        "entry_not_loaded": {
+            "message": "Webasto Connect-posten {entry_title} er ikke indlæst. Kontroller integrationen, og prøv igen."
+        },
+        "timers_not_supported": {
+            "message": "Det installerede pywebasto-bibliotek understøtter ikke timere. Opdater integrationen."
+        },
+        "no_timers": {
+            "message": "Der er ingen timere at ændre på denne enhed."
+        },
+        "invalid_timer_index": {
+            "message": "Ugyldigt timerindeks {timer_index}. Det gyldige interval er 0 til {max_index} ({timer_count} timere)."
+        },
+        "invalid_start_time": {
+            "message": "Ugyldigt starttidspunkt {start_time}. Brug formatet TT:MM."
+        },
+        "invalid_repeat_days": {
+            "message": "Gentagelsesdage skal være en liste over ugedage."
+        },
+        "unsupported_weekday": {
+            "message": "Ikke-understøttet ugedag {day}."
+        },
+        "invalid_location": {
+            "message": "Placeringen skal være en kortplacering med breddegrad og længdegrad."
+        },
+        "location_with_coordinates": {
+            "message": "Placering kan ikke bruges sammen med breddegrad og længdegrad."
+        },
+        "clear_location_with_coordinates": {
+            "message": "Ryd placering kan ikke bruges sammen med breddegrad og længdegrad."
+        },
+        "clear_location_with_location": {
+            "message": "Ryd placering kan ikke bruges sammen med placering."
+        },
+        "incomplete_coordinates": {
+            "message": "Breddegrad og længdegrad skal enten begge angives eller begge udelades."
+        },
+        "start_time_conversion_unavailable": {
+            "message": "Starttidspunktet kan ikke omregnes uden Home Assistants tidszone."
+        },
+        "missing_timer_values": {
+            "message": "En timer kræver et starttidspunkt, en varighed og gentagelsesdage."
+        },
+        "invalid_timer": {
+            "message": "Timeren er ugyldig: {error}"
+        },
+        "create_timer_failed": {
+            "message": "Timeren kunne ikke oprettes, fordi anmodningen til Webasto-skyen mislykkedes. Prøv igen senere."
+        },
+        "update_timer_failed": {
+            "message": "Timeren kunne ikke opdateres, fordi anmodningen til Webasto-skyen mislykkedes. Prøv igen senere."
+        },
+        "delete_timer_failed": {
+            "message": "Timeren kunne ikke slettes, fordi anmodningen til Webasto-skyen mislykkedes. Prøv igen senere."
+        },
+        "rate_limited": {
+            "message": "Webasto-skyen begrænser antallet af anmodninger. Prøv igen senere."
+        }
     }
 }

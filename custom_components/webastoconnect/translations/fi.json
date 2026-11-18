@@ -46,5 +46,167 @@
                 }
             }
         }
+    },
+    "services": {
+        "create_timer": {
+            "name": "Luo ajastin",
+            "description": "Luo uuden yksinkertaisen ajastimen Webasto-laitteen aktiiviselle lähdölle (lämmitin tai tuuletus).",
+            "fields": {
+                "device_id": {
+                    "name": "Laite",
+                    "description": "Webasto-laite, jolle ajastin luodaan."
+                },
+                "start_time": {
+                    "name": "Alkamisaika",
+                    "description": "Ajastimen paikallinen alkamisaika (TT:MM). Sekunnit ovat valinnaisia."
+                },
+                "duration_minutes": {
+                    "name": "Kesto",
+                    "description": "Kesto minuutteina."
+                },
+                "repeat_days": {
+                    "name": "Toistopäivät",
+                    "description": "Päivät, joina ajastimen pitää toimia. Jätä tyhjäksi kertaluonteista ajastinta varten."
+                },
+                "enabled": {
+                    "name": "Käytössä",
+                    "description": "Onko ajastin käytössä."
+                },
+                "location": {
+                    "name": "Sijainti",
+                    "description": "Ajastimen valinnainen karttasijainti."
+                }
+            }
+        },
+        "update_timer": {
+            "name": "Päivitä ajastin",
+            "description": "Päivittää olemassa olevan yksinkertaisen ajastimen indeksin perusteella. Vain toiminnossa annetut kentät muuttuvat; pois jätetyt kentät säilyttävät nykyisen arvonsa.",
+            "fields": {
+                "device_id": {
+                    "name": "Laite",
+                    "description": "Webasto-laite, jolla ajastin on."
+                },
+                "timer_index": {
+                    "name": "Ajastimen indeksi",
+                    "description": "Nollasta alkava ajastimen indeksi."
+                },
+                "start_time": {
+                    "name": "Alkamisaika",
+                    "description": "Ajastimen paikallinen alkamisaika (TT:MM). Sekunnit ovat valinnaisia."
+                },
+                "duration_minutes": {
+                    "name": "Kesto",
+                    "description": "Kesto minuutteina."
+                },
+                "repeat_days": {
+                    "name": "Toistopäivät",
+                    "description": "Päivät, joina ajastimen pitää toimia. Jätä tyhjäksi kertaluonteista ajastinta varten."
+                },
+                "enabled": {
+                    "name": "Käytössä",
+                    "description": "Onko ajastin käytössä."
+                },
+                "clear_location": {
+                    "name": "Tyhjennä sijainti",
+                    "description": "Poista ajastimen tallennettu sijainti."
+                },
+                "location": {
+                    "name": "Sijainti",
+                    "description": "Ajastimen valinnainen karttasijainti. Ei voi käyttää yhdessä Tyhjennä sijainti -valinnan kanssa."
+                }
+            }
+        },
+        "delete_timer": {
+            "name": "Poista ajastin",
+            "description": "Poistaa ajastimen indeksin perusteella aktiiviselta lähdöltä (lämmitys- tai tuuletustila).",
+            "fields": {
+                "device_id": {
+                    "name": "Laite",
+                    "description": "Webasto-laite, jolla ajastin on."
+                },
+                "timer_index": {
+                    "name": "Ajastimen indeksi",
+                    "description": "Nollasta alkava indeksi aktiivisen lähdön ajastinluettelossa."
+                }
+            }
+        }
+    },
+    "selector": {
+        "weekday": {
+            "options": {
+                "monday": "Maanantai",
+                "tuesday": "Tiistai",
+                "wednesday": "Keskiviikko",
+                "thursday": "Torstai",
+                "friday": "Perjantai",
+                "saturday": "Lauantai",
+                "sunday": "Sunnuntai"
+            }
+        }
+    },
+    "exceptions": {
+        "device_not_found": {
+            "message": "Webasto-laitetta laitetunnuksella {device_id} ei löytynyt."
+        },
+        "device_not_reported": {
+            "message": "Webasto-tili ei enää ilmoita laitetta {device_name}."
+        },
+        "entry_not_loaded": {
+            "message": "Webasto Connect -merkintää {entry_title} ei ole ladattu. Tarkista integraatio ja yritä uudelleen."
+        },
+        "timers_not_supported": {
+            "message": "Asennettu pywebasto-kirjasto ei tue ajastimia. Päivitä integraatio."
+        },
+        "no_timers": {
+            "message": "Tällä laitteella ei ole muutettavia ajastimia."
+        },
+        "invalid_timer_index": {
+            "message": "Virheellinen ajastimen indeksi {timer_index}. Sallittu alue on 0–{max_index} ({timer_count} ajastinta)."
+        },
+        "invalid_start_time": {
+            "message": "Virheellinen alkamisaika {start_time}. Käytä muotoa TT:MM."
+        },
+        "invalid_repeat_days": {
+            "message": "Toistopäivien on oltava luettelo viikonpäivistä."
+        },
+        "unsupported_weekday": {
+            "message": "Viikonpäivää {day} ei tueta."
+        },
+        "invalid_location": {
+            "message": "Sijainnin on oltava karttasijainti, jolla on leveys- ja pituusaste."
+        },
+        "location_with_coordinates": {
+            "message": "Sijaintia ei voi käyttää yhdessä leveys- ja pituusasteen kanssa."
+        },
+        "clear_location_with_coordinates": {
+            "message": "Tyhjennä sijainti -valintaa ei voi käyttää yhdessä leveys- ja pituusasteen kanssa."
+        },
+        "clear_location_with_location": {
+            "message": "Tyhjennä sijainti -valintaa ei voi käyttää yhdessä sijainnin kanssa."
+        },
+        "incomplete_coordinates": {
+            "message": "Leveys- ja pituusaste on annettava molemmat tai jätettävä molemmat pois."
+        },
+        "start_time_conversion_unavailable": {
+            "message": "Alkamisaikaa ei voi muuntaa ilman Home Assistantin aikavyöhykettä."
+        },
+        "missing_timer_values": {
+            "message": "Ajastin tarvitsee alkamisajan, keston ja toistopäivät."
+        },
+        "invalid_timer": {
+            "message": "Ajastin on virheellinen: {error}"
+        },
+        "create_timer_failed": {
+            "message": "Ajastinta ei voitu luoda, koska pyyntö Webasto-pilveen epäonnistui. Yritä myöhemmin uudelleen."
+        },
+        "update_timer_failed": {
+            "message": "Ajastinta ei voitu päivittää, koska pyyntö Webasto-pilveen epäonnistui. Yritä myöhemmin uudelleen."
+        },
+        "delete_timer_failed": {
+            "message": "Ajastinta ei voitu poistaa, koska pyyntö Webasto-pilveen epäonnistui. Yritä myöhemmin uudelleen."
+        },
+        "rate_limited": {
+            "message": "Webasto-pilvi rajoittaa pyyntöjen määrää. Yritä myöhemmin uudelleen."
+        }
     }
 }

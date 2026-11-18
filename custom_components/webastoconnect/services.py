@@ -8,12 +8,19 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.util import dt as dt_util
-from pywebasto.exceptions import InvalidRequestException, UnauthorizedException
+from pywebasto.exceptions import (
+    ForbiddenException,
+    InvalidRequestException,
+    InvalidResponseException,
+    TooManyRequestsException,
+    UnauthorizedException,
+)
 
 try:
     from pywebasto import SimpleTimer
@@ -159,38 +166,72 @@ _DELETE_TIMER_SCHEMA = _BASE_SCHEMA.extend(
 )
 
 
+def _validation_error(
+    translation_key: str, placeholders: dict[str, str] | None = None
+) -> ServiceValidationError:
+    """Return a translated error for invalid action input."""
+    return ServiceValidationError(
+        translation_domain=DOMAIN,
+        translation_key=translation_key,
+        translation_placeholders=placeholders,
+    )
+
+
+def _loaded_coordinators(hass: HomeAssistant) -> list[Any]:
+    """Return the coordinators of the loaded config entries."""
+    return [
+        entry.runtime_data.coordinator
+        for entry in hass.config_entries.async_entries(DOMAIN)
+        if entry.state is ConfigEntryState.LOADED
+        and getattr(entry, "runtime_data", None) is not None
+    ]
+
+
 def _coordinator_and_device(hass: HomeAssistant, device_id: str) -> tuple[Any, Any]:
-    """Resolve coordinator + device from HA device id or Webasto API device id."""
+    """Resolve coordinator + device from HA device id or Webasto API device id.
+
+    Raises ServiceValidationError when the device is unknown, when its config
+    entry is not loaded, or when the account no longer reports it.
+    """
     # Backwards compatibility for callers that still pass API device id directly.
-    for entry in hass.config_entries.async_entries(DOMAIN):
-        runtime_data = getattr(entry, "runtime_data", None)
-        if runtime_data is None:
-            continue
-        coordinator = runtime_data.coordinator
+    for coordinator in _loaded_coordinators(hass):
         for cloud_device in coordinator.cloud.devices.values():
             if str(cloud_device.device_id) == str(device_id):
                 return coordinator, cloud_device
 
     # Preferred path: device selector value (HA device registry id).
-    device_registry = dr.async_get(hass)
-    ha_device = device_registry.async_get(str(device_id))
-    if ha_device is not None:
-        internal_device_ids = {
-            identifier
-            for domain, identifier in ha_device.identifiers
-            if domain == DOMAIN
-        }
+    ha_device = dr.async_get(hass).async_get(str(device_id))
+    if ha_device is None:
+        raise _validation_error("device_not_found", {"device_id": str(device_id)})
 
-        for entry in hass.config_entries.async_entries(DOMAIN):
-            runtime_data = getattr(entry, "runtime_data", None)
-            if runtime_data is None:
-                continue
-            coordinator = runtime_data.coordinator
-            for internal_id, cloud_device in coordinator.cloud.devices.items():
-                if str(internal_id) in internal_device_ids:
-                    return coordinator, cloud_device
+    entries = [
+        entry
+        for entry_id in ha_device.config_entries
+        if (entry := hass.config_entries.async_get_entry(entry_id)) is not None
+        and entry.domain == DOMAIN
+    ]
+    if not entries:
+        raise _validation_error("device_not_found", {"device_id": str(device_id)})
 
-    raise HomeAssistantError(f"No Webasto device found with device_id '{device_id}'")
+    loaded_entries = [
+        entry for entry in entries if entry.state is ConfigEntryState.LOADED
+    ]
+    if not loaded_entries:
+        raise _validation_error("entry_not_loaded", {"entry_title": entries[0].title})
+
+    internal_device_ids = {
+        identifier for domain, identifier in ha_device.identifiers if domain == DOMAIN
+    }
+    for entry in loaded_entries:
+        coordinator = entry.runtime_data.coordinator
+        for internal_id, cloud_device in coordinator.cloud.devices.items():
+            if str(internal_id) in internal_device_ids:
+                return coordinator, cloud_device
+
+    raise _validation_error(
+        "device_not_reported",
+        {"device_name": ha_device.name_by_user or ha_device.name or str(device_id)},
+    )
 
 
 def _ensure_timer_api_support(coordinator: Any) -> None:
@@ -199,8 +240,8 @@ def _ensure_timer_api_support(coordinator: Any) -> None:
         coordinator.cloud, "save_timers"
     ):
         raise HomeAssistantError(
-            "Installed pywebasto version does not support timers. "
-            "Use timer-enabled pywebasto build."
+            translation_domain=DOMAIN,
+            translation_key="timers_not_supported",
         )
 
 
@@ -221,15 +262,18 @@ def _active_output_for_device(device: Any) -> Any:
     )
 
 
-def _raise_timer_index_error(timer_index: int, timer_count: int, *, scope: str) -> None:
+def _raise_timer_index_error(timer_index: int, timer_count: int) -> None:
     """Raise a user-friendly out-of-range error for timer index."""
     if timer_count <= 0:
-        raise HomeAssistantError(f"No timers available for {scope}.")
+        raise _validation_error("no_timers")
 
-    max_index = timer_count - 1
-    raise HomeAssistantError(
-        f"Invalid timer index {timer_index} for {scope}. "
-        f"Valid range is 0..{max_index} ({timer_count} timer(s))."
+    raise _validation_error(
+        "invalid_timer_index",
+        {
+            "timer_index": str(timer_index),
+            "max_index": str(timer_count - 1),
+            "timer_count": str(timer_count),
+        },
     )
 
 
@@ -250,7 +294,7 @@ def _parse_clock_time(value: Any) -> time:
     if isinstance(value, time):
         return value
     if not isinstance(value, str):
-        raise HomeAssistantError("start_time must be provided as HH:MM")
+        raise _validation_error("invalid_start_time", {"start_time": str(value)})
 
     candidate = value.strip()
     for fmt in ("%H:%M", "%H:%M:%S"):
@@ -258,7 +302,7 @@ def _parse_clock_time(value: Any) -> time:
             return datetime.strptime(candidate, fmt).time()
         except ValueError:
             continue
-    raise HomeAssistantError("start_time must be provided as HH:MM")
+    raise _validation_error("invalid_start_time", {"start_time": candidate})
 
 
 def _start_minutes_from_local_time(hass: HomeAssistant, value: Any) -> int:
@@ -281,14 +325,14 @@ def _start_minutes_from_local_time(hass: HomeAssistant, value: Any) -> int:
 def _repeat_mask_from_days(days: Any) -> int:
     """Build repeat bitmask from weekday names."""
     if not isinstance(days, list):
-        raise HomeAssistantError("repeat_days must be a list")
+        raise _validation_error("invalid_repeat_days")
     mask = 0
     for day in days:
         if not isinstance(day, str):
-            raise HomeAssistantError("repeat_days must contain weekday strings")
+            raise _validation_error("invalid_repeat_days")
         key = day.strip().lower()
         if key not in WEEKDAY_TO_MASK:
-            raise HomeAssistantError(f"Unsupported weekday '{day}'")
+            raise _validation_error("unsupported_weekday", {"day": day})
         mask |= WEEKDAY_TO_MASK[key]
     return mask
 
@@ -301,7 +345,7 @@ def _resolve_location_values(
     """Resolve location values from selector/legacy fields/update flags."""
     location_data = data.get(ATTR_LOCATION)
     if location_data is not None and not isinstance(location_data, dict):
-        raise HomeAssistantError("location must be a map value")
+        raise _validation_error("invalid_location")
 
     latitude = (
         _normalize_geo_value(data.get(ATTR_LATITUDE))
@@ -316,25 +360,19 @@ def _resolve_location_values(
 
     if location_data is not None:
         if ATTR_LATITUDE in data or ATTR_LONGITUDE in data:
-            raise HomeAssistantError(
-                "location cannot be used together with latitude/longitude"
-            )
+            raise _validation_error("location_with_coordinates")
         latitude = _normalize_geo_value(location_data.get("latitude"))
         longitude = _normalize_geo_value(location_data.get("longitude"))
 
     if clear_location and (ATTR_LATITUDE in data or ATTR_LONGITUDE in data):
-        raise HomeAssistantError(
-            "clear_location cannot be used together with latitude/longitude"
-        )
+        raise _validation_error("clear_location_with_coordinates")
     if clear_location and location_data is not None:
-        raise HomeAssistantError("clear_location cannot be used together with location")
+        raise _validation_error("clear_location_with_location")
     if clear_location:
         return None, None
 
     if (latitude is None) != (longitude is None):
-        raise HomeAssistantError(
-            "latitude and longitude must both be provided or both be omitted"
-        )
+        raise _validation_error("incomplete_coordinates")
 
     return latitude, longitude
 
@@ -350,7 +388,8 @@ def _coerce_timer(
     if ATTR_START_TIME in data:
         if hass is None:
             raise HomeAssistantError(
-                "hass context is required for start_time conversion"
+                translation_domain=DOMAIN,
+                translation_key="start_time_conversion_unavailable",
             )
         start = _start_minutes_from_local_time(hass, data.get(ATTR_START_TIME))
 
@@ -366,7 +405,7 @@ def _coerce_timer(
     latitude, longitude = _resolve_location_values(data, existing, clear_location)
 
     if start is None or duration is None or repeat is None:
-        raise HomeAssistantError("start, duration and repeat are required")
+        raise _validation_error("missing_timer_values")
 
     return SimpleTimer(
         start=int(start),
@@ -438,11 +477,7 @@ async def async_update_timer(
                 total_timers = len(timers)
 
         if selected_index >= len(timers):
-            _raise_timer_index_error(
-                timer_index,
-                total_timers,
-                scope="edit timer index",
-            )
+            _raise_timer_index_error(timer_index, total_timers)
 
         timers[selected_index] = _coerce_timer(
             timer_data,
@@ -466,13 +501,41 @@ async def async_delete_timer(
         output = _active_output_for_device(device)
         timers = await coordinator.cloud.get_timers(device=device, line=output)
         if timer_index >= len(timers):
-            active_scope = "active output timers"
-            _raise_timer_index_error(timer_index, len(timers), scope=active_scope)
+            _raise_timer_index_error(timer_index, len(timers))
         del timers[timer_index]
         await coordinator.cloud.save_timers(device=device, timers=timers, line=output)
 
     await coordinator.async_execute_cloud_call(_operation)
     coordinator.async_update_listeners()
+
+
+_CLOUD_ERRORS = (
+    InvalidRequestException,
+    UnauthorizedException,
+    ForbiddenException,
+    InvalidResponseException,
+    TooManyRequestsException,
+)
+
+
+def _invalid_timer_error(err: ValueError) -> ServiceValidationError:
+    """Return a translated error for a timer the library rejected."""
+    return _validation_error("invalid_timer", {"error": str(err)})
+
+
+def _cloud_error(translation_key: str, err: Exception) -> HomeAssistantError:
+    """Return a translated error for a failed cloud request.
+
+    The library message can hold response details, so it is logged at debug
+    level and kept out of the message shown to the user.
+    """
+    LOGGER.debug("Webasto timer request failed (%s): %s", type(err).__name__, err)
+    if isinstance(err, TooManyRequestsException):
+        translation_key = "rate_limited"
+    return HomeAssistantError(
+        translation_domain=DOMAIN,
+        translation_key=translation_key,
+    )
 
 
 async def _async_handle_create_timer(hass: HomeAssistant, call: ServiceCall) -> None:
@@ -489,9 +552,9 @@ async def _async_handle_create_timer(hass: HomeAssistant, call: ServiceCall) -> 
     try:
         await async_create_timer(coordinator, device, timer, line)
     except ValueError as err:
-        raise ServiceValidationError(f"Invalid timer: {err}") from err
-    except (InvalidRequestException, UnauthorizedException) as err:
-        raise HomeAssistantError(f"Failed to create timer: {err}") from err
+        raise _invalid_timer_error(err) from err
+    except _CLOUD_ERRORS as err:
+        raise _cloud_error("create_timer_failed", err) from err
 
 
 async def _async_handle_update_timer(hass: HomeAssistant, call: ServiceCall) -> None:
@@ -515,9 +578,9 @@ async def _async_handle_update_timer(hass: HomeAssistant, call: ServiceCall) -> 
             hass=hass,
         )
     except ValueError as err:
-        raise ServiceValidationError(f"Invalid timer: {err}") from err
-    except (InvalidRequestException, UnauthorizedException) as err:
-        raise HomeAssistantError(f"Failed to update timer: {err}") from err
+        raise _invalid_timer_error(err) from err
+    except _CLOUD_ERRORS as err:
+        raise _cloud_error("update_timer_failed", err) from err
 
 
 async def _async_handle_delete_timer(hass: HomeAssistant, call: ServiceCall) -> None:
@@ -529,13 +592,14 @@ async def _async_handle_delete_timer(hass: HomeAssistant, call: ServiceCall) -> 
     try:
         await async_delete_timer(coordinator, device, timer_index)
     except ValueError as err:
-        raise ServiceValidationError(f"Invalid timer: {err}") from err
-    except (InvalidRequestException, UnauthorizedException) as err:
-        raise HomeAssistantError(f"Failed to delete timer: {err}") from err
+        raise _invalid_timer_error(err) from err
+    except _CLOUD_ERRORS as err:
+        raise _cloud_error("delete_timer_failed", err) from err
 
 
-def async_register_services(hass: HomeAssistant) -> None:
-    """Register domain services."""
+@callback
+def async_setup_services(hass: HomeAssistant) -> None:
+    """Register the integration actions once, from async_setup."""
 
     async def _handle_create(call: ServiceCall) -> None:
         await _async_handle_create_timer(hass, call)
@@ -546,31 +610,21 @@ def async_register_services(hass: HomeAssistant) -> None:
     async def _handle_delete(call: ServiceCall) -> None:
         await _async_handle_delete_timer(hass, call)
 
-    if not hass.services.has_service(DOMAIN, SERVICE_CREATE_TIMER):
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_CREATE_TIMER,
-            _handle_create,
-            schema=_CREATE_TIMER_SCHEMA,
-        )
-    if not hass.services.has_service(DOMAIN, SERVICE_UPDATE_TIMER):
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_UPDATE_TIMER,
-            _handle_update,
-            schema=_UPDATE_TIMER_SCHEMA,
-        )
-    if not hass.services.has_service(DOMAIN, SERVICE_DELETE_TIMER):
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_DELETE_TIMER,
-            _handle_delete,
-            schema=_DELETE_TIMER_SCHEMA,
-        )
-
-
-def async_unregister_services(hass: HomeAssistant) -> None:
-    """Unregister domain services."""
-    for service in (SERVICE_CREATE_TIMER, SERVICE_UPDATE_TIMER, SERVICE_DELETE_TIMER):
-        if hass.services.has_service(DOMAIN, service):
-            hass.services.async_remove(DOMAIN, service)
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_CREATE_TIMER,
+        _handle_create,
+        schema=_CREATE_TIMER_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_UPDATE_TIMER,
+        _handle_update,
+        schema=_UPDATE_TIMER_SCHEMA,
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_DELETE_TIMER,
+        _handle_delete,
+        schema=_DELETE_TIMER_SCHEMA,
+    )

@@ -46,5 +46,167 @@
                 }
             }
         }
+    },
+    "services": {
+        "create_timer": {
+            "name": "Timer erstellen",
+            "description": "Erstellt einen neuen einfachen Timer für ein Webasto-Gerät auf dem aktiven Ausgang (Heizung oder Lüftung).",
+            "fields": {
+                "device_id": {
+                    "name": "Gerät",
+                    "description": "Das Webasto-Gerät, für das der Timer erstellt wird."
+                },
+                "start_time": {
+                    "name": "Startzeit",
+                    "description": "Lokale Uhrzeit für den Start des Timers (HH:MM). Sekunden sind optional."
+                },
+                "duration_minutes": {
+                    "name": "Dauer",
+                    "description": "Dauer in Minuten."
+                },
+                "repeat_days": {
+                    "name": "Wiederholungstage",
+                    "description": "Tage, an denen der Timer laufen soll. Für einen einmaligen Timer leer lassen."
+                },
+                "enabled": {
+                    "name": "Aktiviert",
+                    "description": "Ob der Timer aktiviert ist."
+                },
+                "location": {
+                    "name": "Standort",
+                    "description": "Optionaler Kartenstandort für den Timer."
+                }
+            }
+        },
+        "update_timer": {
+            "name": "Timer aktualisieren",
+            "description": "Aktualisiert einen vorhandenen einfachen Timer anhand des Index. Nur die in der Aktion angegebenen Felder werden geändert; ausgelassene Felder behalten ihren aktuellen Wert.",
+            "fields": {
+                "device_id": {
+                    "name": "Gerät",
+                    "description": "Das Webasto-Gerät mit dem Timer."
+                },
+                "timer_index": {
+                    "name": "Timer-Index",
+                    "description": "Nullbasierter Timer-Index."
+                },
+                "start_time": {
+                    "name": "Startzeit",
+                    "description": "Lokale Uhrzeit für den Start des Timers (HH:MM). Sekunden sind optional."
+                },
+                "duration_minutes": {
+                    "name": "Dauer",
+                    "description": "Dauer in Minuten."
+                },
+                "repeat_days": {
+                    "name": "Wiederholungstage",
+                    "description": "Tage, an denen der Timer laufen soll. Für einen einmaligen Timer leer lassen."
+                },
+                "enabled": {
+                    "name": "Aktiviert",
+                    "description": "Ob der Timer aktiviert ist."
+                },
+                "clear_location": {
+                    "name": "Standort entfernen",
+                    "description": "Entfernt den gespeicherten Standort des Timers."
+                },
+                "location": {
+                    "name": "Standort",
+                    "description": "Optionaler Kartenstandort für den Timer. Kann nicht zusammen mit Standort entfernen verwendet werden."
+                }
+            }
+        },
+        "delete_timer": {
+            "name": "Timer löschen",
+            "description": "Löscht einen Timer anhand des Index auf dem aktiven Ausgang (Heiz- oder Lüftungsmodus).",
+            "fields": {
+                "device_id": {
+                    "name": "Gerät",
+                    "description": "Das Webasto-Gerät mit dem Timer."
+                },
+                "timer_index": {
+                    "name": "Timer-Index",
+                    "description": "Nullbasierter Index in der Timerliste des aktiven Ausgangs."
+                }
+            }
+        }
+    },
+    "selector": {
+        "weekday": {
+            "options": {
+                "monday": "Montag",
+                "tuesday": "Dienstag",
+                "wednesday": "Mittwoch",
+                "thursday": "Donnerstag",
+                "friday": "Freitag",
+                "saturday": "Samstag",
+                "sunday": "Sonntag"
+            }
+        }
+    },
+    "exceptions": {
+        "device_not_found": {
+            "message": "Kein Webasto-Gerät mit der Geräte-ID {device_id} gefunden."
+        },
+        "device_not_reported": {
+            "message": "Das Webasto-Konto meldet das Gerät {device_name} nicht mehr."
+        },
+        "entry_not_loaded": {
+            "message": "Der Webasto Connect-Eintrag {entry_title} ist nicht geladen. Prüfe die Integration und versuche es erneut."
+        },
+        "timers_not_supported": {
+            "message": "Die installierte pywebasto-Bibliothek unterstützt keine Timer. Aktualisiere die Integration."
+        },
+        "no_timers": {
+            "message": "Auf diesem Gerät gibt es keine Timer, die geändert werden können."
+        },
+        "invalid_timer_index": {
+            "message": "Ungültiger Timer-Index {timer_index}. Der gültige Bereich ist 0 bis {max_index} ({timer_count} Timer)."
+        },
+        "invalid_start_time": {
+            "message": "Ungültige Startzeit {start_time}. Verwende das Format HH:MM."
+        },
+        "invalid_repeat_days": {
+            "message": "Wiederholungstage müssen eine Liste von Wochentagen sein."
+        },
+        "unsupported_weekday": {
+            "message": "Nicht unterstützter Wochentag {day}."
+        },
+        "invalid_location": {
+            "message": "Der Standort muss ein Kartenstandort mit Breiten- und Längengrad sein."
+        },
+        "location_with_coordinates": {
+            "message": "Standort kann nicht zusammen mit Breiten- und Längengrad verwendet werden."
+        },
+        "clear_location_with_coordinates": {
+            "message": "Standort entfernen kann nicht zusammen mit Breiten- und Längengrad verwendet werden."
+        },
+        "clear_location_with_location": {
+            "message": "Standort entfernen kann nicht zusammen mit Standort verwendet werden."
+        },
+        "incomplete_coordinates": {
+            "message": "Breiten- und Längengrad müssen beide angegeben oder beide weggelassen werden."
+        },
+        "start_time_conversion_unavailable": {
+            "message": "Die Startzeit kann ohne die Zeitzone von Home Assistant nicht umgerechnet werden."
+        },
+        "missing_timer_values": {
+            "message": "Ein Timer benötigt eine Startzeit, eine Dauer und Wiederholungstage."
+        },
+        "invalid_timer": {
+            "message": "Der Timer ist ungültig: {error}"
+        },
+        "create_timer_failed": {
+            "message": "Der Timer konnte nicht erstellt werden, weil die Anfrage an die Webasto-Cloud fehlgeschlagen ist. Versuche es später erneut."
+        },
+        "update_timer_failed": {
+            "message": "Der Timer konnte nicht aktualisiert werden, weil die Anfrage an die Webasto-Cloud fehlgeschlagen ist. Versuche es später erneut."
+        },
+        "delete_timer_failed": {
+            "message": "Der Timer konnte nicht gelöscht werden, weil die Anfrage an die Webasto-Cloud fehlgeschlagen ist. Versuche es später erneut."
+        },
+        "rate_limited": {
+            "message": "Die Webasto-Cloud begrenzt die Anzahl der Anfragen. Versuche es später erneut."
+        }
     }
 }
