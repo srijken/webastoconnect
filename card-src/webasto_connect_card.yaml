@@ -9,6 +9,7 @@ device_id: <your_home_assistant_device_id>
 # Optional manual overrides:
 # main_output_entity: switch.<your_main_output_entity>
 # ventilation_mode_entity: switch.<your_ventilation_mode_entity>
+# geofence_entity: switch.<your_geofence_entity>
 # end_time_entity: sensor.<your_end_time_entity>
 # temperature_entity: sensor.<your_temperature_entity>
 # battery_entity: sensor.<your_battery_entity>

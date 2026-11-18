@@ -2,6 +2,15 @@
   "card": {
     "ui": {
       "geo_fence": "Geo-fence",
+      "geo_fence_on": "On",
+      "geo_fence_off": "Off",
+      "geo_fence_confirm_on": "Turn the geo-fence on?",
+      "geo_fence_confirm_off": "Turn the geo-fence off?",
+      "geo_fence_note": "When the geo-fence is on, the vehicle position is locked. If the vehicle leaves the area, Webasto alerts you by app notification and SMS. Experimental: check the Webasto app after switching.",
+      "geo_fence_turn_on": "Turn on",
+      "geo_fence_turn_off": "Turn off",
+      "geo_fence_failed": "Switching the geo-fence failed.",
+      "cancel": "Cancel",
       "mode": "Mode",
       "timers": "Timers",
       "map": "Map",

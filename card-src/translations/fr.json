@@ -2,6 +2,15 @@
   "card": {
     "ui": {
       "geo_fence": "Géorepérage",
+      "geo_fence_on": "Activé",
+      "geo_fence_off": "Désactivé",
+      "geo_fence_confirm_on": "Activer le géorepérage ?",
+      "geo_fence_confirm_off": "Désactiver le géorepérage ?",
+      "geo_fence_note": "Lorsque le géorepérage est activé, la position du véhicule est verrouillée. Si le véhicule quitte la zone, Webasto vous alerte par une notification dans l’application et un SMS. Expérimental : vérifiez l’application Webasto après le changement.",
+      "geo_fence_turn_on": "Activer",
+      "geo_fence_turn_off": "Désactiver",
+      "geo_fence_failed": "Le changement du géorepérage a échoué.",
+      "cancel": "Annuler",
       "mode": "Mode",
       "timers": "Minuteurs",
       "map": "Carte",

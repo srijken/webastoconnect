@@ -2,6 +2,15 @@
   "card": {
     "ui": {
       "geo_fence": "Geofence",
+      "geo_fence_on": "An",
+      "geo_fence_off": "Aus",
+      "geo_fence_confirm_on": "Geofence einschalten?",
+      "geo_fence_confirm_off": "Geofence ausschalten?",
+      "geo_fence_note": "Wenn der Geofence eingeschaltet ist, wird die Fahrzeugposition gesperrt. Verlässt das Fahrzeug den Bereich, warnt dich Webasto per App-Benachrichtigung und SMS. Experimentell: Prüfe nach dem Schalten die Webasto-App.",
+      "geo_fence_turn_on": "Einschalten",
+      "geo_fence_turn_off": "Ausschalten",
+      "geo_fence_failed": "Schalten des Geofence fehlgeschlagen.",
+      "cancel": "Abbrechen",
       "mode": "Modus",
       "timers": "Timer",
       "map": "Karte",

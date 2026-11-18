@@ -2,6 +2,15 @@
   "card": {
     "ui": {
       "geo_fence": "Geozone",
+      "geo_fence_on": "Aan",
+      "geo_fence_off": "Uit",
+      "geo_fence_confirm_on": "Geozone inschakelen?",
+      "geo_fence_confirm_off": "Geozone uitschakelen?",
+      "geo_fence_note": "Als de geozone aan staat, wordt de positie van het voertuig vastgezet. Verlaat het voertuig het gebied, dan waarschuwt Webasto je met een app-melding en een sms. Experimenteel: controleer na het schakelen de Webasto-app.",
+      "geo_fence_turn_on": "Inschakelen",
+      "geo_fence_turn_off": "Uitschakelen",
+      "geo_fence_failed": "Schakelen van de geozone is mislukt.",
+      "cancel": "Annuleren",
       "mode": "Modus",
       "timers": "Timers",
       "map": "Kaart",

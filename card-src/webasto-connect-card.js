@@ -110,7 +110,8 @@ class WebastoConnectCard extends HTMLElement {
   _resolveEntities() {
     const entries = this._entriesForSelectedDevice();
     const overrides = this._config || {};
-    const auxKeys = ["aux1_output", "aux2_output"];
+    // Switches that are never the main output.
+    const auxKeys = ["aux1_output", "aux2_output", "geofence"];
 
     return {
       main_output_entity:
@@ -129,6 +130,14 @@ class WebastoConnectCard extends HTMLElement {
             !auxKeys.includes(entry.translation_key) &&
             entry.original_name !== "AUX1" &&
             entry.original_name !== "AUX2"
+        ),
+      geofence_entity:
+        overrides.geofence_entity ||
+        this._pickEntry(
+          entries,
+          (entry) =>
+            entry.entity_id?.startsWith("switch.") &&
+            entry.translation_key === "geofence"
         ),
       ventilation_mode_entity:
         overrides.ventilation_mode_entity ||
@@ -563,6 +572,58 @@ class WebastoConnectCard extends HTMLElement {
     selector.addEventListener("change", syncValue);
   }
 
+  // The geofence switch is only created for devices with an alarm output.
+  _isGeofenceSelectable(entity) {
+    return Boolean(
+      entity && entity.state !== "unavailable" && entity.state !== "unknown"
+    );
+  }
+
+  _openGeofenceConfirm() {
+    const entity = this._getState(this._resolveEntities().geofence_entity);
+    if (!this._isGeofenceSelectable(entity)) {
+      return;
+    }
+    // Remember the target so a state update while the dialog is open does
+    // not change what the user confirms.
+    this._geofenceTarget = entity.state === "on" ? "off" : "on";
+    this._geofenceError = undefined;
+    this._geofenceConfirmOpen = true;
+    this._render();
+  }
+
+  _closeGeofenceConfirm() {
+    this._geofenceConfirmOpen = false;
+    this._geofenceTarget = undefined;
+    this._geofenceError = undefined;
+    this._geofenceBusy = false;
+    this._render();
+  }
+
+  async _confirmGeofence() {
+    const entityId = this._resolveEntities().geofence_entity;
+    if (!this._hass || !entityId || !this._geofenceTarget || this._geofenceBusy) {
+      return;
+    }
+    this._geofenceBusy = true;
+    this._geofenceError = undefined;
+    this._render();
+    try {
+      await this._hass.callService(
+        "homeassistant",
+        this._geofenceTarget === "on" ? "turn_on" : "turn_off",
+        { entity_id: entityId }
+      );
+      this._closeGeofenceConfirm();
+    } catch (err) {
+      this._geofenceBusy = false;
+      this._geofenceError =
+        (err && typeof err.message === "string" && err.message) ||
+        localize(this._hass, "card.ui.geo_fence_failed");
+      this._render();
+    }
+  }
+
   _resolveMode(ventilationEntity) {
     if (!ventilationEntity) {
       return null;
@@ -848,7 +909,20 @@ class WebastoConnectCard extends HTMLElement {
           "mdi:car-defrost-rear"
         )
         : "mdi:signal-off";
-    const titleGeoFence = "";
+    const geofence = this._getState(entities.geofence_entity);
+    const hasGeofence = Boolean(entities.geofence_entity && geofence);
+    const titleGeoFence = hasGeofence ? localize(this._hass, "card.ui.geo_fence") : "";
+    const geofenceOn = hasGeofence && geofence.state === "on";
+    const geofenceEnabled = isConnected && this._isGeofenceSelectable(geofence);
+    const geofenceClass = geofenceEnabled ? "geofence-enabled" : "geofence-disabled";
+    const geofenceTabIndex = geofenceEnabled ? "0" : "-1";
+    const geofenceAriaDisabled = geofenceEnabled ? "false" : "true";
+    const geofenceValue = !hasGeofence || !this._isGeofenceSelectable(geofence)
+      ? localize(this._hass, "card.ui.mode_unavailable")
+      : localize(this._hass, geofenceOn ? "card.ui.geo_fence_on" : "card.ui.geo_fence_off");
+    const geofenceIcon = geofenceOn ? "mdi:map-marker-radius" : "mdi:map-marker-off";
+    const geofencePopup = this._geofenceConfirmOpen && geofenceEnabled;
+    const geofenceTarget = this._geofenceTarget || (geofenceOn ? "off" : "on");
     const titleMode = localize(this._hass, "card.ui.mode");
     const titleTimers = localize(this._hass, "card.ui.timers");
     const titleMap = localize(this._hass, "card.ui.map");
@@ -955,8 +1029,53 @@ class WebastoConnectCard extends HTMLElement {
         .q.timers-enabled {
           cursor: pointer;
         }
-        .q.mode-enabled {
+        .q.mode-enabled, .q.geofence-enabled {
           cursor: pointer;
+        }
+        .q.geofence-enabled:hover {
+          background: var(--webasto-tile-hover-background, var(--wc-tile-hover-background));
+        }
+        .q.geofence-disabled.has-geofence {
+          opacity: 0.6;
+        }
+        .q-value {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 6px;
+          font-size: 16px;
+        }
+        .geofence-text {
+          color: var(--primary-text-color, #111);
+          font-size: 15px;
+          line-height: 1.4;
+          margin: 8px 0 0;
+        }
+        .geofence-note {
+          color: var(--secondary-text-color, #666);
+          font-size: 13px;
+          line-height: 1.4;
+          margin: 8px 0 0;
+        }
+        .geofence-error {
+          color: var(--error-color, #db4437);
+          font-size: 13px;
+          line-height: 1.4;
+          margin: 8px 0 0;
+        }
+        .geofence-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 16px;
+        }
+        .mode-save.geofence-confirm {
+          background: var(--primary-color, #03a9f4);
+          color: var(--text-primary-color, #fff);
+        }
+        .mode-save[disabled] {
+          opacity: 0.6;
+          cursor: default;
         }
         .q.timers-enabled:hover {
           background: var(--webasto-tile-hover-background, var(--wc-tile-hover-background));
@@ -1436,7 +1555,12 @@ class WebastoConnectCard extends HTMLElement {
       </style>
       <div class="wrapper">
         <ha-card>
-          <div class="q tl">${escapeAttr(titleGeoFence)}</div>
+          ${hasGeofence ? `
+          <div class="q tl has-geofence ${geofenceClass}" id="geofence-action" role="button" tabindex="${geofenceTabIndex}" aria-disabled="${geofenceAriaDisabled}">
+            <span class="q-label">${escapeAttr(titleGeoFence)}</span>
+            <span class="q-value"><ha-icon icon="${escapeAttr(geofenceIcon)}" style="--mdc-icon-size: 22px;"></ha-icon>${escapeAttr(geofenceValue)}</span>
+          </div>
+          ` : `<div class="q tl"></div>`}
           <div class="q tr ${modeClass}" id="mode-action" role="button" tabindex="${modeTabIndex}" aria-disabled="${modeAriaDisabled}">
             <span class="q-label">${escapeAttr(titleMode)}</span>
           </div>
@@ -1464,6 +1588,25 @@ class WebastoConnectCard extends HTMLElement {
           <div class="meta-location"><ha-icon icon="mdi:map-marker" style="--mdc-icon-size: 24px;"></ha-icon>${escapeAttr(locationText)}</div>
         </div>
       </div>
+      ${geofencePopup ? `
+      <div class="modal-backdrop" id="geofence-modal-backdrop">
+        <div class="mode-modal" role="alertdialog" aria-modal="true" aria-label="${escapeAttr(titleGeoFence)}">
+          <div class="mode-modal-header">
+            <span>${escapeAttr(titleGeoFence)}</span>
+            <button class="modal-close" id="geofence-modal-close">${escapeAttr(closeText)}</button>
+          </div>
+          <div class="mode-modal-body">
+            <p class="geofence-text">${escapeAttr(localize(this._hass, geofenceTarget === "on" ? "card.ui.geo_fence_confirm_on" : "card.ui.geo_fence_confirm_off"))}</p>
+            <p class="geofence-note">${escapeAttr(localize(this._hass, "card.ui.geo_fence_note"))}</p>
+            ${this._geofenceError ? `<p class="geofence-error" role="alert">${escapeAttr(this._geofenceError)}</p>` : ""}
+            <div class="geofence-actions">
+              <button class="mode-save" id="geofence-cancel">${escapeAttr(localize(this._hass, "card.ui.cancel"))}</button>
+              <button class="mode-save geofence-confirm" id="geofence-confirm" ${this._geofenceBusy ? "disabled" : ""}>${escapeAttr(localize(this._hass, geofenceTarget === "on" ? "card.ui.geo_fence_turn_on" : "card.ui.geo_fence_turn_off"))}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      ` : ""}
       ${modePopup ? `
       <div class="modal-backdrop" id="mode-modal-backdrop">
         <div class="mode-modal" role="dialog" aria-modal="true" aria-label="${escapeAttr(titleMode)}">
@@ -1619,6 +1762,40 @@ class WebastoConnectCard extends HTMLElement {
           this._toggleMainOutput();
         }
       };
+    }
+
+    const geofenceAction = this.shadowRoot.getElementById("geofence-action");
+    if (geofenceAction && geofenceEnabled) {
+      geofenceAction.onclick = () => this._openGeofenceConfirm();
+      geofenceAction.onkeydown = (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          this._openGeofenceConfirm();
+        }
+      };
+    }
+
+    if (geofencePopup) {
+      const close = this.shadowRoot.getElementById("geofence-modal-close");
+      if (close) {
+        close.onclick = () => this._closeGeofenceConfirm();
+      }
+      const cancel = this.shadowRoot.getElementById("geofence-cancel");
+      if (cancel) {
+        cancel.onclick = () => this._closeGeofenceConfirm();
+      }
+      const confirm = this.shadowRoot.getElementById("geofence-confirm");
+      if (confirm) {
+        confirm.onclick = () => void this._confirmGeofence();
+      }
+      const backdrop = this.shadowRoot.getElementById("geofence-modal-backdrop");
+      if (backdrop) {
+        backdrop.onclick = (ev) => {
+          if (ev.target === backdrop) {
+            this._closeGeofenceConfirm();
+          }
+        };
+      }
     }
 
     const modeAction = this.shadowRoot.getElementById("mode-action");
@@ -1999,6 +2176,9 @@ class WebastoConnectCardEditor extends HTMLElement {
         </label>
         <label>Ventilation mode entity
           <input data-field="ventilation_mode_entity" list="webasto-options-switch" value="${escapeAttr(cfg.ventilation_mode_entity)}" placeholder="switch.webasto_ventilation_mode" />
+        </label>
+        <label>Geofence entity
+          <input data-field="geofence_entity" list="webasto-options-switch" value="${escapeAttr(cfg.geofence_entity)}" placeholder="switch.webasto_geofence" />
         </label>
         <label>Connected entity
           <input data-field="connected_entity" list="webasto-options-binary-sensor" value="${escapeAttr(cfg.connected_entity)}" placeholder="binary_sensor.webasto_connected" />

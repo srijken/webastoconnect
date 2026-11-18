@@ -177,7 +177,12 @@ async def test_camper_entities_move_to_key_unique_ids(registry) -> None:
             if ("sensor", d.key) not in migration.KEYS_WITHOUT_LEGACY_NAME
         ),
         *(("binary_sensor", d) for d in BINARY_SENSORS),
-        *(("switch", d) for d in SWITCHES if d.name_fn is None),
+        *(
+            ("switch", d)
+            for d in SWITCHES
+            if d.name_fn is None
+            and ("switch", d.key) not in migration.KEYS_WITHOUT_LEGACY_NAME
+        ),
         *(("number", d) for d in NUMBERS),
         ("device_tracker", TRACKER),
     ],

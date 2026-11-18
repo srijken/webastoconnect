@@ -368,6 +368,9 @@
             },
             "aux2_output": {
                 "name": "AUX2"
+            },
+            "geofence": {
+                "name": "Geofence"
             }
         }
     },
@@ -440,6 +443,9 @@
         },
         "missing_smart_timer_values": {
             "message": "Ein smarter Timer benötigt eine Abfahrtszeit, eine maximale Dauer, eine Komfortstufe und Wiederholungstage."
+        },
+        "geofence_not_supported": {
+            "message": "Zum Schalten des Geofence wird eine pywebasto-ng-Version neuer als 3.1.1 benötigt. Aktualisiere die Integration."
         }
     }
 }

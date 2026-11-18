@@ -2,6 +2,15 @@
   "card": {
     "ui": {
       "geo_fence": "Geo-fence",
+      "geo_fence_on": "Til",
+      "geo_fence_off": "Fra",
+      "geo_fence_confirm_on": "Slå geo-fence til?",
+      "geo_fence_confirm_off": "Slå geo-fence fra?",
+      "geo_fence_note": "Når geo-fence er slået til, låses køretøjets position. Hvis køretøjet forlader området, advarer Webasto dig med en app-notifikation og SMS. Eksperimentel: tjek Webasto-appen efter skift.",
+      "geo_fence_turn_on": "Slå til",
+      "geo_fence_turn_off": "Slå fra",
+      "geo_fence_failed": "Skift af geo-fence mislykkedes.",
+      "cancel": "Annuller",
       "mode": "Modus",
       "timers": "Timere",
       "map": "Kort",

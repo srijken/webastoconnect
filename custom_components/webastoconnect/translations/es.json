@@ -368,6 +368,9 @@
             },
             "aux2_output": {
                 "name": "AUX2"
+            },
+            "geofence": {
+                "name": "Geovalla"
             }
         }
     },
@@ -440,6 +443,9 @@
         },
         "missing_smart_timer_values": {
             "message": "Un temporizador inteligente necesita una hora de salida, una duración máxima, un nivel de confort y días de repetición."
+        },
+        "geofence_not_supported": {
+            "message": "Para cambiar la geovalla se necesita una versión de pywebasto-ng posterior a la 3.1.1. Actualiza la integración."
         }
     }
 }

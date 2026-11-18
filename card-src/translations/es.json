@@ -2,6 +2,15 @@
   "card": {
     "ui": {
       "geo_fence": "Geocerca",
+      "geo_fence_on": "Activada",
+      "geo_fence_off": "Desactivada",
+      "geo_fence_confirm_on": "¿Activar la geocerca?",
+      "geo_fence_confirm_off": "¿Desactivar la geocerca?",
+      "geo_fence_note": "Con la geocerca activada, la posición del vehículo queda bloqueada. Si el vehículo sale de la zona, Webasto te avisa con una notificación en la app y un SMS. Experimental: comprueba la app de Webasto después de cambiarla.",
+      "geo_fence_turn_on": "Activar",
+      "geo_fence_turn_off": "Desactivar",
+      "geo_fence_failed": "No se pudo cambiar la geocerca.",
+      "cancel": "Cancelar",
       "mode": "Modo",
       "timers": "Temporizadores",
       "map": "Mapa",

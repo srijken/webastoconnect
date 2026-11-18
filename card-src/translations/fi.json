@@ -2,6 +2,15 @@
   "card": {
     "ui": {
       "geo_fence": "Geoaita",
+      "geo_fence_on": "Päällä",
+      "geo_fence_off": "Pois",
+      "geo_fence_confirm_on": "Kytketäänkö geoaita päälle?",
+      "geo_fence_confirm_off": "Kytketäänkö geoaita pois?",
+      "geo_fence_note": "Kun geoaita on päällä, ajoneuvon sijainti lukitaan. Jos ajoneuvo poistuu alueelta, Webasto hälyttää sovellusilmoituksella ja tekstiviestillä. Kokeellinen: tarkista Webasto-sovellus kytkemisen jälkeen.",
+      "geo_fence_turn_on": "Kytke päälle",
+      "geo_fence_turn_off": "Kytke pois",
+      "geo_fence_failed": "Geoaidan kytkeminen epäonnistui.",
+      "cancel": "Peruuta",
       "mode": "Tila",
       "timers": "Ajastimet",
       "map": "Kartta",

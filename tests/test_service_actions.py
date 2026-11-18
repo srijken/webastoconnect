@@ -278,10 +278,28 @@ async def test_library_rejected_timer_is_validation_error(monkeypatch) -> None:
 
 
 def _translation_keys_in_code() -> set[str]:
-    """Collect the exception translation keys that services.py uses."""
-    tree = ast.parse((COMPONENT_DIR / "services.py").read_text("utf-8"))
+    """Collect the exception translation keys that the code raises."""
+    keys: set[str] = set()
+    keys |= _translation_keys_in(COMPONENT_DIR / "services.py")
+    # switch.py also has entity translation keys: only take the exceptions.
+    keys |= _translation_keys_in(COMPONENT_DIR / "switch.py", exceptions_only=True)
+    return keys
+
+
+def _translation_keys_in(path: Path, exceptions_only: bool = False) -> set[str]:
+    """Collect the exception translation keys used in one module.
+
+    With exceptions_only, only calls that also pass translation_domain count.
+    """
+    tree = ast.parse(path.read_text("utf-8"))
     keys: set[str] = set()
     for node in ast.walk(tree):
+        if (
+            exceptions_only
+            and isinstance(node, ast.Call)
+            and not any(k.arg == "translation_domain" for k in node.keywords)
+        ):
+            continue
         if isinstance(node, ast.Call):
             name = getattr(node.func, "id", None)
             if name in {"_validation_error", "_cloud_error"} and node.args:
@@ -302,7 +320,7 @@ def _translation_keys_in_code() -> set[str]:
 
 
 def test_every_exception_key_in_code_is_translated_in_english() -> None:
-    """Each translation key raised by the actions exists in en.json."""
+    """Each translation key raised by the code exists in en.json."""
     keys = _translation_keys_in_code()
     exceptions = _translations("en")["exceptions"]
 

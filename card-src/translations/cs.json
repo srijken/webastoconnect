@@ -2,6 +2,15 @@
   "card": {
     "ui": {
       "geo_fence": "Geozóna",
+      "geo_fence_on": "Zapnuto",
+      "geo_fence_off": "Vypnuto",
+      "geo_fence_confirm_on": "Zapnout geozónu?",
+      "geo_fence_confirm_off": "Vypnout geozónu?",
+      "geo_fence_note": "Když je geozóna zapnutá, poloha vozidla je uzamčena. Pokud vozidlo opustí oblast, Webasto vás upozorní oznámením v aplikaci a SMS. Experimentální: po přepnutí zkontrolujte aplikaci Webasto.",
+      "geo_fence_turn_on": "Zapnout",
+      "geo_fence_turn_off": "Vypnout",
+      "geo_fence_failed": "Přepnutí geozóny se nezdařilo.",
+      "cancel": "Zrušit",
       "mode": "Režim",
       "timers": "Časovače",
       "map": "Mapa",
