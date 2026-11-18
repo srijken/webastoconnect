@@ -16,7 +16,8 @@
     "config": {
         "abort": {
             "already_configured": "Esta cuenta ya está configurada",
-            "reauth_successful": "Reautenticación completada"
+            "reauth_successful": "Reautenticación completada",
+            "reconfigure_successful": "Contraseña actualizada"
         },
         "error": {
             "cannot_connect": "No se puede conectar",
@@ -34,6 +35,13 @@
             "user": {
                 "data": {
                     "email": "Correo electrónico",
+                    "password": "Contraseña"
+                }
+            },
+            "reconfigure": {
+                "title": "Cambiar la contraseña de Webasto Connect",
+                "description": "Introduce la nueva contraseña para {email}.",
+                "data": {
                     "password": "Contraseña"
                 }
             }

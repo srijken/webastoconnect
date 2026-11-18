@@ -3,14 +3,16 @@
 import logging
 from typing import cast
 
-from homeassistant.components.number import NumberEntity
-from homeassistant.const import EntityCategory
+from homeassistant.components.number import NumberDeviceClass, NumberEntity
+from homeassistant.const import EntityCategory, UnitOfElectricPotential
 
 from . import WebastoConfigEntry
 from .api import WebastoConnectUpdateCoordinator
 from .base import WebastoBaseEntity, WebastoConnectNumberEntityDescription
 
 LOGGER = logging.getLogger(__name__)
+# Setting a value is a cloud call: send one at a time.
+PARALLEL_UPDATES = 1
 
 NUMBERS = [
     WebastoConnectNumberEntityDescription(
@@ -24,7 +26,8 @@ NUMBERS = [
         native_min_value=0,
         native_max_value=30,
         native_step=0.1,
-        native_unit_of_measurement="V",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        device_class=NumberDeviceClass.VOLTAGE,
         entity_registry_enabled_default=False,
         icon="mdi:battery-off",
     ),

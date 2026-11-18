@@ -12,8 +12,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from homeassistant.util.file import write_utf8_file_atomic
 from pywebasto import WebastoConnect
 from pywebasto.exceptions import InvalidRequestException, UnauthorizedException
 
@@ -35,13 +35,36 @@ LOGGER = logging.getLogger(__name__)
 _T = TypeVar("_T")
 
 
-def _credential_store_path(hass: HomeAssistant, entry: ConfigEntry) -> str:
-    """Return the pywebasto app credential store path for a config entry."""
-    return hass.config.path(".storage", f"webasto_{entry.entry_id}.json")
+CREDENTIAL_STORAGE_VERSION = 1
 
 
-def _load_credentials(path: Path) -> dict[str, str] | None:
-    """Load pywebasto app credentials."""
+def _credential_store_key(entry: ConfigEntry) -> str:
+    """Return the storage key of the app credentials for a config entry."""
+    return f"{DOMAIN}.credentials.{entry.entry_id}"
+
+
+def _credential_store(hass: HomeAssistant, entry: ConfigEntry) -> Store[dict[str, str]]:
+    """Return the Store holding the pywebasto app credentials of an entry.
+
+    The client secret is a bearer credential for the heater, so the file is
+    written atomically and readable by the owner only.
+    """
+    return Store(
+        hass,
+        CREDENTIAL_STORAGE_VERSION,
+        _credential_store_key(entry),
+        private=True,
+        atomic_writes=True,
+    )
+
+
+def _legacy_credential_path(hass: HomeAssistant, entry: ConfigEntry) -> Path:
+    """Return the path of the pre-Store app credential file of an entry."""
+    return Path(hass.config.path(".storage", f"webasto_{entry.entry_id}.json"))
+
+
+def _load_legacy_credentials(path: Path) -> dict[str, str] | None:
+    """Load app credentials from the pre-Store credential file, if present."""
     if not path.exists():
         return None
 
@@ -49,30 +72,36 @@ def _load_credentials(path: Path) -> dict[str, str] | None:
         return json.load(credential_file)
 
 
-def _save_credentials(path: Path, credentials: Any) -> None:
-    """Save pywebasto app credentials, readable by the owner only.
-
-    The client secret is a bearer credential for the heater, so the file is
-    written atomically with mode 0600, like Home Assistant's own storage.
-    """
-    path.parent.mkdir(parents=True, exist_ok=True)
-    write_utf8_file_atomic(
-        str(path),
-        json.dumps(
-            {
-                "client_id": credentials.client_id,
-                "client_secret": credentials.client_secret,
-            },
-            indent=2,
-        )
-        + "\n",
-        private=True,
-    )
-
-
-def _remove_credentials(path: Path) -> None:
-    """Delete stored pywebasto app credentials, if present."""
+def _remove_legacy_credentials(path: Path) -> None:
+    """Delete the pre-Store app credential file, if present."""
     path.unlink(missing_ok=True)
+
+
+async def _async_load_credentials(
+    hass: HomeAssistant, entry: ConfigEntry, store: Store[dict[str, str]]
+) -> dict[str, str] | None:
+    """Load app credentials, moving a pre-Store credential file into the Store."""
+    if (credentials := await store.async_load()) is not None:
+        return credentials
+
+    path = _legacy_credential_path(hass, entry)
+    credentials = await hass.async_add_executor_job(_load_legacy_credentials, path)
+    if credentials is None:
+        return None
+
+    # Save first: the old file is only deleted once the Store holds the data.
+    await store.async_save(credentials)
+    await hass.async_add_executor_job(_remove_legacy_credentials, path)
+    LOGGER.debug("Moved Webasto app credentials of %s to storage", entry.entry_id)
+    return credentials
+
+
+async def async_remove_credentials(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Delete the stored app credentials of an entry, also a pre-Store file."""
+    await _credential_store(hass, entry).async_remove()
+    await hass.async_add_executor_job(
+        _remove_legacy_credentials, _legacy_credential_path(hass, entry)
+    )
 
 
 def _credential_callbacks(
@@ -81,13 +110,18 @@ def _credential_callbacks(
     Callable[[], Awaitable[dict[str, str] | None]], Callable[[Any], Awaitable[None]]
 ]:
     """Return pywebasto credential callbacks."""
-    path = Path(_credential_store_path(hass, entry))
+    store = _credential_store(hass, entry)
 
     async def credential_load() -> dict[str, str] | None:
-        return await hass.async_add_executor_job(_load_credentials, path)
+        return await _async_load_credentials(hass, entry, store)
 
     async def credential_save(credentials: Any) -> None:
-        await hass.async_add_executor_job(_save_credentials, path, credentials)
+        await store.async_save(
+            {
+                "client_id": credentials.client_id,
+                "client_secret": credentials.client_secret,
+            }
+        )
 
     return credential_load, credential_save
 
@@ -99,16 +133,14 @@ class WebastoConnectUpdateCoordinator(DataUpdateCoordinator[None]):
         self, hass: HomeAssistant, entry: ConfigEntry, version: str = "unknown"
     ) -> None:
         """Initialize the connection."""
-        DataUpdateCoordinator.__init__(
-            self,
-            hass=hass,
+        super().__init__(
+            hass,
+            LOGGER,
+            config_entry=entry,
             name=DOMAIN,
-            logger=LOGGER,
             update_interval=SCAN_INTERVAL,
         )
 
-        self.hass = hass
-        self.config_entry = entry
         credential_load, credential_save = _credential_callbacks(hass, entry)
         self.cloud: WebastoConnect = WebastoConnect(
             username=entry.data.get(CONF_EMAIL),

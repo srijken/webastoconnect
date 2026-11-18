@@ -16,7 +16,8 @@
     "config": {
         "abort": {
             "already_configured": "Tento účet je již nakonfigurován",
-            "reauth_successful": "Opětovné ověření proběhlo úspěšně"
+            "reauth_successful": "Opětovné ověření proběhlo úspěšně",
+            "reconfigure_successful": "Heslo bylo aktualizováno"
         },
         "error": {
             "cannot_connect": "Nelze se připojit",
@@ -34,6 +35,13 @@
             "user": {
                 "data": {
                     "email": "E-mail",
+                    "password": "Heslo"
+                }
+            },
+            "reconfigure": {
+                "title": "Změnit heslo Webasto Connect",
+                "description": "Zadejte nové heslo pro {email}.",
+                "data": {
                     "password": "Heslo"
                 }
             }

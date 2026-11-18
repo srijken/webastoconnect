@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 import voluptuous as vol
+from homeassistant.data_entry_flow import AbortFlow
 from pywebasto.exceptions import (
     InvalidRequestException,
     TooManyRequestsException,
@@ -24,6 +25,12 @@ def mock_integration_version(monkeypatch) -> None:
         "async_get_integration",
         AsyncMock(return_value=SimpleNamespace(version="test")),
     )
+
+
+@pytest.fixture(autouse=True)
+def mock_credential_store(monkeypatch) -> None:
+    """Keep the stored app credentials out of the flow tests."""
+    monkeypatch.setattr("custom_components.webastoconnect.api.Store", Mock())
 
 
 def _fake_webasto(monkeypatch, connect_error: Exception | None = None) -> Mock:
@@ -170,3 +177,88 @@ async def test_migration_skips_current_entries() -> None:
 
     assert await integration.async_migrate_entry(hass, entry) is True
     update.assert_not_called()
+
+
+def _user_flow(
+    existing_unique_ids: set[str] | None = None,
+    existing_emails: list[str] | None = None,
+) -> WebastoConnectConfigFlow:
+    """Build a user-step config flow with the given existing entries."""
+    existing_unique_ids = existing_unique_ids or set()
+    flow = WebastoConnectConfigFlow()
+    flow.handler = "webastoconnect"
+    flow.context = {"source": "user"}
+    flow.hass = SimpleNamespace(
+        config=SimpleNamespace(path=lambda *parts: "/".join(parts)),
+        config_entries=SimpleNamespace(
+            async_entry_for_domain_unique_id=lambda domain, unique_id: (
+                SimpleNamespace(source="user", data={})
+                if unique_id in existing_unique_ids
+                else None
+            )
+        ),
+    )
+    flow._async_in_progress = Mock(return_value=[])
+    flow._async_current_entries = Mock(
+        return_value=[
+            SimpleNamespace(data={"email": email}) for email in existing_emails or []
+        ]
+    )
+    flow.async_create_entry = Mock(return_value={"type": "create_entry"})
+    flow.async_abort = Mock(
+        side_effect=lambda reason: {"type": "abort", "reason": reason}
+    )
+    flow.async_show_form = Mock(return_value={"type": "form"})
+    return flow
+
+
+@pytest.mark.asyncio
+async def test_user_step_uses_normalized_email_as_unique_id(monkeypatch) -> None:
+    """A new entry gets the lowercase email as unique ID."""
+    init_mock = _fake_webasto(monkeypatch)
+    flow = _user_flow()
+
+    result = await flow.async_step_user({"email": "  User@Test.COM ", "password": "pw"})
+
+    assert result == {"type": "create_entry"}
+    assert flow.unique_id == "user@test.com"
+    # Surrounding spaces are removed; the login uses the address as typed.
+    assert init_mock.call_args.kwargs["username"] == "User@Test.COM"
+    flow.async_create_entry.assert_called_once_with(
+        title="User@Test.COM",
+        data={"email": "User@Test.COM", "password": "pw"},
+        description="Webasto ThermoConnect - User@Test.COM",
+    )
+
+
+@pytest.mark.asyncio
+async def test_user_step_aborts_for_configured_unique_id(monkeypatch) -> None:
+    """An account with the same normalized unique ID is not added twice."""
+    init_mock = _fake_webasto(monkeypatch)
+    flow = _user_flow(existing_unique_ids={"user@test.com"})
+
+    with pytest.raises(AbortFlow) as exc_info:
+        await flow.async_step_user({"email": "USER@test.com", "password": "pw"})
+
+    assert exc_info.value.reason == "already_configured"
+    init_mock.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_user_step_aborts_for_legacy_entry_with_other_case(monkeypatch) -> None:
+    """Older entries keep the email as typed as unique ID and still match."""
+    init_mock = _fake_webasto(monkeypatch)
+    flow = _user_flow(
+        existing_unique_ids={"User@Test.com"}, existing_emails=["User@Test.com"]
+    )
+
+    result = await flow.async_step_user({"email": "user@test.com", "password": "pw"})
+
+    assert result == {"type": "abort", "reason": "already_configured"}
+    init_mock.assert_not_called()
+    flow.async_create_entry.assert_not_called()
+
+
+def test_config_flow_has_no_connection_class() -> None:
+    """The obsolete CONNECTION_CLASS attribute is gone."""
+    assert "CONNECTION_CLASS" not in WebastoConnectConfigFlow.__dict__

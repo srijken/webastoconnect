@@ -13,11 +13,10 @@ from pywebasto.exceptions import (
     UnauthorizedException,
 )
 
+from custom_components.webastoconnect import api
 from custom_components.webastoconnect.api import (
     SCAN_INTERVAL,
     WebastoConnectUpdateCoordinator,
-    _credential_callbacks,
-    _credential_store_path,
 )
 
 
@@ -26,48 +25,16 @@ def test_scan_interval_is_60_seconds() -> None:
     assert SCAN_INTERVAL.total_seconds() == 60
 
 
-def test_credential_store_path_uses_config_entry_id() -> None:
-    """Credential store path should be unique per config entry."""
-    hass = SimpleNamespace(config=SimpleNamespace(path=lambda *parts: "/".join(parts)))
-    entry = SimpleNamespace(entry_id="entry-1")
-
-    assert _credential_store_path(hass, entry) == ".storage/webasto_entry-1.json"
-
-
-@pytest.mark.asyncio
-async def test_credential_callbacks_store_credentials_by_entry_id(tmp_path) -> None:
-    """Credential callbacks should read and write the per-entry credential file."""
-
-    async def async_add_executor_job(func, *args):
-        return func(*args)
-
-    hass = SimpleNamespace(
-        config=SimpleNamespace(path=lambda *parts: str(tmp_path.joinpath(*parts))),
-        async_add_executor_job=async_add_executor_job,
-    )
-    entry = SimpleNamespace(entry_id="entry-1")
-    credentials = SimpleNamespace(client_id="client", client_secret="secret")
-    credential_load, credential_save = _credential_callbacks(hass, entry)
-
-    assert await credential_load() is None
-
-    await credential_save(credentials)
-
-    assert await credential_load() == {
-        "client_id": "client",
-        "client_secret": "secret",
-    }
-    assert (tmp_path / ".storage" / "webasto_entry-1.json").exists()
-
-
 def test_update_coordinator_uses_entry_credential_callbacks(monkeypatch) -> None:
     """Update coordinator should pass per-entry credential callbacks."""
     webasto = Mock()
     monkeypatch.setattr("custom_components.webastoconnect.api.WebastoConnect", webasto)
+    coordinator_init = Mock(return_value=None)
     monkeypatch.setattr(
         "custom_components.webastoconnect.api.DataUpdateCoordinator.__init__",
-        lambda *args, **kwargs: None,
+        coordinator_init,
     )
+    monkeypatch.setattr("custom_components.webastoconnect.api.Store", Mock())
     hass = SimpleNamespace(config=SimpleNamespace(path=lambda *parts: "/".join(parts)))
     entry = SimpleNamespace(
         entry_id="entry-1",
@@ -77,6 +44,11 @@ def test_update_coordinator_uses_entry_credential_callbacks(monkeypatch) -> None
 
     WebastoConnectUpdateCoordinator(hass, entry, "1.2.3")
 
+    # The config entry is passed to the base class, which sets hass and
+    # config_entry itself.
+    coordinator_init.assert_called_once()
+    assert coordinator_init.call_args.args == (hass, api.LOGGER)
+    assert coordinator_init.call_args.kwargs["config_entry"] is entry
     webasto.assert_called_once()
     assert webasto.call_args.kwargs["username"] == "user@test"
     assert webasto.call_args.kwargs["password"] == "pw"
