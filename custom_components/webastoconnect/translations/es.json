@@ -193,6 +193,9 @@
             "subscription_expiration": {
                 "name": "Vencimiento de la suscripción"
             },
+            "subscription_days_left": {
+                "name": "Días restantes de la suscripción"
+            },
             "main_output_end_time": {
                 "name": "Fin de {output_name}"
             },

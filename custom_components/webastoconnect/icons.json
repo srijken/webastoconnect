@@ -52,6 +52,9 @@
             "subscription_expiration": {
                 "default": "mdi:calendar-end"
             },
+            "subscription_days_left": {
+                "default": "mdi:calendar-clock"
+            },
             "main_output_end_time": {
                 "default": "mdi:timer-outline"
             },

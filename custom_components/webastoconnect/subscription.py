@@ -35,6 +35,20 @@ def subscription_issue_id(device_id: Any) -> str:
     return f"{SUBSCRIPTION_ISSUE_PREFIX}{device_id}"
 
 
+def subscription_days_left(expiration: Any, now: datetime | None = None) -> int | None:
+    """Return the days from today until a subscription expires.
+
+    Days are counted in the local time zone of Home Assistant, from today to
+    the local date of the expiration: 0 on the last day, negative once it has
+    expired. None when the expiration is unknown. The repair issue and the
+    days-left sensor both use this, so they always agree.
+    """
+    if not isinstance(expiration, datetime):
+        return None
+    today = dt_util.as_local(now or dt_util.utcnow()).date()
+    return (dt_util.as_local(expiration).date() - today).days
+
+
 @dataclass(frozen=True, slots=True)
 class SubscriptionIssue:
     """The repair issue a device's subscription needs."""
@@ -49,18 +63,12 @@ def subscription_issue(
 ) -> SubscriptionIssue | None:
     """Return the issue for a subscription expiration, or None if not needed.
 
-    Days are counted in the local time zone of Home Assistant, from today to
-    the local date of the expiration.
+    Days are counted as in `subscription_days_left`.
     """
-    if not isinstance(expiration, datetime):
+    days_left = subscription_days_left(expiration, now)
+    if days_left is None or days_left > SUBSCRIPTION_EXPIRY_WARNING_DAYS:
         return None
-
-    today = dt_util.as_local(now or dt_util.utcnow()).date()
     expiration_date = dt_util.as_local(expiration).date()
-    days_left = (expiration_date - today).days
-
-    if days_left > SUBSCRIPTION_EXPIRY_WARNING_DAYS:
-        return None
     if days_left < 0:
         return SubscriptionIssue(
             severity=ir.IssueSeverity.ERROR,

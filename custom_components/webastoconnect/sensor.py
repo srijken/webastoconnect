@@ -20,6 +20,7 @@ from homeassistant.core import callback
 from . import WebastoConfigEntry
 from .api import WebastoConnectUpdateCoordinator
 from .base import WebastoBaseEntity, WebastoConnectSensorEntityDescription
+from .subscription import subscription_days_left
 
 LOGGER = logging.getLogger(__name__)
 # Read-only entities updated by the coordinator.
@@ -302,6 +303,20 @@ SENSORS = [
         device_class=SensorDeviceClass.DATE,
         entity_registry_enabled_default=False,
         value_fn=_subscription_expiration_date,
+    ),
+    # Same count as the repair issue: 0 on the last day, negative once
+    # expired, unknown without an expiration date. It changes at local
+    # midnight and is picked up by the next coordinator update.
+    WebastoConnectSensorEntityDescription(
+        key="subscription_days_left",
+        translation_key="subscription_days_left",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        state_class=SensorStateClass.MEASUREMENT,
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement=UnitOfTime.DAYS,
+        value_fn=lambda webasto: subscription_days_left(
+            getattr(webasto, "subscription_expiration", None)
+        ),
     ),
     WebastoConnectSensorEntityDescription(
         key="main_output_end_time",

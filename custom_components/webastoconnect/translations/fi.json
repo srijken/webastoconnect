@@ -193,6 +193,9 @@
             "subscription_expiration": {
                 "name": "Tilauksen päättyminen"
             },
+            "subscription_days_left": {
+                "name": "Tilauksen päiviä jäljellä"
+            },
             "main_output_end_time": {
                 "name": "{output_name} päättyy"
             },

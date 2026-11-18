@@ -293,3 +293,48 @@ async def test_issue_of_device_no_longer_reported_is_deleted(
 
     tracker.async_delete_all()
     assert registry.async_get_issue(DOMAIN, "subscription_expiring_1") is None
+
+
+DAYS_LEFT_ENTITY_ID = "sensor.camper_subscription_days_left"
+
+
+async def test_days_left_sensor_matches_issue(
+    hass: HomeAssistant,
+    fake_cloud: FakeWebastoCloud,
+    config_entry: MockConfigEntry,
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """The days-left sensor shows the issue's days left and follows the date."""
+    await _setup(hass, config_entry)
+
+    state = hass.states.get(DAYS_LEFT_ENTITY_ID)
+    assert state is not None
+    assert state.state == "27"
+    assert state.attributes["unit_of_measurement"] == "d"
+    assert state.attributes["device_class"] == "duration"
+    assert state.attributes["state_class"] == "measurement"
+    assert state.state == _issue(hass).translation_placeholders["days_left"]
+
+    # The value changes at midnight and the next poll picks it up.
+    await _tick(hass, freezer, timedelta(days=1))
+    state = hass.states.get(DAYS_LEFT_ENTITY_ID)
+    assert state.state == "26"
+    assert state.state == _issue(hass).translation_placeholders["days_left"]
+
+
+async def test_days_left_sensor_negative_when_expired(
+    hass: HomeAssistant, fake_cloud: FakeWebastoCloud, config_entry: MockConfigEntry
+) -> None:
+    """Negative once the subscription has expired."""
+    _set_expiration(fake_cloud, _expires_in(-2))
+    await _setup(hass, config_entry)
+    assert hass.states.get(DAYS_LEFT_ENTITY_ID).state == "-2"
+
+
+async def test_days_left_sensor_unknown_expiration(
+    hass: HomeAssistant, fake_cloud: FakeWebastoCloud, config_entry: MockConfigEntry
+) -> None:
+    """Unknown without subscription data from the cloud."""
+    del fake_cloud.devices[DEVICE_ID]["subscription"]
+    await _setup(hass, config_entry)
+    assert hass.states.get(DAYS_LEFT_ENTITY_ID).state == "unknown"

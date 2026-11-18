@@ -193,6 +193,9 @@
             "subscription_expiration": {
                 "name": "Abonnement udløber"
             },
+            "subscription_days_left": {
+                "name": "Dage tilbage af abonnement"
+            },
             "main_output_end_time": {
                 "name": "{output_name} slutter"
             },

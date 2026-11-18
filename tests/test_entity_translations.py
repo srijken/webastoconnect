@@ -56,6 +56,7 @@ EXPECTED_ENTITY_IDS = {
     ("sensor", "temperature"): "sensor.camper_temperature",
     ("sensor", "battery_voltage"): "sensor.camper_battery",
     ("sensor", "subscription_expiration"): "sensor.camper_subscription_expiration",
+    ("sensor", "subscription_days_left"): "sensor.camper_subscription_days_left",
     ("sensor", "main_output_end_time"): "sensor.camper_heater_ends",
     ("sensor", "next_enabled_timer"): "sensor.camper_next_start",
     ("sensor", "last_seen"): "sensor.camper_last_seen",
@@ -248,9 +249,11 @@ def test_translation_files_keep_formatting_with_icons() -> None:
 
 def test_legacy_names_cover_every_description() -> None:
     """The unique ID migration knows the old English name of every entity."""
-    assert set(migration.LEGACY_NAMES) == {
-        (domain, description.key) for domain, description in ALL_DESCRIPTIONS
-    }
+    assert (
+        set(migration.LEGACY_NAMES)
+        == {(domain, description.key) for domain, description in ALL_DESCRIPTIONS}
+        - migration.KEYS_WITHOUT_LEGACY_NAME
+    )
 
 
 @pytest.mark.parametrize(("domain", "descriptions", "cls"), PLATFORMS)
