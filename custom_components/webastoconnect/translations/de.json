@@ -216,6 +216,23 @@
             "next_enabled_timer": {
                 "name": "Nächster Start"
             },
+            "next_event": {
+                "name": "Nächstes Ereignis",
+                "state_attributes": {
+                    "line": {
+                        "name": "Ausgang"
+                    },
+                    "type": {
+                        "name": "Typ"
+                    },
+                    "time_utc": {
+                        "name": "Zeit (UTC)"
+                    },
+                    "day_raw": {
+                        "name": "Tag (Rohwert)"
+                    }
+                }
+            },
             "last_seen": {
                 "name": "Zuletzt gesehen"
             },

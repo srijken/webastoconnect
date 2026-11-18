@@ -16,6 +16,7 @@ from homeassistant.const import (
     UnitOfTime,
 )
 from homeassistant.core import callback
+from homeassistant.util import dt as dt_util
 
 from . import WebastoConfigEntry
 from .api import WebastoConnectUpdateCoordinator
@@ -27,6 +28,9 @@ LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 0
 MAIN_OUTPUT_LINES = {"OUTH", "OUTV"}
 TIMER_LINES = {"OUTH", "OUTV"}
+# `type` values of the backend `nextEvent`, mapped to the timer types used in
+# this integration. Other values are passed through as-is.
+NEXT_EVENT_TYPES = {"normal": "simple", "smart": "smart"}
 # Name of the main output in the end-time sensor name when the cloud has none.
 # Not translated: it keeps the entity ID of a new install at *_output_ends.
 MAIN_OUTPUT_FALLBACK_NAME = "Output"
@@ -274,6 +278,87 @@ def _next_timer_sensor_payload(
     }
 
 
+def _int_or_none(value: Any) -> int | None:
+    """Return an int value (booleans excluded), otherwise None."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    return value
+
+
+def _str_or_none(value: Any) -> str | None:
+    """Return a str value, otherwise None."""
+    return value if isinstance(value, str) else None
+
+
+def _next_event(webasto: Any) -> dict[str, Any] | None:
+    """Return the backend's next timer event (`nextEvent`), or None.
+
+    Uses `WebastoDevice.next_event` when the library has it and otherwise
+    parses `last_data["nextEvent"]`, so this works with pywebasto-ng 3.1.1.
+    `time_utc_minutes` is the timer start in minutes after midnight UTC.
+    The meaning of `day` is unknown: it is kept raw and no date is derived
+    from it.
+    """
+    event = getattr(webasto, "next_event", None)
+    if isinstance(getattr(event, "raw", None), dict):
+        raw = {
+            "line": getattr(event, "line", None),
+            "type": getattr(event, "type", None),
+            "time": getattr(event, "time_utc_minutes", None),
+            "day": getattr(event, "day", None),
+        }
+    else:
+        last_data = getattr(webasto, "last_data", None)
+        raw = last_data.get("nextEvent") if isinstance(last_data, dict) else None
+        if not isinstance(raw, dict) or not raw:
+            return None
+
+    time_utc_minutes = _int_or_none(raw.get("time"))
+    if time_utc_minutes is not None and not 0 <= time_utc_minutes < 24 * 60:
+        time_utc_minutes = None
+    return {
+        "line": _str_or_none(raw.get("line")),
+        "type": _str_or_none(raw.get("type")),
+        "time_utc_minutes": time_utc_minutes,
+        "day": _int_or_none(raw.get("day")),
+    }
+
+
+def _next_event_local_time(
+    webasto: Any, *, now_utc: datetime | None = None
+) -> str | None:
+    """Return the next event's time of day as HH:MM in Home Assistant's timezone.
+
+    The date of the event is unknown, so the UTC time is placed on today's
+    UTC date and converted with today's offset. Around a DST change the
+    shown time can be off by the DST difference.
+    """
+    event = _next_event(webasto)
+    if event is None or event["time_utc_minutes"] is None:
+        return None
+    minutes = event["time_utc_minutes"]
+    today = (now_utc or dt_util.utcnow()).date()
+    event_utc = datetime(
+        today.year, today.month, today.day, minutes // 60, minutes % 60, tzinfo=UTC
+    )
+    return dt_util.as_local(event_utc).strftime("%H:%M")
+
+
+def _next_event_attributes(webasto: Any) -> dict[str, Any] | None:
+    """Return the attributes of the next event sensor, or None."""
+    event = _next_event(webasto)
+    if event is None:
+        return None
+    event_type = event["type"]
+    minutes = event["time_utc_minutes"]
+    return {
+        "line": _line_label(event["line"]),
+        "type": NEXT_EVENT_TYPES.get(event_type, event_type),
+        "time_utc": None if minutes is None else _timer_start_hhmm(minutes),
+        "day_raw": event["day"],
+    }
+
+
 SENSORS = [
     WebastoConnectSensorEntityDescription(
         key="temperature",
@@ -337,6 +422,18 @@ SENSORS = [
         device_class=SensorDeviceClass.TIMESTAMP,
         entity_registry_enabled_default=False,
         value_fn=lambda webasto: _next_timer_sensor_payload(webasto)[0],
+    ),
+    # Webasto's own next timer event. The state is a time of day only: the
+    # backend's `day` field is not understood, so no date is shown.
+    WebastoConnectSensorEntityDescription(
+        key="next_event",
+        translation_key="next_event",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        state_class=None,
+        device_class=None,
+        entity_registry_enabled_default=False,
+        value_fn=_next_event_local_time,
+        attributes_fn=_next_event_attributes,
     ),
     WebastoConnectSensorEntityDescription(
         key="last_seen",
@@ -467,6 +564,10 @@ class WebastoConnectSensor(WebastoBaseEntity, SensorEntity):
                 self._cloud.devices[self._device_id]
             )
             self._attr_extra_state_attributes = attributes
+        elif description.attributes_fn is not None:
+            self._attr_extra_state_attributes = description.attributes_fn(
+                self._cloud.devices[self._device_id]
+            )
 
         if not isinstance(description.unit_fn, type(None)):
             self._attr_native_unit_of_measurement = description.unit_fn(
@@ -484,6 +585,10 @@ class WebastoConnectSensor(WebastoBaseEntity, SensorEntity):
         new_attributes = current_attributes
         if self.entity_description.key == "next_enabled_timer":
             _, new_attributes = _next_timer_sensor_payload(
+                self._cloud.devices[self._device_id]
+            )
+        elif self.entity_description.attributes_fn is not None:  # type: ignore
+            new_attributes = self.entity_description.attributes_fn(  # type: ignore
                 self._cloud.devices[self._device_id]
             )
 

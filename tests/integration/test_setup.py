@@ -34,6 +34,7 @@ EXPECTED_ENTITY_IDS = {
     "sensor.camper_geofence_radius",
     "sensor.camper_heater_ends",
     "sensor.camper_last_seen",
+    "sensor.camper_next_event",
     "sensor.camper_next_start",
     "sensor.camper_subscription_days_left",
     "sensor.camper_subscription_expiration",

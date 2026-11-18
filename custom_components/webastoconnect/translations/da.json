@@ -216,6 +216,23 @@
             "next_enabled_timer": {
                 "name": "Næste start"
             },
+            "next_event": {
+                "name": "Næste hændelse",
+                "state_attributes": {
+                    "line": {
+                        "name": "Udgang"
+                    },
+                    "type": {
+                        "name": "Type"
+                    },
+                    "time_utc": {
+                        "name": "Tid (UTC)"
+                    },
+                    "day_raw": {
+                        "name": "Dag (råværdi)"
+                    }
+                }
+            },
             "last_seen": {
                 "name": "Sidst set"
             },

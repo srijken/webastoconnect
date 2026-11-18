@@ -74,7 +74,7 @@ LEGACY_NAMES: dict[tuple[str, str], str] = {
 # (domain, description key) of entities added after the 1.3 migration. They
 # never had a name-based unique ID, so they have no legacy name.
 KEYS_WITHOUT_LEGACY_NAME: frozenset[tuple[str, str]] = frozenset(
-    {("sensor", "subscription_days_left")}
+    {("sensor", "subscription_days_left"), ("sensor", "next_event")}
 )
 
 

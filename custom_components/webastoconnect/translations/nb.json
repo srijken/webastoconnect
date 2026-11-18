@@ -216,6 +216,23 @@
             "next_enabled_timer": {
                 "name": "Neste start"
             },
+            "next_event": {
+                "name": "Neste hendelse",
+                "state_attributes": {
+                    "line": {
+                        "name": "Utgang"
+                    },
+                    "type": {
+                        "name": "Type"
+                    },
+                    "time_utc": {
+                        "name": "Tid (UTC)"
+                    },
+                    "day_raw": {
+                        "name": "Dag (råverdi)"
+                    }
+                }
+            },
             "last_seen": {
                 "name": "Sist sett"
             },

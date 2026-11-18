@@ -59,6 +59,7 @@ EXPECTED_ENTITY_IDS = {
     ("sensor", "subscription_days_left"): "sensor.camper_subscription_days_left",
     ("sensor", "main_output_end_time"): "sensor.camper_heater_ends",
     ("sensor", "next_enabled_timer"): "sensor.camper_next_start",
+    ("sensor", "next_event"): "sensor.camper_next_event",
     ("sensor", "last_seen"): "sensor.camper_last_seen",
     ("sensor", "geofence_radius"): "sensor.camper_geofence_radius",
     ("sensor", "alarm_state"): "sensor.camper_alarm_state",

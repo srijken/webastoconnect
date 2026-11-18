@@ -216,6 +216,23 @@
             "next_enabled_timer": {
                 "name": "Seuraava käynnistys"
             },
+            "next_event": {
+                "name": "Seuraava tapahtuma",
+                "state_attributes": {
+                    "line": {
+                        "name": "Lähtö"
+                    },
+                    "type": {
+                        "name": "Tyyppi"
+                    },
+                    "time_utc": {
+                        "name": "Aika (UTC)"
+                    },
+                    "day_raw": {
+                        "name": "Päivä (raaka-arvo)"
+                    }
+                }
+            },
             "last_seen": {
                 "name": "Viimeksi nähty"
             },
