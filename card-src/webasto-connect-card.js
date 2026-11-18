@@ -48,6 +48,9 @@ class WebastoConnectCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
+    // Home Assistant reports whether the active theme is in dark mode; the
+    // card switches its built-in palette with the [dark] host attribute.
+    this.toggleAttribute("dark", Boolean(hass?.themes?.darkMode));
     void this._loadRegistryData();
     this._render();
   }
@@ -722,7 +725,6 @@ class WebastoConnectCard extends HTMLElement {
     );
     const isMainAvailable = Boolean(main);
     const isOn = isMainAvailable && main.state === "on";
-    const ringColor = isConnected && isOn ? "#d33131" : "#c5cfdf";
     const outputName = isConnected
       ? this._computeOutputName(main)
       : localize(this._hass, "card.ui.offline_title");
@@ -773,7 +775,37 @@ class WebastoConnectCard extends HTMLElement {
 
     this.shadowRoot.innerHTML = `
       <style>
-        :host { display: block; }
+        :host {
+          display: block;
+          /* Built-in palette. Themes can override any of these colours with the
+             public --webasto-* variables used below. */
+          --wc-card-background: #d3dbea;
+          --wc-tile-background: #c5cfdf;
+          --wc-tile-hover-background: #aebbd3;
+          --wc-tile-text-color: #2d4468;
+          --wc-center-background: #efefef;
+          --wc-center-offline-background: #d0d0d0;
+          --wc-ring-idle-color: #c5cfdf;
+          --wc-ring-active-color: #d33131;
+          --wc-icon-color: #2a4677;
+          --wc-text-color: #20334d;
+          --wc-offline-text-color: #2d4468;
+          --wc-meta-text-color: #20334d;
+        }
+        :host([dark]) {
+          --wc-card-background: #1f2633;
+          --wc-tile-background: #2a3446;
+          --wc-tile-hover-background: #36435a;
+          --wc-tile-text-color: #c3cfe4;
+          --wc-center-background: #232a36;
+          --wc-center-offline-background: #2c2c2c;
+          --wc-ring-idle-color: #3e4b62;
+          --wc-ring-active-color: #e04848;
+          --wc-icon-color: #9fb7e3;
+          --wc-text-color: #e3e9f4;
+          --wc-offline-text-color: #c3cfe4;
+          --wc-meta-text-color: var(--primary-text-color, #e1e1e1);
+        }
         .wrapper {
           display: flex;
           flex-direction: column;
@@ -783,14 +815,14 @@ class WebastoConnectCard extends HTMLElement {
           position: relative;
           height: 440px;
           border-radius: 28px;
-          background: #d3dbea;
+          background: var(--webasto-card-background, var(--wc-card-background));
           overflow: hidden;
           box-shadow: none;
         }
         .q {
           position: absolute;
-          background: #c5cfdf;
-          color: #2d4468;
+          background: var(--webasto-tile-background, var(--wc-tile-background));
+          color: var(--webasto-tile-text-color, var(--wc-tile-text-color));
           font-size: 18px;
           display: flex;
           flex-direction: column;
@@ -825,13 +857,13 @@ class WebastoConnectCard extends HTMLElement {
           cursor: pointer;
         }
         .q.timers-enabled:hover {
-          background: #aebbd3;
+          background: var(--webasto-tile-hover-background, var(--wc-tile-hover-background));
         }
         .q.mode-enabled:hover {
-          background: #aebbd3;
+          background: var(--webasto-tile-hover-background, var(--wc-tile-hover-background));
         }
         .q.map-enabled:hover {
-          background: #aebbd3;
+          background: var(--webasto-tile-hover-background, var(--wc-tile-hover-background));
         }
         .q.map-disabled, .q.mode-disabled, .q.timers-disabled {
           opacity: 0.6;
@@ -845,7 +877,7 @@ class WebastoConnectCard extends HTMLElement {
         .q.br { right: 0; bottom: 0; width: calc(50% - 8px); height: calc(50% - 8px); }
         .divider-v, .divider-h {
           position: absolute;
-          background: #ffffff;
+          background: var(--webasto-gap-color, var(--card-background-color, #ffffff));
           pointer-events: none;
         }
         .divider-v {
@@ -868,9 +900,9 @@ class WebastoConnectCard extends HTMLElement {
           width: 312px;
           height: 312px;
           border-radius: 50%;
-          background: #efefef;
-          box-shadow: 0 0 0 10px #ffffff;
-          border: 10px solid ${ringColor};
+          background: var(--webasto-center-background, var(--wc-center-background));
+          box-shadow: 0 0 0 10px var(--webasto-gap-color, var(--card-background-color, #ffffff));
+          border: 10px solid var(--webasto-ring-idle-color, var(--wc-ring-idle-color));
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -879,22 +911,25 @@ class WebastoConnectCard extends HTMLElement {
           user-select: none;
           transition: border-color 150ms ease;
         }
+        .center-wrap.active {
+          border-color: var(--webasto-ring-active-color, var(--wc-ring-active-color));
+        }
         .center-wrap.offline {
-          background: #d0d0d0;
+          background: var(--webasto-center-offline-background, var(--wc-center-offline-background));
           cursor: default;
         }
         .icon {
-          color: #2a4677;
+          color: var(--webasto-icon-color, var(--wc-icon-color));
           margin-bottom: 10px;
         }
         .name {
-          color: #20334d;
+          color: var(--webasto-text-color, var(--wc-text-color));
           font-size: 36px;
           line-height: 1.1;
           font-weight: 500;
         }
         .label {
-          color: #20334d;
+          color: var(--webasto-text-color, var(--wc-text-color));
           font-size: 24px;
           line-height: 1.2;
           margin-top: 8px;
@@ -904,7 +939,7 @@ class WebastoConnectCard extends HTMLElement {
         .offline-copy {
           max-width: 220px;
           text-align: center;
-          color: #2d4468;
+          color: var(--webasto-offline-text-color, var(--wc-offline-text-color));
           font-size: 24px;
           line-height: 1.25;
           font-weight: 500;
@@ -912,7 +947,7 @@ class WebastoConnectCard extends HTMLElement {
           white-space: pre-line;
         }
         .meta {
-          background: #ffffff;
+          background: var(--webasto-meta-background, var(--card-background-color, #ffffff));
           border-radius: 14px;
           padding: 10px 14px;
           box-shadow: none;
@@ -921,7 +956,7 @@ class WebastoConnectCard extends HTMLElement {
           display: flex;
           align-items: center;
           gap: 18px;
-          color: #20334d;
+          color: var(--webasto-meta-text-color, var(--wc-meta-text-color));
           font-size: 24px;
           line-height: 1.3;
           flex-wrap: wrap;
@@ -933,7 +968,7 @@ class WebastoConnectCard extends HTMLElement {
         }
         .meta-location {
           margin-top: 8px;
-          color: #20334d;
+          color: var(--webasto-meta-text-color, var(--wc-meta-text-color));
           font-size: 22px;
           line-height: 1.3;
           display: inline-flex;
@@ -1002,7 +1037,7 @@ class WebastoConnectCard extends HTMLElement {
           margin-top: 8px;
         }
         .mode-option {
-          border: 1px solid var(--divider-color, rgba(255, 255, 255, 0.12));
+          border: 1px solid var(--divider-color, #ddd);
           border-radius: 24px;
           background: var(--secondary-background-color, #eee);
           color: var(--primary-text-color, #111);
@@ -1063,7 +1098,7 @@ class WebastoConnectCard extends HTMLElement {
           grid-template-columns: 1fr auto;
           gap: 12px;
           align-items: center;
-          border: 1px solid var(--divider-color, rgba(255, 255, 255, 0.12));
+          border: 1px solid var(--divider-color, #ddd);
           border-radius: 18px;
           background: var(--secondary-background-color, #eee);
           padding: 12px 14px;
@@ -1133,7 +1168,7 @@ class WebastoConnectCard extends HTMLElement {
           display: flex;
           flex-direction: column;
           gap: 12px;
-          border: 1px solid var(--divider-color, rgba(255,255,255,0.12));
+          border: 1px solid var(--divider-color, #ddd);
           border-radius: 18px;
           background: var(--secondary-background-color, #eee);
           padding: 14px;
@@ -1193,7 +1228,7 @@ class WebastoConnectCard extends HTMLElement {
           gap: 8px;
         }
         .timer-day {
-          border: 1px solid var(--divider-color, rgba(255,255,255,0.12));
+          border: 1px solid var(--divider-color, #ddd);
           border-radius: 999px;
           padding: 8px 12px;
           background: var(--card-background-color, #fff);
@@ -1257,7 +1292,7 @@ class WebastoConnectCard extends HTMLElement {
           <div class="q br ${mapClass}" id="map-action" role="button" tabindex="${mapTabIndex}" aria-disabled="${mapAriaDisabled}">${escapeAttr(titleMap)}</div>
           <div class="divider-v"></div>
           <div class="divider-h"></div>
-          <div class="center-wrap ${isConnected ? "" : "offline"}" id="center-toggle" role="button" tabindex="0" aria-label="${escapeAttr(toggleLabel)}">
+          <div class="center-wrap ${isConnected ? (isOn ? "active" : "") : "offline"}" id="center-toggle" role="button" tabindex="0" aria-label="${escapeAttr(toggleLabel)}">
             ${isConnected ? `
             <ha-icon class="icon" icon="${escapeAttr(icon)}" style="--mdc-icon-size: 96px;"></ha-icon>
             <div class="name">${escapeAttr(outputName)}</div>
@@ -1706,23 +1741,23 @@ class WebastoConnectCardEditor extends HTMLElement {
         }
         label {
           font-size: 13px;
-          color: var(--secondary-text-color);
+          color: var(--secondary-text-color, #666);
           display: flex;
           flex-direction: column;
           gap: 4px;
         }
         input, select {
           font: inherit;
-          color: var(--primary-text-color);
-          background: var(--card-background-color);
-          border: 1px solid var(--divider-color);
+          color: var(--primary-text-color, #111);
+          background: var(--card-background-color, #fff);
+          border: 1px solid var(--divider-color, #ddd);
           border-radius: 8px;
           padding: 8px 10px;
         }
         .hint {
           margin-top: 2px;
           font-size: 12px;
-          color: var(--secondary-text-color);
+          color: var(--secondary-text-color, #666);
         }
       </style>
       <div class="grid">

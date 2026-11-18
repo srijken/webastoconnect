@@ -1,7 +1,7 @@
 {
   "name": "webasto-connect-card",
   "private": true,
-  "version": "0.1.0b21",
+  "version": "0.1.0b22",
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
