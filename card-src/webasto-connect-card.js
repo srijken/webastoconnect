@@ -5,7 +5,8 @@ function escapeAttr(value) {
     .replaceAll("&", "&amp;")
     .replaceAll('"', "&quot;")
     .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
+    .replaceAll(">", "&gt;")
+    .replaceAll("'", "&#39;");
 }
 
 function entityDeviceClass(entry) {
@@ -343,7 +344,8 @@ class WebastoConnectCard extends HTMLElement {
   }
 
   _draftFromTimer(timer) {
-    const hasLocation = timer.latitude != null && timer.longitude != null;
+    const hasCoordinates = timer.latitude != null && timer.longitude != null;
+    const hasLocation = Boolean(timer.has_location) || hasCoordinates;
     return {
       timer_index: timer.index,
       start_time: this._formatTimerStart(timer),
@@ -351,7 +353,9 @@ class WebastoConnectCard extends HTMLElement {
       enabled: Boolean(timer.enabled),
       repeat_days: this._repeatDaysFromMask(timer.repeat),
       use_location: hasLocation,
-      location: hasLocation
+      // Coordinates are no longer exposed as attributes; without them the
+      // stored location is kept unless the user picks a new one or clears it.
+      location: hasCoordinates
         ? {
             latitude: Number(timer.latitude),
             longitude: Number(timer.longitude),
@@ -1227,54 +1231,54 @@ class WebastoConnectCard extends HTMLElement {
       </style>
       <div class="wrapper">
         <ha-card>
-          <div class="q tl">${titleGeoFence}</div>
+          <div class="q tl">${escapeAttr(titleGeoFence)}</div>
           <div class="q tr ${modeClass}" id="mode-action" role="button" tabindex="${modeTabIndex}" aria-disabled="${modeAriaDisabled}">
-            <span class="q-label">${titleMode}</span>
+            <span class="q-label">${escapeAttr(titleMode)}</span>
           </div>
-          <div class="q bl ${timersClass}" id="timers-action" role="button" tabindex="${timersTabIndex}" aria-disabled="${timersAriaDisabled}">${titleTimers}</div>
-          <div class="q br ${mapClass}" id="map-action" role="button" tabindex="${mapTabIndex}" aria-disabled="${mapAriaDisabled}">${titleMap}</div>
+          <div class="q bl ${timersClass}" id="timers-action" role="button" tabindex="${timersTabIndex}" aria-disabled="${timersAriaDisabled}">${escapeAttr(titleTimers)}</div>
+          <div class="q br ${mapClass}" id="map-action" role="button" tabindex="${mapTabIndex}" aria-disabled="${mapAriaDisabled}">${escapeAttr(titleMap)}</div>
           <div class="divider-v"></div>
           <div class="divider-h"></div>
-          <div class="center-wrap ${isConnected ? "" : "offline"}" id="center-toggle" role="button" tabindex="0" aria-label="${toggleLabel}">
+          <div class="center-wrap ${isConnected ? "" : "offline"}" id="center-toggle" role="button" tabindex="0" aria-label="${escapeAttr(toggleLabel)}">
             ${isConnected ? `
-            <ha-icon class="icon" icon="${icon}" style="--mdc-icon-size: 96px;"></ha-icon>
-            <div class="name">${outputName}</div>
-            <div class="label">${label}</div>
+            <ha-icon class="icon" icon="${escapeAttr(icon)}" style="--mdc-icon-size: 96px;"></ha-icon>
+            <div class="name">${escapeAttr(outputName)}</div>
+            <div class="label">${escapeAttr(label)}</div>
             ` : `
-            <div class="offline-copy">${label}</div>
-            <ha-icon class="icon" icon="${icon}" style="--mdc-icon-size: 72px;"></ha-icon>
-            <div class="name">${outputName}</div>
+            <div class="offline-copy">${escapeAttr(label)}</div>
+            <ha-icon class="icon" icon="${escapeAttr(icon)}" style="--mdc-icon-size: 72px;"></ha-icon>
+            <div class="name">${escapeAttr(outputName)}</div>
             `}
           </div>
         </ha-card>
         <div class="meta">
           <div class="meta-row">
-            <span class="meta-item"><ha-icon icon="mdi:thermometer" style="--mdc-icon-size: 24px;"></ha-icon>${tempText}</span>
-            <span class="meta-item"><ha-icon icon="mdi:car-battery" style="--mdc-icon-size: 24px;"></ha-icon>${batteryText}</span>
+            <span class="meta-item"><ha-icon icon="mdi:thermometer" style="--mdc-icon-size: 24px;"></ha-icon>${escapeAttr(tempText)}</span>
+            <span class="meta-item"><ha-icon icon="mdi:car-battery" style="--mdc-icon-size: 24px;"></ha-icon>${escapeAttr(batteryText)}</span>
           </div>
-          <div class="meta-location"><ha-icon icon="mdi:map-marker" style="--mdc-icon-size: 24px;"></ha-icon>${locationText}</div>
+          <div class="meta-location"><ha-icon icon="mdi:map-marker" style="--mdc-icon-size: 24px;"></ha-icon>${escapeAttr(locationText)}</div>
         </div>
       </div>
       ${modePopup ? `
       <div class="modal-backdrop" id="mode-modal-backdrop">
-        <div class="mode-modal" role="dialog" aria-modal="true" aria-label="${titleMode}">
+        <div class="mode-modal" role="dialog" aria-modal="true" aria-label="${escapeAttr(titleMode)}">
           <div class="mode-modal-header">
-            <span>${titleMode}</span>
-            <button class="modal-close" id="mode-modal-close">${closeText}</button>
+            <span>${escapeAttr(titleMode)}</span>
+            <button class="modal-close" id="mode-modal-close">${escapeAttr(closeText)}</button>
           </div>
           <div class="mode-modal-body">
             <div class="mode-options">
               <button class="mode-option ${selectedMode === "ventilation" ? "selected" : ""}" id="mode-option-ventilation">
-                <span class="mode-option-title">${localize(this._hass, "card.ui.ventilation")}</span>
+                <span class="mode-option-title">${escapeAttr(localize(this._hass, "card.ui.ventilation"))}</span>
                 <ha-icon class="mode-option-icon" icon="mdi:fan" style="--mdc-icon-size: 46px;"></ha-icon>
               </button>
               <button class="mode-option ${selectedMode === "heating" ? "selected" : ""}" id="mode-option-heating">
-                <span class="mode-option-title">${localize(this._hass, "card.ui.heating")}</span>
+                <span class="mode-option-title">${escapeAttr(localize(this._hass, "card.ui.heating"))}</span>
                 <ha-icon class="mode-option-icon" icon="mdi:car-defrost-rear" style="--mdc-icon-size: 46px;"></ha-icon>
               </button>
             </div>
             <div class="mode-modal-actions">
-              <button class="mode-save" id="mode-save">${saveText}</button>
+              <button class="mode-save" id="mode-save">${escapeAttr(saveText)}</button>
             </div>
           </div>
         </div>
@@ -1282,10 +1286,10 @@ class WebastoConnectCard extends HTMLElement {
       ` : ""}
       ${timersPopup ? `
       <div class="modal-backdrop" id="timers-modal-backdrop">
-        <div class="modal-shell" role="dialog" aria-modal="true" aria-label="${titleTimers}">
+        <div class="modal-shell" role="dialog" aria-modal="true" aria-label="${escapeAttr(titleTimers)}">
           <div class="modal-header">
-            <span>${titleTimers}</span>
-            <button class="modal-close" id="timers-modal-close">${closeText}</button>
+            <span>${escapeAttr(titleTimers)}</span>
+            <button class="modal-close" id="timers-modal-close">${escapeAttr(closeText)}</button>
           </div>
           <div class="timers-modal-body">
             ${timerDraftOpen ? `
@@ -1352,10 +1356,10 @@ class WebastoConnectCard extends HTMLElement {
       ` : ""}
       ${mapPopup ? `
       <div class="modal-backdrop" id="map-modal-backdrop">
-        <div class="modal-shell" role="dialog" aria-modal="true" aria-label="${titleMap}">
+        <div class="modal-shell" role="dialog" aria-modal="true" aria-label="${escapeAttr(titleMap)}">
           <div class="modal-header">
-            <span>${titleMap}</span>
-            <button class="modal-close" id="map-modal-close">${closeText}</button>
+            <span>${escapeAttr(titleMap)}</span>
+            <button class="modal-close" id="map-modal-close">${escapeAttr(closeText)}</button>
           </div>
           <div class="map-card-host" id="map-card-host"></div>
         </div>
