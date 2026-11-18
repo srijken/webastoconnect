@@ -16,7 +16,8 @@
     "config": {
         "abort": {
             "already_configured": "Tämä tili on jo määritetty",
-            "reauth_successful": "Uudelleentodennus onnistui"
+            "reauth_successful": "Uudelleentodennus onnistui",
+            "reconfigure_successful": "Salasana päivitetty"
         },
         "error": {
             "cannot_connect": "Yhteyden muodostaminen epäonnistui",
@@ -34,6 +35,13 @@
             "user": {
                 "data": {
                     "email": "Sähköposti",
+                    "password": "Salasana"
+                }
+            },
+            "reconfigure": {
+                "title": "Vaihda Webasto Connect -salasana",
+                "description": "Anna uusi salasana tilille {email}.",
+                "data": {
                     "password": "Salasana"
                 }
             }

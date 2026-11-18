@@ -37,11 +37,7 @@ except ImportError:
     InvalidResponseException = InvalidRequestException
     TooManyRequestsException = InvalidRequestException
 
-from .api import (
-    WebastoConnectUpdateCoordinator,
-    _credential_store_path,
-    _remove_credentials,
-)
+from .api import WebastoConnectUpdateCoordinator, async_remove_credentials
 from .base import webasto_device_name
 from .card_install import ensure_card_installed
 from .const import CARD_FILENAME, CARD_WWW_SUBDIR, DOMAIN, PLATFORMS, STARTUP
@@ -364,8 +360,29 @@ async def _async_ensure_lovelace_card_resource(
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Delete the stored app client credentials when the entry is removed."""
-    await hass.async_add_executor_job(
-        _remove_credentials, Path(_credential_store_path(hass, entry))
+    await async_remove_credentials(hass, entry)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant,
+    entry: WebastoConfigEntry,
+    device_entry: dr.DeviceEntry,
+) -> bool:
+    """Allow removing a device that the Webasto account no longer reports.
+
+    Without a loaded entry the current device list is unknown, so the device
+    is kept.
+    """
+    runtime_data: WebastoRuntimeData | None = getattr(entry, "runtime_data", None)
+    if runtime_data is None:
+        return False
+
+    current_ids = {
+        str(device_id) for device_id in runtime_data.coordinator.cloud.devices
+    }
+    return not any(
+        domain == DOMAIN and identifier in current_ids
+        for domain, identifier in device_entry.identifiers
     )
 
 

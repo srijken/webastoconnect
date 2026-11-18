@@ -15,6 +15,8 @@ from .api import WebastoConnectUpdateCoordinator
 from .base import WebastoBaseEntity, WebastoConnectBinarySensorEntityDescription
 
 LOGGER = logging.getLogger(__name__)
+# Read-only entities updated by the coordinator.
+PARALLEL_UPDATES = 0
 
 BINARY_SENSORS = [
     WebastoConnectBinarySensorEntityDescription(

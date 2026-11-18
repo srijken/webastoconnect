@@ -14,6 +14,8 @@ from custom_components.webastoconnect.base import WebastoBaseEntity
 from .api import WebastoConnectUpdateCoordinator
 
 LOGGER = logging.getLogger(__name__)
+# Read-only entities updated by the coordinator.
+PARALLEL_UPDATES = 0
 
 TRACKER = EntityDescription(
     key="devicetracker",

@@ -16,7 +16,8 @@
     "config": {
         "abort": {
             "already_configured": "Dieses Konto ist bereits eingerichtet",
-            "reauth_successful": "Erneute Authentifizierung erfolgreich"
+            "reauth_successful": "Erneute Authentifizierung erfolgreich",
+            "reconfigure_successful": "Passwort aktualisiert"
         },
         "error": {
             "cannot_connect": "Verbindung nicht möglich",
@@ -34,6 +35,13 @@
             "user": {
                 "data": {
                     "email": "E-Mail",
+                    "password": "Passwort"
+                }
+            },
+            "reconfigure": {
+                "title": "Webasto-Connect-Passwort ändern",
+                "description": "Gib das neue Passwort für {email} ein.",
+                "data": {
                     "password": "Passwort"
                 }
             }

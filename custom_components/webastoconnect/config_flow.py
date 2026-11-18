@@ -39,6 +39,11 @@ CONF_SCHEME = vol.Schema(
 PASSWORD_SCHEME = vol.Schema({vol.Required(CONF_PASSWORD): str})
 
 
+def _normalize_email(email: str) -> str:
+    """Return the email address in the form used as config entry unique ID."""
+    return email.strip().lower()
+
+
 async def _async_validate_credentials(
     hass: HomeAssistant,
     email: str,
@@ -97,29 +102,30 @@ class WebastoConnectConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
     MINOR_VERSION = 2
-    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     async def async_step_user(self, user_input: Any | None = None):
         """Handle the initial config flow step."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            email = str(user_input[CONF_EMAIL]).strip()
+            password = user_input[CONF_PASSWORD]
+            # New entries use the lowercase email as unique ID. Entries created
+            # before this used the email as typed, so compare those too.
+            await self.async_set_unique_id(_normalize_email(email))
+            self._abort_if_unique_id_configured()
             if any(
-                entry.data.get(CONF_EMAIL) == user_input[CONF_EMAIL]
-                for entry in self._async_current_entries()
+                _normalize_email(str(entry.data.get(CONF_EMAIL, ""))) == self.unique_id
+                for entry in self._async_current_entries(include_ignore=False)
             ):
                 return self.async_abort(reason="already_configured")
 
-            errors = await _async_validate_credentials(
-                self.hass, user_input[CONF_EMAIL], user_input[CONF_PASSWORD]
-            )
+            errors = await _async_validate_credentials(self.hass, email, password)
             if not errors:
-                await self.async_set_unique_id(f"{user_input[CONF_EMAIL]}")
-
                 return self.async_create_entry(
-                    title=user_input[CONF_EMAIL],
-                    data=user_input,
-                    description=f"Webasto ThermoConnect - {user_input[CONF_EMAIL]}",
+                    title=email,
+                    data={CONF_EMAIL: email, CONF_PASSWORD: password},
+                    description=f"Webasto ThermoConnect - {email}",
                 )
 
         LOGGER.debug("Showing configuration form")

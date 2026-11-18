@@ -1,6 +1,6 @@
 """Sensors for Webasto Connect."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 import logging
 from typing import Any
 
@@ -9,7 +9,12 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import EntityCategory, UnitOfLength, UnitOfTime
+from homeassistant.const import (
+    EntityCategory,
+    UnitOfElectricPotential,
+    UnitOfLength,
+    UnitOfTime,
+)
 from homeassistant.core import callback
 
 from . import WebastoConfigEntry
@@ -17,9 +22,49 @@ from .api import WebastoConnectUpdateCoordinator
 from .base import WebastoBaseEntity, WebastoConnectSensorEntityDescription
 
 LOGGER = logging.getLogger(__name__)
+# Read-only entities updated by the coordinator.
+PARALLEL_UPDATES = 0
 MAIN_OUTPUT_LINES = {"OUTH", "OUTV"}
 TIMER_LINES = {"OUTH", "OUTV"}
 WEEKDAY_BITMASK = [1, 2, 4, 8, 16, 32, 64]  # Monday..Sunday
+# Values of the `def_output` and `webasto_emul_mode` settings, as documented in
+# the pywebasto protocol notes.
+DEFAULT_OUTPUT_OPTIONS = [
+    "automatic",
+    "output1",
+    "OUTA",
+    "webasto_heater",
+    "webasto_ventilation",
+]
+EMULATION_MODE_OPTIONS = [
+    "wb_auto_detect",
+    "thermoconnect",
+    "telestart",
+    "telestart_special",
+    "timer",
+]
+
+
+def _subscription_expiration_date(webasto: Any) -> date | None:
+    """Return the subscription expiration date (UTC), if known."""
+    expiration = getattr(webasto, "subscription_expiration", None)
+    if isinstance(expiration, datetime):
+        return expiration.date()
+    return None
+
+
+def _enum_value(key: str, value: Any, options: list[str]) -> str | None:
+    """Return the value when it is a known option, else None.
+
+    An enum sensor must not report a value outside its options, so an
+    unknown value from the cloud is logged and reported as unknown.
+    """
+    if value is None:
+        return None
+    if value not in options:
+        LOGGER.debug("Ignoring unknown %s value '%s'", key, value)
+        return None
+    return value
 
 
 def _main_output_end_time(webasto) -> datetime | None:
@@ -239,7 +284,7 @@ SENSORS = [
         entity_category=None,
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.VOLTAGE,
-        native_unit_of_measurement="V",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         value_fn=lambda webasto: webasto.voltage,
         icon="mdi:car-battery",
         suggested_display_precision=1,
@@ -249,9 +294,9 @@ SENSORS = [
         name="Subscription Expiration",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
-        device_class=None,
+        device_class=SensorDeviceClass.DATE,
         entity_registry_enabled_default=False,
-        value_fn=lambda webasto: webasto.subscription_expiration.strftime("%d-%m-%Y"),
+        value_fn=_subscription_expiration_date,
         icon="mdi:calendar-end",
     ),
     WebastoConnectSensorEntityDescription(
@@ -323,9 +368,14 @@ SENSORS = [
         name="Default Output",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
-        device_class=None,
+        device_class=SensorDeviceClass.ENUM,
+        options=DEFAULT_OUTPUT_OPTIONS,
         entity_registry_enabled_default=False,
-        value_fn=lambda webasto: getattr(webasto, "default_output", None),
+        value_fn=lambda webasto: _enum_value(
+            "default_output",
+            getattr(webasto, "default_output", None),
+            DEFAULT_OUTPUT_OPTIONS,
+        ),
         icon="mdi:toggle-switch-outline",
     ),
     WebastoConnectSensorEntityDescription(
@@ -344,9 +394,14 @@ SENSORS = [
         name="Emulation Mode",
         entity_category=EntityCategory.DIAGNOSTIC,
         state_class=None,
-        device_class=None,
+        device_class=SensorDeviceClass.ENUM,
+        options=EMULATION_MODE_OPTIONS,
         entity_registry_enabled_default=False,
-        value_fn=lambda webasto: getattr(webasto, "emulation_mode", None),
+        value_fn=lambda webasto: _enum_value(
+            "emulation_mode",
+            getattr(webasto, "emulation_mode", None),
+            EMULATION_MODE_OPTIONS,
+        ),
         icon="mdi:chip",
     ),
     WebastoConnectSensorEntityDescription(

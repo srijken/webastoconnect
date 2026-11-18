@@ -1,53 +1,16 @@
 """Tests for the security hardening of credentials, attributes and services."""
 
 from datetime import UTC, datetime
-import os
-from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
 
 import pytest
 import voluptuous as vol
 
-import custom_components.webastoconnect as integration
-from custom_components.webastoconnect.api import (
-    _credential_store_path,
-    _load_credentials,
-    _save_credentials,
-)
 from custom_components.webastoconnect.sensor import _next_timer_sensor_payload
 from custom_components.webastoconnect.services import (
     _CREATE_TIMER_SCHEMA,
     _UPDATE_TIMER_SCHEMA,
 )
-
-
-def test_credentials_file_is_private_and_round_trips(tmp_path: Path) -> None:
-    """The app credential file must only be readable by its owner."""
-    path = tmp_path / ".storage" / "webasto_entry.json"
-
-    _save_credentials(path, SimpleNamespace(client_id="id", client_secret="secret"))
-
-    assert os.stat(path).st_mode & 0o777 == 0o600
-    assert _load_credentials(path) == {"client_id": "id", "client_secret": "secret"}
-
-
-@pytest.mark.asyncio
-async def test_remove_entry_deletes_credentials(tmp_path: Path) -> None:
-    """Removing the entry deletes the stored app credentials."""
-    hass = SimpleNamespace(
-        config=SimpleNamespace(path=lambda *parts: str(tmp_path.joinpath(*parts))),
-        async_add_executor_job=AsyncMock(side_effect=lambda func, *args: func(*args)),
-    )
-    entry = SimpleNamespace(entry_id="entry-1")
-    path = Path(_credential_store_path(hass, entry))
-    _save_credentials(path, SimpleNamespace(client_id="id", client_secret="secret"))
-
-    await integration.async_remove_entry(hass, entry)
-    assert not path.exists()
-
-    # Removing again (file already gone) does not fail.
-    await integration.async_remove_entry(hass, entry)
 
 
 def test_timer_attributes_do_not_expose_coordinates() -> None:

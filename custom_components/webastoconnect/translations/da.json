@@ -16,7 +16,8 @@
     "config": {
         "abort": {
             "already_configured": "Denne konto er allerede registreret",
-            "reauth_successful": "Genautentificering gennemført"
+            "reauth_successful": "Genautentificering gennemført",
+            "reconfigure_successful": "Kodeord opdateret"
         },
         "error": {
             "cannot_connect": "Kan ikke oprette forbindelse",
@@ -34,6 +35,13 @@
             "user": {
                 "data": {
                     "email": "Email",
+                    "password": "Kodeord"
+                }
+            },
+            "reconfigure": {
+                "title": "Skift Webasto Connect kodeord",
+                "description": "Indtast det nye kodeord for {email}.",
+                "data": {
                     "password": "Kodeord"
                 }
             }

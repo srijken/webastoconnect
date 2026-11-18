@@ -16,7 +16,8 @@
     "config": {
         "abort": {
             "already_configured": "Denne kontoen er allerede konfigurert",
-            "reauth_successful": "Reautentisering vellykket"
+            "reauth_successful": "Reautentisering vellykket",
+            "reconfigure_successful": "Passordet er oppdatert"
         },
         "error": {
             "cannot_connect": "Kan ikke koble til",
@@ -34,6 +35,13 @@
             "user": {
                 "data": {
                     "email": "E-post",
+                    "password": "Passord"
+                }
+            },
+            "reconfigure": {
+                "title": "Endre Webasto Connect-passord",
+                "description": "Skriv inn det nye passordet for {email}.",
+                "data": {
                     "password": "Passord"
                 }
             }

@@ -12,6 +12,8 @@ from .api import WebastoConnectUpdateCoordinator
 from .base import WebastoBaseEntity, WebastoConnectSwitchEntityDescription
 
 LOGGER = logging.getLogger(__name__)
+# Switching is a cloud call: send one at a time.
+PARALLEL_UPDATES = 1
 
 
 def _supports_ventilation_mode(device: Any) -> bool:
