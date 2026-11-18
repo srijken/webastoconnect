@@ -23,20 +23,21 @@ jobs:
     name: Prepare release asset
     runs-on: ubuntu-latest
     steps:
+      - name: Validate release tag
+        run: |
+          # The tag ends up in shell commands, branch names and file paths.
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::Invalid or missing release tag. Expected a tag like v1.2.3."
+            exit 1
+          fi
       - name: Check out repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: refs/tags/${{ env.RELEASE_TAG }}
       - name: Set up Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: "20"
-      - name: Validate release tag
-        run: |
-          if [ -z "${{ env.RELEASE_TAG }}" ]; then
-            echo "::error::Missing release tag. Provide workflow_dispatch input 'tag_name' or publish a GitHub release."
-            exit 1
-          fi
       - name: Validate release automation token
         env:
           RELEASE_WORKFLOW_TOKEN: ${{ secrets.RELEASE_WORKFLOW_TOKEN }}
@@ -47,15 +48,15 @@ jobs:
           fi
       - name: Update manifest.json version to ${{ env.RELEASE_TAG }}
         run: |
-          python3 ${{ github.workspace }}/.github/scripts/update_hacs_manifest.py --version ${{ env.RELEASE_TAG }} --path /custom_components/webastoconnect/
+          python3 "$GITHUB_WORKSPACE/.github/scripts/update_hacs_manifest.py" --version "$RELEASE_TAG" --path /custom_components/webastoconnect/
       - name: Build Webasto Connect Card
         run: |
           cd card-src
-          npm install
+          npm ci --ignore-scripts
           npm run build
       - name: Create pull request for manifest update
         id: create_manifest_pr
-        uses: peter-evans/create-pull-request@v8
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8
         with:
           token: ${{ secrets.RELEASE_WORKFLOW_TOKEN }}
           branch-token: ${{ secrets.RELEASE_WORKFLOW_TOKEN }}
@@ -78,10 +79,12 @@ jobs:
         if: ${{ steps.create_manifest_pr.outputs.pull-request-number != '' }}
         env:
           GH_TOKEN: ${{ secrets.RELEASE_WORKFLOW_TOKEN }}
+          PR_NUMBER: ${{ steps.create_manifest_pr.outputs.pull-request-number }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          pr_number="${{ steps.create_manifest_pr.outputs.pull-request-number }}"
-          repo="${{ github.repository }}"
+          pr_number="$PR_NUMBER"
+          repo="$REPO"
           max_attempts=80
           sleep_seconds=15
 
@@ -99,15 +102,17 @@ jobs:
           exit 1
       - name: Checkout merged commit
         if: ${{ steps.wait_manifest_pr_merge.outputs.merge_sha != '' }}
+        env:
+          MERGE_SHA: ${{ steps.wait_manifest_pr_merge.outputs.merge_sha }}
         run: |
           git fetch origin main
-          git checkout --force "${{ steps.wait_manifest_pr_merge.outputs.merge_sha }}"
+          git checkout --force "$MERGE_SHA"
       - name: Create zip
         run: |
           cd custom_components/webastoconnect
           zip webastoconnect.zip -r ./
       - name: Upload zip to release
-        uses: svenstaro/upload-release-action@2.11.5
+        uses: svenstaro/upload-release-action@29e53e917877a24fad85510ded594ab3c9ca12de # 2.11.5
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./custom_components/webastoconnect/webastoconnect.zip
