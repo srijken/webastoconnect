@@ -79,7 +79,7 @@ def test_config_flow_has_no_options_flow() -> None:
     """Credentials are no longer edited through an options flow."""
     assert "async_get_options_flow" not in WebastoConnectConfigFlow.__dict__
     assert not hasattr(config_flow, "WebastoConnectOptionsFlow")
-    assert WebastoConnectConfigFlow.MINOR_VERSION == 2
+    assert WebastoConnectConfigFlow.MINOR_VERSION == 3
 
 
 @pytest.mark.parametrize("step", ["reauth_confirm", "reconfigure"])

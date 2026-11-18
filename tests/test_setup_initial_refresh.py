@@ -32,7 +32,12 @@ def mock_issue_delete(monkeypatch) -> None:
 def _entry() -> SimpleNamespace:
     """Build a config entry stub that records on-unload callbacks."""
     entry = SimpleNamespace(
-        entry_id="entry-1", data={CONF_EMAIL: "a@b.c"}, options={}, on_unload=[]
+        entry_id="entry-1",
+        version=1,
+        minor_version=3,
+        data={CONF_EMAIL: "a@b.c"},
+        options={},
+        on_unload=[],
     )
     entry.async_on_unload = entry.on_unload.append
     return entry
@@ -89,7 +94,7 @@ async def test_setup_skips_first_refresh_when_connect_hydrates_devices(
         AsyncMock(return_value=SimpleNamespace(version="test", file_path="/tmp")),
     )
     migrate_mock = AsyncMock()
-    monkeypatch.setattr(integration, "_async_migrate_unique_ids", migrate_mock)
+    monkeypatch.setattr(integration, "async_migrate_to_key_unique_ids", migrate_mock)
     update_device_name_mock = AsyncMock()
     monkeypatch.setattr(
         integration, "_async_update_device_registry_name", update_device_name_mock
@@ -105,7 +110,8 @@ async def test_setup_skips_first_refresh_when_connect_hydrates_devices(
     coordinator.cloud.connect.assert_awaited_once()
     coordinator.async_set_updated_data.assert_called_once_with(None)
     coordinator.async_config_entry_first_refresh.assert_not_awaited()
-    migrate_mock.assert_awaited_once_with(hass, 1, "Heater", entry)
+    # Entry is already on 1.3: the one-time unique ID migration does not run.
+    migrate_mock.assert_not_awaited()
     update_device_name_mock.assert_awaited_once_with(hass, 1, "Heater")
 
 

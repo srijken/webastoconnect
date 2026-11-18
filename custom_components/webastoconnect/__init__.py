@@ -12,17 +12,15 @@ from homeassistant.components.lovelace.const import (
 )
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD, CONF_TYPE, CONF_URL
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import (
     ConfigEntryAuthFailed,
     ConfigEntryError,
     ConfigEntryNotReady,
 )
-from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.loader import async_get_integration
-from homeassistant.util import slugify as util_slugify
 from pywebasto.enums import Request
 from pywebasto.exceptions import InvalidRequestException, UnauthorizedException
 
@@ -41,6 +39,10 @@ from .api import WebastoConnectUpdateCoordinator, async_remove_credentials
 from .base import webasto_device_name
 from .card_install import ensure_card_installed
 from .const import CARD_FILENAME, CARD_WWW_SUBDIR, DOMAIN, PLATFORMS, STARTUP
+from .migration import (
+    KEY_UNIQUE_ID_MINOR_VERSION,
+    async_migrate_to_key_unique_ids,
+)
 from .services import async_register_services, async_unregister_services
 
 LOGGER = logging.getLogger(__name__)
@@ -62,6 +64,8 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     1.2: credentials move from the entry options (written by the removed
     options flow) to the entry data, and are removed from the options.
+    1.3: entity unique IDs become key-based. That step needs the output names
+    from the cloud, so it runs in setup (`_async_migrate_to_key_unique_ids`).
     """
     if entry.version > 1:
         return False
@@ -92,55 +96,36 @@ async def async_setup_entry(hass: HomeAssistant, entry: WebastoConfigEntry) -> b
     return True
 
 
-async def _async_migrate_unique_ids(
+async def _async_migrate_to_key_unique_ids(
     hass: HomeAssistant,
-    heater_id: int,
-    heater_name: str,
     entry: ConfigEntry,
+    coordinator: WebastoConnectUpdateCoordinator,
 ) -> None:
-    """Migrate unique IDs to new format."""
+    """Move entities to key-based unique IDs once (config entry 1.2 -> 1.3).
 
-    @callback
-    def _async_migrator(entity_entry: er.RegistryEntry) -> dict[str, Any] | None:
-        """Migrate an entity's unique ID."""
-        updates = None
-        entity_unique_id = entity_entry.unique_id
-        entity_name = entity_entry.original_name
+    Runs after connecting, because mapping an old name-based unique ID to its
+    entity needs the output names, and before the platforms add entities.
+    Without devices from the cloud nothing can be mapped, so it is retried on
+    the next setup.
+    """
+    if entry.version != 1 or entry.minor_version >= KEY_UNIQUE_ID_MINOR_VERSION:
+        return
+    if not coordinator.cloud.devices:
+        LOGGER.debug("No devices reported yet; unique ID migration postponed")
+        return
 
-        if heater_name.lower() not in str(entity_entry.suggested_object_id):
-            LOGGER.debug(
-                "Skipping entity '%s' during migration, heater name '%s' not found in '%s'",
-                entity_entry.entity_id,
-                heater_name.lower(),
-                entity_entry.suggested_object_id,
-            )
-            return None
-
-        new_unique_id = util_slugify(f"{heater_id}_{entity_name}")
-
-        if entity_unique_id == new_unique_id:
-            LOGGER.debug(
-                "No migration needed for entity '%s' with unique_id '%s'",
-                entity_entry.entity_id,
-                entity_unique_id,
-            )
-            return None
-
-        LOGGER.debug(
-            "Migrating entity '%s' unique_id from '%s' to '%s'",
-            entity_entry.entity_id,
-            entity_unique_id,
-            new_unique_id,
-        )
-        updates = {"new_unique_id": new_unique_id}
-
-        return updates
-
-    await er.async_migrate_entries(
+    await async_migrate_to_key_unique_ids(
         hass,
         entry.entry_id,
-        _async_migrator,
+        {
+            str(device_id): device
+            for device_id, device in coordinator.cloud.devices.items()
+        },
     )
+    hass.config_entries.async_update_entry(
+        entry, minor_version=KEY_UNIQUE_ID_MINOR_VERSION
+    )
+    LOGGER.debug("Migrated config entry %s to version 1.3", entry.entry_id)
 
 
 async def _async_update_device_registry_name(
@@ -303,8 +288,8 @@ async def _async_setup(
         device_name = webasto_device_name(device, webapi_device_names.get(str(id)))
         LOGGER.debug("Found device: %s", device_name)
         await _async_update_device_registry_name(hass, id, device_name)
-        # Migrate unique IDs
-        await _async_migrate_unique_ids(hass, id, device_name, entry)
+
+    await _async_migrate_to_key_unique_ids(hass, entry, coordinator)
 
     return coordinator
 
