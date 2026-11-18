@@ -121,6 +121,12 @@ device_id: <your_home_assistant_device_id>
 
 See `card-src/webasto_connect_card.yaml` for all options.
 
+The *Timers* popup lists the timers of one output. On a device with a
+ventilation mode, a Heater / Ventilation switch at the top chooses which
+output's timers are shown (the active output when the popup opens), and the
+timer form has an *Output* field for new timers. The output of an existing
+timer is shown but cannot be changed: delete it and create a new one instead.
+
 Upgrading from 1.4.1 or older: those versions copied the card to
 `/config/www/webastoconnect/` and added the Lovelace resource
 `/local/webastoconnect/webasto-connect-card.js`. On the first start after
