@@ -368,6 +368,9 @@
             },
             "aux2_output": {
                 "name": "AUX2"
+            },
+            "geofence": {
+                "name": "Geoaita"
             }
         }
     },
@@ -440,6 +443,9 @@
         },
         "missing_smart_timer_values": {
             "message": "Älyajastin tarvitsee lähtöajan, enimmäiskeston, mukavuustason ja toistopäivät."
+        },
+        "geofence_not_supported": {
+            "message": "Geoaidan kytkeminen vaatii pywebasto-ng-version, joka on uudempi kuin 3.1.1. Päivitä integraatio."
         }
     }
 }

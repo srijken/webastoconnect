@@ -125,6 +125,8 @@ _COMMAND_STATES = {
     "OUT 1 OFF": ("OUT1", "OFF"),
     "OUT 2 ON": ("OUT2", "ON"),
     "OUT 2 OFF": ("OUT2", "OFF"),
+    "OUT A ON": ("OUTA", "ON"),
+    "OUT A OFF": ("OUTA", "OFF"),
 }
 
 

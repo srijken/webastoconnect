@@ -52,3 +52,36 @@ def test_bundled_card_contains_timer_line_strings() -> None:
     for key in TIMER_LINE_KEYS:
         assert key in content
     assert "timers_manage_note" not in content
+
+
+GEOFENCE_KEYS = {
+    "geo_fence",
+    "geo_fence_on",
+    "geo_fence_off",
+    "geo_fence_confirm_on",
+    "geo_fence_confirm_off",
+    "geo_fence_note",
+    "geo_fence_turn_on",
+    "geo_fence_turn_off",
+    "geo_fence_failed",
+    "cancel",
+}
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_geofence_card_translations_exist(language: str) -> None:
+    """The geofence corner and its confirmation have translated strings."""
+    ui = _card_ui(language)
+    assert set(ui) >= GEOFENCE_KEYS
+    assert ui["geo_fence_on"] != ui["geo_fence_off"]
+    assert ui["geo_fence_confirm_on"] != ui["geo_fence_confirm_off"]
+    assert ui["geo_fence_turn_on"] != ui["geo_fence_turn_off"]
+
+
+def test_bundled_card_contains_geofence_corner() -> None:
+    """The committed card bundle was rebuilt with the geofence corner."""
+    content = CARD_PATH.read_text(encoding="utf-8")
+    for key in GEOFENCE_KEYS:
+        assert key in content
+    assert "geofence-action" in content
+    assert '"geofence"' in content

@@ -95,6 +95,12 @@
                 "state": {
                     "on": "mdi:fan"
                 }
+            },
+            "geofence": {
+                "default": "mdi:map-marker-off",
+                "state": {
+                    "on": "mdi:map-marker-radius"
+                }
             }
         }
     }

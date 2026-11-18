@@ -368,6 +368,9 @@
             },
             "aux2_output": {
                 "name": "AUX2"
+            },
+            "geofence": {
+                "name": "Geofence"
             }
         }
     },
@@ -440,6 +443,9 @@
         },
         "missing_smart_timer_values": {
             "message": "Een slimme timer heeft een vertrektijd, een maximale duur, een comfortniveau en herhaaldagen nodig."
+        },
+        "geofence_not_supported": {
+            "message": "Voor het schakelen van de geofence is een pywebasto-ng-versie nieuwer dan 3.1.1 nodig. Werk de integratie bij."
         }
     }
 }

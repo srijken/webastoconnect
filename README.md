@@ -98,6 +98,32 @@ accepted (1 to 10) but not verified. **Saving smart timers from Home
 Assistant has not been verified against a real device yet**: check the timer
 in the Webasto app after creating or changing one.
 
+## Geofence (experimental)
+
+Devices whose cloud data has an alarm control output (`OUTA`, "Alarm
+control" in the Webasto portal) get a *Geofence* switch, like the geofence
+button in the Webasto app. When the geofence is active the device position is
+locked; if the vehicle leaves the radius set in the Webasto portal, Webasto
+sends an app notification, an SMS and (ThermoConnect 1 only) a phone call.
+
+**This is experimental.** The state is read from `OUTA`, which the app's
+geofence button switches inverted (geofence on = `OUTA` off); this was
+observed on one device. Which command turns the geofence on was not observed:
+the integration sends `OUT A OFF` to turn it on and `OUT A ON` to turn it off.
+Check the Webasto app after switching. With pywebasto-ng 3.1.1 (the version
+this release requires) the switch only shows the state: switching raises an
+error until a newer pywebasto-ng with geofence support is installed.
+
+The card's top-left corner shows the geofence state and switches it after a
+confirmation; it is dimmed when the device has no geofence switch.
+
+## Outputs disabled in the Webasto portal
+
+An AUX output set to mode *Disabled* in the Webasto portal is listed by the
+cloud under its disabled outputs. Its switch is then unavailable, and the log
+says (level info) that the output is disabled in the portal. Enable the
+output in the portal to use the switch again.
+
 ## Entity names and languages
 
 Entity names follow the Home Assistant language (Czech, Danish, Dutch,

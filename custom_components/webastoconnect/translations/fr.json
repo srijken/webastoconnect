@@ -368,6 +368,9 @@
             },
             "aux2_output": {
                 "name": "AUX2"
+            },
+            "geofence": {
+                "name": "Géorepérage"
             }
         }
     },
@@ -440,6 +443,9 @@
         },
         "missing_smart_timer_values": {
             "message": "Une minuterie intelligente nécessite une heure de départ, une durée maximale, un niveau de confort et des jours de répétition."
+        },
+        "geofence_not_supported": {
+            "message": "L’activation du géorepérage nécessite une version de pywebasto-ng plus récente que 3.1.1. Mettez à jour l’intégration."
         }
     }
 }
