@@ -39,7 +39,7 @@ If there is uncertainty, stop and request clarification.
 (Adjust once the structure is finalized.)
 
 - `custom_components/webastoconnect` — Integration logic
-- `tests/` — Unit and integration tests
+- `tests/` — Unit and integration tests; `tests/integration/` runs against a real Home Assistant core (`pytest-homeassistant-custom-component`) with pywebasto faked at the network boundary
 - `docs/` — Protocol documentation, architecture notes
 - `scripts/` — Development utilities, mostly for running Home Assistant tasks
 
