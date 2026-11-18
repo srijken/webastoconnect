@@ -19,7 +19,7 @@ from pywebasto import WebastoConnect
 from pywebasto.exceptions import UnauthorizedException
 
 DEVICE_ID = "1234567890"
-DEVICE_NAME = "Defender"
+DEVICE_NAME = "Camper"
 EMAIL = "Driver@Example.com"
 PASSWORD = "correct-horse"
 
@@ -63,7 +63,7 @@ DEVICE_APP_DATA: dict[str, Any] = {
     ],
     "seen": 97,
     "location": {"state": "ON", "lat": 1.5, "lon": 2.5},
-    "subscription": {"status": "ok", "expiration": 1796831722, "message": ""},
+    "subscription": {"status": "ok", "expiration": 1797336000, "message": ""},
     "alarms": "ON",
     "connection_lost": False,
     "vwarn": True,

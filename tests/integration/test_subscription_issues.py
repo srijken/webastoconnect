@@ -66,10 +66,10 @@ def _issue(hass: HomeAssistant) -> ir.IssueEntry | None:
     return ir.async_get(hass).async_get_issue(DOMAIN, ISSUE_ID)
 
 
-async def test_real_expiration_date_warns(
+async def test_expiration_three_weeks_ahead_warns(
     hass: HomeAssistant, fake_cloud: FakeWebastoCloud, config_entry: MockConfigEntry
 ) -> None:
-    """The real expiration date (2026-12-09) warns with 21 days left."""
+    """An expiration date four weeks ahead (2026-12-15) warns with 27 days left."""
     await _setup(hass, config_entry)
 
     issue = _issue(hass)
@@ -78,8 +78,8 @@ async def test_real_expiration_date_warns(
     assert issue.translation_key == "subscription_expiring"
     assert issue.translation_placeholders == {
         "device": DEVICE_NAME,
-        "expiration_date": "2026-12-09",
-        "days_left": "21",
+        "expiration_date": "2026-12-15",
+        "days_left": "27",
     }
     assert issue.is_fixable is False
     assert issue.learn_more_url == "https://my.webastoconnect.com"
@@ -202,7 +202,7 @@ async def test_unchanged_polls_do_not_recreate(
         # A new day changes the days left, so the issue is updated once.
         await _tick(hass, freezer, timedelta(days=1))
         assert _calls(created) == 2
-        assert _issue(hass).translation_placeholders["days_left"] == "20"
+        assert _issue(hass).translation_placeholders["days_left"] == "26"
         assert _calls(deleted) == 0
 
 

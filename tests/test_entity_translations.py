@@ -49,49 +49,49 @@ ALL_DESCRIPTIONS = [
     for description in descriptions
 ]
 
-# Entity IDs a new install of the 'Defender' device got before this change
+# Entity IDs a new install of the 'Camper' device got before this change
 # (has_entity_name with the English names that were in code). Only the main
 # output and AUX1 exist on this device; their names come from the Webasto app.
 EXPECTED_ENTITY_IDS = {
-    ("sensor", "temperature"): "sensor.defender_temperature",
-    ("sensor", "battery_voltage"): "sensor.defender_battery",
-    ("sensor", "subscription_expiration"): "sensor.defender_subscription_expiration",
-    ("sensor", "main_output_end_time"): "sensor.defender_heater_ends",
-    ("sensor", "next_enabled_timer"): "sensor.defender_next_start",
-    ("sensor", "last_seen"): "sensor.defender_last_seen",
-    ("sensor", "geofence_radius"): "sensor.defender_geofence_radius",
-    ("sensor", "alarm_state"): "sensor.defender_alarm_state",
-    ("sensor", "subscription_status"): "sensor.defender_subscription_status",
-    ("sensor", "default_output"): "sensor.defender_default_output",
+    ("sensor", "temperature"): "sensor.camper_temperature",
+    ("sensor", "battery_voltage"): "sensor.camper_battery",
+    ("sensor", "subscription_expiration"): "sensor.camper_subscription_expiration",
+    ("sensor", "main_output_end_time"): "sensor.camper_heater_ends",
+    ("sensor", "next_enabled_timer"): "sensor.camper_next_start",
+    ("sensor", "last_seen"): "sensor.camper_last_seen",
+    ("sensor", "geofence_radius"): "sensor.camper_geofence_radius",
+    ("sensor", "alarm_state"): "sensor.camper_alarm_state",
+    ("sensor", "subscription_status"): "sensor.camper_subscription_status",
+    ("sensor", "default_output"): "sensor.camper_default_output",
     (
         "sensor",
         "signal_lost_shutdown_minutes",
-    ): "sensor.defender_switch_off_after_signal_loss",
-    ("sensor", "emulation_mode"): "sensor.defender_emulation_mode",
+    ): "sensor.camper_switch_off_after_signal_loss",
+    ("sensor", "emulation_mode"): "sensor.camper_emulation_mode",
     (
         "sensor",
         "software_external_version",
-    ): "sensor.defender_external_software_version",
-    ("binary_sensor", "is_connected"): "binary_sensor.defender_connected",
+    ): "sensor.camper_external_software_version",
+    ("binary_sensor", "is_connected"): "binary_sensor.camper_connected",
     (
         "binary_sensor",
         "allow_location",
-    ): "binary_sensor.defender_allow_location_services",
+    ): "binary_sensor.camper_allow_location_services",
     (
         "binary_sensor",
         "low_voltage_warning",
-    ): "binary_sensor.defender_low_battery_voltage",
-    ("binary_sensor", "geofence_enabled"): "binary_sensor.defender_geofence",
+    ): "binary_sensor.camper_low_battery_voltage",
+    ("binary_sensor", "geofence_enabled"): "binary_sensor.camper_geofence",
     (
         "binary_sensor",
         "signal_lost_shutdown_enabled",
-    ): "binary_sensor.defender_switch_off_on_signal_loss",
-    ("switch", "main_output"): "switch.defender_heater",
-    ("switch", "ventilation_mode"): "switch.defender_ventilation_mode",
-    ("switch", "aux1_output"): "switch.defender_extra",
-    ("number", "low_voltage_cutoff"): "number.defender_low_voltage_cutoff",
-    ("number", "ext_temp_comp"): "number.defender_temperature_compensation",
-    ("device_tracker", "devicetracker"): "device_tracker.defender_location",
+    ): "binary_sensor.camper_switch_off_on_signal_loss",
+    ("switch", "main_output"): "switch.camper_heater",
+    ("switch", "ventilation_mode"): "switch.camper_ventilation_mode",
+    ("switch", "aux1_output"): "switch.camper_extra",
+    ("number", "low_voltage_cutoff"): "number.camper_low_voltage_cutoff",
+    ("number", "ext_temp_comp"): "number.camper_temperature_compensation",
+    ("device_tracker", "devicetracker"): "device_tracker.camper_location",
 }
 
 
@@ -106,13 +106,13 @@ def _languages() -> list[str]:
 def _device(
     *, ventilation: bool = False, main_name: str = "Heater", aux1: bool = True
 ) -> WebastoDevice:
-    """Return a pywebasto device like the 'Defender' one."""
+    """Return a pywebasto device like the 'Camper' one."""
     heater = {"line": "OUTH", "name": main_name, "state": "OFF", "icon": "heat"}
     vent = {"line": "OUTV", "name": "Fan", "state": "OFF", "icon": "vent"}
     outputs = [vent if ventilation else heater]
     if aux1:
         outputs.append({"line": "OUT1", "name": "Extra", "state": "OFF", "icon": "aux"})
-    device = WebastoDevice(DEVICE_ID, "Defender")
+    device = WebastoDevice(DEVICE_ID, "Camper")
     device.settings = {"settings_tab": []}
     device.last_data = {
         "temperature": "5C",

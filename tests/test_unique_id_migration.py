@@ -22,10 +22,10 @@ ENTRY_ID = "entry-1"
 
 
 def _device(*, ventilation: bool = False, aux1_name: str = "Extra") -> WebastoDevice:
-    """Return a pywebasto device like the 'Defender' one, with outputs."""
+    """Return a pywebasto device like the 'Camper' one, with outputs."""
     heater = {"line": "OUTH", "name": "Heater", "state": "OFF", "icon": "heat"}
     vent = {"line": "OUTV", "name": "Fan", "state": "OFF", "icon": "vent"}
-    device = WebastoDevice(DEVICE_ID, "Defender")
+    device = WebastoDevice(DEVICE_ID, "Camper")
     device.last_data = {
         "temperature": "5C",
         "voltage": "12.6V",
@@ -62,19 +62,19 @@ def _entry(
     )
 
 
-# The 'Defender' entities of a real installation, with their pre-1.3 unique IDs.
-DEFENDER = [
-    _entry("switch.defender_heater", _old_id("Heater"), "Heater"),
-    _entry("switch.defender_extra", _old_id("Extra"), "Extra"),
-    _entry("sensor.defender_temperature", _old_id("Temperature"), "Temperature"),
-    _entry("sensor.defender_battery", _old_id("Battery"), "Battery"),
-    _entry("binary_sensor.defender_connected", _old_id("Connected"), "Connected"),
+# The 'Camper' entities of a real installation, with their pre-1.3 unique IDs.
+CAMPER = [
+    _entry("switch.camper_heater", _old_id("Heater"), "Heater"),
+    _entry("switch.camper_extra", _old_id("Extra"), "Extra"),
+    _entry("sensor.camper_temperature", _old_id("Temperature"), "Temperature"),
+    _entry("sensor.camper_battery", _old_id("Battery"), "Battery"),
+    _entry("binary_sensor.camper_connected", _old_id("Connected"), "Connected"),
     _entry(
-        "binary_sensor.defender_low_battery_voltage",
+        "binary_sensor.camper_low_battery_voltage",
         _old_id("Low Battery Voltage"),
         "Low Battery Voltage",
     ),
-    _entry("device_tracker.defender_location", _old_id("Location"), "Location"),
+    _entry("device_tracker.camper_location", _old_id("Location"), "Location"),
 ]
 
 
@@ -151,20 +151,20 @@ def _key_id(key: str) -> str:
 
 
 @pytest.mark.asyncio
-async def test_defender_entities_move_to_key_unique_ids(registry) -> None:
-    """The real 'Defender' entities keep their entity_ids and get key IDs."""
-    reg = registry([SimpleNamespace(**vars(entry)) for entry in DEFENDER])
+async def test_camper_entities_move_to_key_unique_ids(registry) -> None:
+    """The real 'Camper' entities keep their entity_ids and get key IDs."""
+    reg = registry([SimpleNamespace(**vars(entry)) for entry in CAMPER])
 
     await _migrate()
 
     assert reg.unique_ids() == {
-        "switch.defender_heater": _key_id("main_output"),
-        "switch.defender_extra": _key_id("aux1_output"),
-        "sensor.defender_temperature": _key_id("temperature"),
-        "sensor.defender_battery": _key_id("battery_voltage"),
-        "binary_sensor.defender_connected": _key_id("is_connected"),
-        "binary_sensor.defender_low_battery_voltage": _key_id("low_voltage_warning"),
-        "device_tracker.defender_location": _key_id("devicetracker"),
+        "switch.camper_heater": _key_id("main_output"),
+        "switch.camper_extra": _key_id("aux1_output"),
+        "sensor.camper_temperature": _key_id("temperature"),
+        "sensor.camper_battery": _key_id("battery_voltage"),
+        "binary_sensor.camper_connected": _key_id("is_connected"),
+        "binary_sensor.camper_low_battery_voltage": _key_id("low_voltage_warning"),
+        "device_tracker.camper_location": _key_id("devicetracker"),
     }
 
 
@@ -182,7 +182,7 @@ async def test_defender_entities_move_to_key_unique_ids(registry) -> None:
 def test_every_description_name_maps_to_its_key(domain, description) -> None:
     """Each platform's description name-based ID maps to its key-based ID."""
     name = migration.LEGACY_NAMES[(domain, description.key)]
-    entry = _entry(f"{domain}.defender_x", _old_id(name))
+    entry = _entry(f"{domain}.camper_x", _old_id(name))
 
     plan = migration.plan_unique_id_migration([entry], {DEVICE_ID: _device()})
 
@@ -202,7 +202,7 @@ def test_every_description_name_maps_to_its_key(domain, description) -> None:
 )
 def test_output_switch_names_map_to_their_key(name: str, key: str) -> None:
     """Output names from the Webasto app and pywebasto fallbacks map to keys."""
-    entry = _entry("switch.defender_x", _old_id(name), name)
+    entry = _entry("switch.camper_x", _old_id(name), name)
 
     plan = migration.plan_unique_id_migration([entry], {DEVICE_ID: _device()})
 
@@ -211,13 +211,13 @@ def test_output_switch_names_map_to_their_key(name: str, key: str) -> None:
 
 def test_renamed_output_keeps_entity_and_id_no_longer_follows_name() -> None:
     """An output renamed in the app maps from its name-based ID to the key ID."""
-    entry = _entry("switch.defender_lights", _old_id("Lights"), "Lights")
+    entry = _entry("switch.camper_lights", _old_id("Lights"), "Lights")
 
     plan = migration.plan_unique_id_migration(
         [entry], {DEVICE_ID: _device(aux1_name="Lights")}
     )
 
-    assert plan == {"switch.defender_lights": _key_id("aux1_output")}
+    assert plan == {"switch.camper_lights": _key_id("aux1_output")}
 
 
 @pytest.mark.parametrize(
@@ -232,7 +232,7 @@ def test_renamed_output_keeps_entity_and_id_no_longer_follows_name() -> None:
 )
 def test_end_time_sensor_names_map_to_key(name: str, ventilation: bool) -> None:
     """The heating, ventilation and fallback end-time names map to one key."""
-    entry = _entry("sensor.defender_fan_ends", _old_id(name), name)
+    entry = _entry("sensor.camper_fan_ends", _old_id(name), name)
 
     plan = migration.plan_unique_id_migration(
         [entry], {DEVICE_ID: _device(ventilation=ventilation)}
@@ -244,7 +244,7 @@ def test_end_time_sensor_names_map_to_key(name: str, ventilation: bool) -> None:
 def test_entry_id_based_unique_id_maps_by_original_name() -> None:
     """IDs from before the device ID was in them map by name and domain."""
     entry = _entry(
-        "sensor.defender_temperature", slugify(f"Temperature_{ENTRY_ID}"), "Temperature"
+        "sensor.camper_temperature", slugify(f"Temperature_{ENTRY_ID}"), "Temperature"
     )
 
     plan = migration.plan_unique_id_migration(
@@ -257,7 +257,7 @@ def test_entry_id_based_unique_id_maps_by_original_name() -> None:
 def test_original_name_fallback_respects_domain() -> None:
     """The name fallback only matches descriptions of the entry's domain."""
     # "Geofence" is a binary sensor name; there is no such number.
-    entry = _entry("number.defender_geofence", "legacy", "Geofence")
+    entry = _entry("number.camper_geofence", "legacy", "Geofence")
 
     assert migration.plan_unique_id_migration([entry], {DEVICE_ID: _device()}) == {}
 
@@ -266,7 +266,7 @@ def test_original_name_fallback_respects_domain() -> None:
 async def test_unmappable_entry_is_left_alone(registry, caplog) -> None:
     """Entries that match nothing keep their unique ID and are not removed."""
     caplog.set_level("DEBUG", logger=migration.__name__)
-    stale = _entry("switch.defender_old_name", _old_id("Old Name"), "Old Name")
+    stale = _entry("switch.camper_old_name", _old_id("Old Name"), "Old Name")
     other_device = _entry(
         "sensor.other_temperature", slugify("OTHER_Temperature"), None, None
     )
@@ -275,10 +275,10 @@ async def test_unmappable_entry_is_left_alone(registry, caplog) -> None:
     await _migrate({DEVICE_ID: _device(), "SECOND": _device()})
 
     assert reg.unique_ids() == {
-        "switch.defender_old_name": _old_id("Old Name"),
+        "switch.camper_old_name": _old_id("Old Name"),
         "sensor.other_temperature": slugify("OTHER_Temperature"),
     }
-    assert "switch.defender_old_name" in caplog.text
+    assert "switch.camper_old_name" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -286,24 +286,24 @@ async def test_collision_keeps_entity_in_use(registry) -> None:
     """Of two entries for one key, the one the old code uses now is moved."""
     # Started once in heating mode and once in ventilation mode: the old code
     # created an entity per output name.
-    orphan = _entry("switch.defender_heater", _old_id("Heater"), "Heater")
-    in_use = _entry("switch.defender_fan", _old_id("Fan"), "Fan")
+    orphan = _entry("switch.camper_heater", _old_id("Heater"), "Heater")
+    in_use = _entry("switch.camper_fan", _old_id("Fan"), "Fan")
     reg = registry([orphan, in_use])
 
     # Ventilation mode: the old code names the main output "Fan" now.
     await _migrate({DEVICE_ID: _device(ventilation=True)})
 
     assert reg.unique_ids() == {
-        "switch.defender_heater": _old_id("Heater"),
-        "switch.defender_fan": _key_id("main_output"),
+        "switch.camper_heater": _old_id("Heater"),
+        "switch.camper_fan": _key_id("main_output"),
     }
 
 
 @pytest.mark.asyncio
 async def test_target_already_held_is_not_overwritten(registry) -> None:
     """An entry is not moved onto a key-based ID another entry already has."""
-    held = _entry("sensor.defender_temperature", _key_id("temperature"), "Temperature")
-    old = _entry("sensor.defender_temperature_2", _old_id("Temperature"), "Temperature")
+    held = _entry("sensor.camper_temperature", _key_id("temperature"), "Temperature")
+    old = _entry("sensor.camper_temperature_2", _old_id("Temperature"), "Temperature")
     reg = registry([held, old])
 
     await _migrate()
@@ -314,8 +314,8 @@ async def test_target_already_held_is_not_overwritten(registry) -> None:
 @pytest.mark.asyncio
 async def test_ambiguous_collision_moves_neither(registry) -> None:
     """Two non-current entries for one key: neither is moved."""
-    first = _entry("switch.defender_heater", _old_id("Heater"), "Heater")
-    second = _entry("switch.defender_primary", _old_id("Primary"), "Primary")
+    first = _entry("switch.camper_heater", _old_id("Heater"), "Heater")
+    second = _entry("switch.camper_primary", _old_id("Primary"), "Primary")
     reg = registry([first, second])
 
     await _migrate({DEVICE_ID: _device(ventilation=True)})
@@ -326,7 +326,7 @@ async def test_ambiguous_collision_moves_neither(registry) -> None:
 @pytest.mark.asyncio
 async def test_migration_twice_is_a_no_op(registry) -> None:
     """A second run changes nothing."""
-    reg = registry([SimpleNamespace(**vars(entry)) for entry in DEFENDER])
+    reg = registry([SimpleNamespace(**vars(entry)) for entry in CAMPER])
     await _migrate()
     first = reg.unique_ids()
     reg.updates.clear()
