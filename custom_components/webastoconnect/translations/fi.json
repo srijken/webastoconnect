@@ -64,6 +64,10 @@
                     "name": "Laite",
                     "description": "Webasto-laite, jolle ajastin luodaan."
                 },
+                "line": {
+                    "name": "Lähtö",
+                    "description": "Lähtö, jolla ajastin toimii. Jätä tyhjäksi käyttääksesi aktiivista lähtöä (tuuletus, kun tuuletustila on päällä, muuten lämmitin)."
+                },
                 "start_time": {
                     "name": "Alkamisaika",
                     "description": "Ajastimen paikallinen alkamisaika (TT:MM). Sekunnit ovat valinnaisia."
@@ -93,6 +97,10 @@
                 "device_id": {
                     "name": "Laite",
                     "description": "Webasto-laite, jolla ajastin on."
+                },
+                "line": {
+                    "name": "Lähtö",
+                    "description": "Lähtö, jolla ajastin on. Oletuksena lämmitin, jos kenttä jätetään tyhjäksi."
                 },
                 "timer_index": {
                     "name": "Ajastimen indeksi",
@@ -149,6 +157,12 @@
                 "friday": "Perjantai",
                 "saturday": "Lauantai",
                 "sunday": "Sunnuntai"
+            }
+        },
+        "timer_line": {
+            "options": {
+                "heater": "Lämmitin",
+                "ventilation": "Tuuletus"
             }
         }
     },

@@ -5,6 +5,14 @@ create_timer:
       selector:
         device:
           integration: webastoconnect
+    line:
+      required: false
+      selector:
+        select:
+          translation_key: timer_line
+          options:
+            - heater
+            - ventilation
     start_time:
       required: true
       selector:
@@ -53,6 +61,14 @@ update_timer:
         number:
           min: 0
           mode: box
+    line:
+      required: false
+      selector:
+        select:
+          translation_key: timer_line
+          options:
+            - heater
+            - ventilation
     start_time:
       required: false
       selector:

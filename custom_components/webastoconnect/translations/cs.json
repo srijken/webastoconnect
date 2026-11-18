@@ -64,6 +64,10 @@
                     "name": "Zařízení",
                     "description": "Zařízení Webasto, pro které se časovač vytváří."
                 },
+                "line": {
+                    "name": "Výstup",
+                    "description": "Výstup, na kterém časovač běží. Ponechte prázdné pro použití aktivního výstupu (ventilace při zapnutém režimu ventilace, jinak topení)."
+                },
                 "start_time": {
                     "name": "Čas spuštění",
                     "description": "Místní čas spuštění časovače (HH:MM). Sekundy jsou volitelné."
@@ -93,6 +97,10 @@
                 "device_id": {
                     "name": "Zařízení",
                     "description": "Zařízení Webasto, které má časovač."
+                },
+                "line": {
+                    "name": "Výstup",
+                    "description": "Výstup, na kterém je časovač. Pokud zůstane prázdné, výchozí je topení."
                 },
                 "timer_index": {
                     "name": "Index časovače",
@@ -149,6 +157,12 @@
                 "friday": "Pátek",
                 "saturday": "Sobota",
                 "sunday": "Neděle"
+            }
+        },
+        "timer_line": {
+            "options": {
+                "heater": "Topení",
+                "ventilation": "Ventilace"
             }
         }
     },

@@ -314,6 +314,7 @@ SENSORS = [
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.DURATION,
         native_unit_of_measurement=UnitOfTime.DAYS,
+        suggested_display_precision=0,
         value_fn=lambda webasto: subscription_days_left(
             getattr(webasto, "subscription_expiration", None)
         ),

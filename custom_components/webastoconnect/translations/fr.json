@@ -64,6 +64,10 @@
                     "name": "Appareil",
                     "description": "L’appareil Webasto pour lequel la minuterie est créée."
                 },
+                "line": {
+                    "name": "Sortie",
+                    "description": "La sortie sur laquelle le minuteur fonctionne. Laissez vide pour utiliser la sortie active (ventilation si le mode ventilation est activé, sinon chauffage)."
+                },
                 "start_time": {
                     "name": "Heure de début",
                     "description": "Heure locale de début de la minuterie (HH:MM). Les secondes sont facultatives."
@@ -93,6 +97,10 @@
                 "device_id": {
                     "name": "Appareil",
                     "description": "L’appareil Webasto qui possède la minuterie."
+                },
+                "line": {
+                    "name": "Sortie",
+                    "description": "La sortie sur laquelle se trouve le minuteur. Chauffage par défaut si laissé vide."
                 },
                 "timer_index": {
                     "name": "Index de la minuterie",
@@ -149,6 +157,12 @@
                 "friday": "Vendredi",
                 "saturday": "Samedi",
                 "sunday": "Dimanche"
+            }
+        },
+        "timer_line": {
+            "options": {
+                "heater": "Chauffage",
+                "ventilation": "Ventilation"
             }
         }
     },

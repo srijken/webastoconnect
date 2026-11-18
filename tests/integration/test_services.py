@@ -1,5 +1,7 @@
 """Actions of the integration with a real Home Assistant core."""
 
+import json
+
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import device_registry as dr
@@ -94,3 +96,44 @@ async def test_create_timer_unknown_device(
         )
 
     assert err.value.translation_key == "device_not_found"
+
+
+@pytest.mark.freeze_time("2026-11-18 12:00:00+00:00")
+async def test_create_timer_on_ventilation_line(
+    hass: HomeAssistant, fake_cloud: FakeWebastoCloud, device_id: str
+) -> None:
+    """create_timer with line ventilation saves the timer on OUTV only."""
+    fake_cloud.devices[DEVICE_ID]["outputs"].append(
+        {"line": "OUTV", "name": "Ventilation", "state": "OFF", "timers": []}
+    )
+    requests = len(fake_cloud.requests)
+
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_CREATE_TIMER,
+        {
+            "device_id": device_id,
+            "line": "ventilation",
+            "start_time": "07:30",
+            "duration_minutes": 20,
+        },
+        blocking=True,
+    )
+
+    saves = [
+        json.loads(payload)
+        for method, path, payload in fake_cloud.requests[requests:]
+        if method == "POST" and path.endswith("/timers2")
+    ]
+    assert [save["output"] for save in saves] == ["V"]
+    # 07:30 in Amsterdam (CET, UTC+1) is 06:30 UTC.
+    assert fake_cloud.timers("OUTV") == [
+        {
+            "type": "simple",
+            "start": 390,
+            "duration": 1200,
+            "repeat": 0,
+            "enabled": True,
+        },
+    ]
+    assert fake_cloud.timers("OUTH") == [SIMPLE_TIMER, SMART_TIMER]

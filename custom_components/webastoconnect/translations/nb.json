@@ -64,6 +64,10 @@
                     "name": "Enhet",
                     "description": "Webasto-enheten tidsuret opprettes for."
                 },
+                "line": {
+                    "name": "Utgang",
+                    "description": "Utgangen timeren kjører på. La feltet stå tomt for å bruke den aktive utgangen (ventilasjon når ventilasjonsmodus er på, ellers varmer)."
+                },
                 "start_time": {
                     "name": "Starttid",
                     "description": "Lokal klokkeslett for start av tidsuret (TT:MM). Sekunder er valgfrie."
@@ -93,6 +97,10 @@
                 "device_id": {
                     "name": "Enhet",
                     "description": "Webasto-enheten som har tidsuret."
+                },
+                "line": {
+                    "name": "Utgang",
+                    "description": "Utgangen timeren ligger på. Standard er varmer hvis feltet står tomt."
                 },
                 "timer_index": {
                     "name": "Tidsurindeks",
@@ -149,6 +157,12 @@
                 "friday": "Fredag",
                 "saturday": "Lørdag",
                 "sunday": "Søndag"
+            }
+        },
+        "timer_line": {
+            "options": {
+                "heater": "Varmer",
+                "ventilation": "Ventilasjon"
             }
         }
     },

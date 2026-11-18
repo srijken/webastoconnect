@@ -64,6 +64,10 @@
                     "name": "Gerät",
                     "description": "Das Webasto-Gerät, für das der Timer erstellt wird."
                 },
+                "line": {
+                    "name": "Ausgang",
+                    "description": "Der Ausgang, auf dem der Timer läuft. Leer lassen, um den aktiven Ausgang zu verwenden (Lüftung bei eingeschaltetem Lüftungsmodus, sonst Heizung)."
+                },
                 "start_time": {
                     "name": "Startzeit",
                     "description": "Lokale Uhrzeit für den Start des Timers (HH:MM). Sekunden sind optional."
@@ -93,6 +97,10 @@
                 "device_id": {
                     "name": "Gerät",
                     "description": "Das Webasto-Gerät mit dem Timer."
+                },
+                "line": {
+                    "name": "Ausgang",
+                    "description": "Der Ausgang, auf dem sich der Timer befindet. Standardmäßig Heizung, wenn leer gelassen."
                 },
                 "timer_index": {
                     "name": "Timer-Index",
@@ -149,6 +157,12 @@
                 "friday": "Freitag",
                 "saturday": "Samstag",
                 "sunday": "Sonntag"
+            }
+        },
+        "timer_line": {
+            "options": {
+                "heater": "Heizung",
+                "ventilation": "Lüftung"
             }
         }
     },

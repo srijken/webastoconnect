@@ -64,6 +64,10 @@
                     "name": "Apparaat",
                     "description": "Het Webasto-apparaat waarvoor de timer wordt aangemaakt."
                 },
+                "line": {
+                    "name": "Uitgang",
+                    "description": "De uitgang waarop de timer draait. Laat leeg om de actieve uitgang te gebruiken (ventilatie als de ventilatiemodus aan staat, anders verwarming)."
+                },
                 "start_time": {
                     "name": "Starttijd",
                     "description": "Lokale kloktijd voor de start van de timer (UU:MM). Seconden zijn optioneel."
@@ -93,6 +97,10 @@
                 "device_id": {
                     "name": "Apparaat",
                     "description": "Het Webasto-apparaat met de timer."
+                },
+                "line": {
+                    "name": "Uitgang",
+                    "description": "De uitgang waarop de timer staat. Standaard verwarming als dit leeg blijft."
                 },
                 "timer_index": {
                     "name": "Timerindex",
@@ -149,6 +157,12 @@
                 "friday": "Vrijdag",
                 "saturday": "Zaterdag",
                 "sunday": "Zondag"
+            }
+        },
+        "timer_line": {
+            "options": {
+                "heater": "Verwarming",
+                "ventilation": "Ventilatie"
             }
         }
     },

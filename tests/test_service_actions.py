@@ -354,3 +354,56 @@ def test_translation_files_keep_their_formatting() -> None:
         text = (TRANSLATIONS_DIR / f"{language}.json").read_text("utf-8")
         data = json.loads(text)
         assert text == json.dumps(data, indent=4, ensure_ascii=False) + "\n"
+
+
+@pytest.mark.parametrize("service", [SERVICE_CREATE_TIMER, SERVICE_UPDATE_TIMER])
+def test_services_yaml_offers_timer_line(service: str) -> None:
+    """create_timer and update_timer offer an optional heater/ventilation line."""
+    definitions = yaml.safe_load((COMPONENT_DIR / "services.yaml").read_text("utf-8"))
+    field = definitions[service]["fields"]["line"]
+
+    assert field["required"] is False
+    select = field["selector"]["select"]
+    assert select["options"] == ["heater", "ventilation"]
+    assert select["translation_key"] == "timer_line"
+    assert set(select["options"]) <= set(services.VALID_TIMER_LINES)
+
+
+def test_services_yaml_selector_options_are_translated() -> None:
+    """Every select option in services.yaml has a label in en.json."""
+    definitions = yaml.safe_load((COMPONENT_DIR / "services.yaml").read_text("utf-8"))
+    english = _translations("en")
+    checked = 0
+
+    for service, definition in definitions.items():
+        for field, field_definition in definition["fields"].items():
+            texts = english["services"][service]["fields"][field]
+            assert texts["name"], (service, field)
+            assert texts["description"], (service, field)
+            select = field_definition["selector"].get("select")
+            if select is None:
+                continue
+            labels = english["selector"][select["translation_key"]]["options"]
+            for option in select["options"]:
+                assert labels[option], (service, field, option)
+                checked += 1
+
+    assert checked >= 2 * (7 + 2)
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_timer_line_options_are_translated(language: str) -> None:
+    """Every language labels the heater and ventilation options."""
+    options = _translations(language)["selector"]["timer_line"]["options"]
+    assert set(options) == {"heater", "ventilation"}
+    assert all(options.values())
+
+
+def test_update_timer_without_line_uses_heater() -> None:
+    """update_timer without line targets the heater line, as documented."""
+    data = services._UPDATE_TIMER_SCHEMA({"device_id": "abc", "timer_index": 0})
+    assert data[services.ATTR_LINE] == services.LINE_HEATER
+    create = services._CREATE_TIMER_SCHEMA(
+        {"device_id": "abc", "start_time": "07:30", "duration_minutes": 5}
+    )
+    assert services.ATTR_LINE not in create
