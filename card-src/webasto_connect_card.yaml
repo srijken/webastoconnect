@@ -1,13 +1,7 @@
-# 1) Add this resource in Home Assistant:
-# URL: /local/webastoconnect/webasto-connect-card.js
-# Type: module
+# The card loads automatically once the integration is set up;
+# no Lovelace resource is needed.
 #
-# 2) Assets are auto-installed by the integration on load/update.
-#    Manual copy (optional):
-#    mkdir -p config/www/webastoconnect
-#    cp custom_components/webastoconnect/card/webasto-connect-card.js config/www/webastoconnect/webasto-connect-card.js
-#
-# 3) Use this card config:
+# Card config:
 
 type: custom:webasto-connect-card
 device_id: <your_home_assistant_device_id>

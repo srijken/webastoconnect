@@ -1780,9 +1780,11 @@ if (!customElements.get("webasto-connect-card-editor")) {
 }
 
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "webasto-connect-card",
-  name: "Webasto Connect Card",
-  description: "Webasto Connect card with center toggle for main output",
-  preview: true,
-});
+if (!window.customCards.some((card) => card.type === "webasto-connect-card")) {
+  window.customCards.push({
+    type: "webasto-connect-card",
+    name: "Webasto Connect Card",
+    description: "Webasto Connect card with center toggle for main output",
+    preview: true,
+  });
+}

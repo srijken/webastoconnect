@@ -61,6 +61,29 @@ translated. Existing entity IDs do not change. A new install uses the
 language of Home Assistant for new entity IDs, as Home Assistant does for
 other integrations; with English the entity IDs are the same as before.
 
+## Webasto Connect Card
+
+The integration includes a dashboard card. It loads automatically on every
+dashboard once the integration is set up: no Lovelace resource and no file in
+`/config/www` are needed. Add it from the card picker ("Webasto Connect Card")
+or with YAML:
+
+```yaml
+type: custom:webasto-connect-card
+device_id: <your_home_assistant_device_id>
+```
+
+See `card-src/webasto_connect_card.yaml` for all options.
+
+Upgrading from 1.4.1 or older: those versions copied the card to
+`/config/www/webastoconnect/` and added the Lovelace resource
+`/local/webastoconnect/webasto-connect-card.js`. On the first start after
+upgrading the integration removes that resource (UI-managed resources only)
+and the copied file, and logs what it removed. Existing cards keep working.
+If your resources are defined in YAML, remove that entry yourself; the log
+shows a warning while it is still there. Reload the browser (or clear the
+app cache) once after upgrading.
+
 # Known Issues
 
 ## My heater doesn't show up

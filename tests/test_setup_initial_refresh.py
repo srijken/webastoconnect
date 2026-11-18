@@ -53,8 +53,6 @@ def _mock_hass_for_setup() -> SimpleNamespace:
     """Build a minimal hass mock compatible with integration._async_setup."""
 
     async def async_add_executor_job(func, *args):
-        if getattr(func, "__name__", "") == "ensure_card_installed":
-            return (False, None, None)
         return func(*args)
 
     return SimpleNamespace(

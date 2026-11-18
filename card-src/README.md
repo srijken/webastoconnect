@@ -29,21 +29,9 @@ Card version marker (`__WEBASTO_CONNECT_CARD_VERSION__`) is injected automatical
 from `card-src/package.json` during build.
 
 ## Install in Home Assistant
-The integration auto-installs card assets on load/update to:
-- `config/www/webastoconnect/webasto-connect-card.js`
-
-Manual install is optional:
-
-From this repository root:
-
-```bash
-mkdir -p config/www/webastoconnect
-cp custom_components/webastoconnect/card/webasto-connect-card.js config/www/webastoconnect/webasto-connect-card.js
-```
-
-Then add a Lovelace resource:
-- URL: `/local/webastoconnect/webasto-connect-card.js`
-- Type: `module`
+No install step: the integration serves the built card from its package at
+`/webastoconnect/webasto-connect-card.js` and loads it on every dashboard
+(`frontend.add_extra_js_url`), so no Lovelace resource is needed.
 
 Use the example from `card-src/webasto_connect_card.yaml` and select your Webasto device ID in the card editor.
 Manual entity IDs are still supported as overrides when needed.
