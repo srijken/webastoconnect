@@ -134,7 +134,7 @@
         },
         "delete_timer": {
             "name": "Slett tidsur",
-            "description": "Sletter et tidsur etter indeks på den aktive utgangen (varmer- eller ventilasjonsmodus).",
+            "description": "Sletter et tidsur etter indeks. Indeksen teller tidsurene av valgt type på utgangen.",
             "fields": {
                 "device_id": {
                     "name": "Enhet",
@@ -142,7 +142,99 @@
                 },
                 "timer_index": {
                     "name": "Tidsurindeks",
-                    "description": "Nullbasert indeks i tidsurlisten for den aktive utgangen."
+                    "description": "Nullbasert indeks blant tidsurene av valgt type på utgangen."
+                },
+                "line": {
+                    "name": "Utgang",
+                    "description": "Utgangen tidsuret er på. La stå tomt for å bruke den aktive utgangen (ventilasjon når ventilasjonsmodus er på, ellers varmer)."
+                },
+                "type": {
+                    "name": "Tidsurtype",
+                    "description": "Typen tidsur som skal slettes. Standard er enkel."
+                }
+            }
+        },
+        "create_smart_timer": {
+            "name": "Opprett smart tidsur",
+            "description": "Oppretter et smart tidsur med avreisetid. Varmeren starter selv før avreisetiden, høyst den maksimale varigheten før. Ennå ikke testet mot en ekte enhet.",
+            "fields": {
+                "device_id": {
+                    "name": "Enhet",
+                    "description": "Webasto-enheten tidsuret opprettes for."
+                },
+                "line": {
+                    "name": "Utgang",
+                    "description": "Utgangen timeren kjører på. La feltet stå tomt for å bruke den aktive utgangen (ventilasjon når ventilasjonsmodus er på, ellers varmer)."
+                },
+                "departure_time": {
+                    "name": "Avreisetid",
+                    "description": "Lokal klokkeslett når kjøretøyet skal være varmt (TT:MM). Sekunder er valgfritt."
+                },
+                "max_duration_minutes": {
+                    "name": "Maksimal varighet",
+                    "description": "Lengste tid i minutter varmeren kan gå før avreisetiden (1 til 120)."
+                },
+                "comfort_level": {
+                    "name": "Komfortnivå",
+                    "description": "Komfortnivået til det smarte tidsuret. Bare 5 er sett i Webasto-appen; andre verdier er ikke testet."
+                },
+                "repeat_days": {
+                    "name": "Gjentakelsesdager",
+                    "description": "Dager tidsuret skal kjøre. La feltet stå tomt for et tidsur som ikke gjentas."
+                },
+                "enabled": {
+                    "name": "Aktivert",
+                    "description": "Om tidsuret er aktivert."
+                },
+                "location": {
+                    "name": "Posisjon",
+                    "description": "Valgfri kartposisjon for tidsuret."
+                }
+            }
+        },
+        "update_smart_timer": {
+            "name": "Oppdater smart tidsur",
+            "description": "Oppdaterer et eksisterende smart tidsur etter indeks. Bare feltene som oppgis endres; utelatte felt beholder nåværende verdi.",
+            "fields": {
+                "device_id": {
+                    "name": "Enhet",
+                    "description": "Webasto-enheten som har tidsuret."
+                },
+                "timer_index": {
+                    "name": "Tidsurindeks",
+                    "description": "Nullbasert indeks blant de smarte tidsurene på utgangen."
+                },
+                "line": {
+                    "name": "Utgang",
+                    "description": "Utgangen timeren ligger på. Standard er varmer hvis feltet står tomt."
+                },
+                "departure_time": {
+                    "name": "Avreisetid",
+                    "description": "Lokal klokkeslett når kjøretøyet skal være varmt (TT:MM). Sekunder er valgfritt."
+                },
+                "max_duration_minutes": {
+                    "name": "Maksimal varighet",
+                    "description": "Lengste tid i minutter varmeren kan gå før avreisetiden (1 til 120)."
+                },
+                "comfort_level": {
+                    "name": "Komfortnivå",
+                    "description": "Komfortnivået til det smarte tidsuret. Bare 5 er sett i Webasto-appen; andre verdier er ikke testet."
+                },
+                "repeat_days": {
+                    "name": "Gjentakelsesdager",
+                    "description": "Dager tidsuret skal kjøre. La feltet stå tomt for et tidsur som ikke gjentas."
+                },
+                "enabled": {
+                    "name": "Aktivert",
+                    "description": "Om tidsuret er aktivert."
+                },
+                "clear_location": {
+                    "name": "Fjern posisjon",
+                    "description": "Fjern den lagrede posisjonen for tidsuret."
+                },
+                "location": {
+                    "name": "Posisjon",
+                    "description": "Valgfri kartposisjon for tidsuret. Kan ikke brukes sammen med Fjern posisjon."
                 }
             }
         }
@@ -163,6 +255,12 @@
             "options": {
                 "heater": "Varmer",
                 "ventilation": "Ventilasjon"
+            }
+        },
+        "timer_type": {
+            "options": {
+                "simple": "Enkel",
+                "smart": "Smart"
             }
         }
     },
@@ -336,6 +434,12 @@
         },
         "rate_limited": {
             "message": "Webasto-skyen begrenser antall forespørsler. Prøv igjen senere."
+        },
+        "invalid_departure_time": {
+            "message": "Ugyldig avreisetid {departure_time}. Bruk formatet TT:MM."
+        },
+        "missing_smart_timer_values": {
+            "message": "Et smart tidsur trenger en avreisetid, en maksimal varighet, et komfortnivå og gjentakelsesdager."
         }
     }
 }

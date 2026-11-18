@@ -134,7 +134,7 @@
         },
         "delete_timer": {
             "name": "Eliminar temporizador",
-            "description": "Elimina un temporizador por su índice en la salida activa (modo calefactor o ventilación).",
+            "description": "Elimina un temporizador por índice. El índice cuenta los temporizadores del tipo elegido en la salida.",
             "fields": {
                 "device_id": {
                     "name": "Dispositivo",
@@ -142,7 +142,99 @@
                 },
                 "timer_index": {
                     "name": "Índice del temporizador",
-                    "description": "Índice en la lista de temporizadores de la salida activa, empezando por cero."
+                    "description": "Índice, empezando en cero, entre los temporizadores del tipo elegido en la salida."
+                },
+                "line": {
+                    "name": "Salida",
+                    "description": "La salida del temporizador. Déjalo vacío para usar la salida activa (ventilación si el modo ventilación está activado, si no calefacción)."
+                },
+                "type": {
+                    "name": "Tipo de temporizador",
+                    "description": "Tipo del temporizador a eliminar. Por defecto, simple."
+                }
+            }
+        },
+        "create_smart_timer": {
+            "name": "Crear temporizador inteligente",
+            "description": "Crea un temporizador inteligente con una hora de salida. La calefacción arranca por sí sola antes de la hora de salida, como máximo la duración máxima antes. Aún no verificado con un dispositivo real.",
+            "fields": {
+                "device_id": {
+                    "name": "Dispositivo",
+                    "description": "El dispositivo Webasto para el que se crea el temporizador."
+                },
+                "line": {
+                    "name": "Salida",
+                    "description": "La salida en la que funciona el temporizador. Déjalo vacío para usar la salida activa (ventilación si el modo ventilación está activado; si no, calefacción)."
+                },
+                "departure_time": {
+                    "name": "Hora de salida",
+                    "description": "Hora local a la que el vehículo debe estar caliente (HH:MM). Los segundos son opcionales."
+                },
+                "max_duration_minutes": {
+                    "name": "Duración máxima",
+                    "description": "Tiempo máximo en minutos que la calefacción puede funcionar antes de la hora de salida (1 a 120)."
+                },
+                "comfort_level": {
+                    "name": "Nivel de confort",
+                    "description": "Nivel de confort del temporizador inteligente. Solo se ha observado 5 en la app de Webasto; otros valores no están verificados."
+                },
+                "repeat_days": {
+                    "name": "Días de repetición",
+                    "description": "Días en los que debe funcionar el temporizador. Déjalo vacío para un temporizador que no se repite."
+                },
+                "enabled": {
+                    "name": "Activado",
+                    "description": "Si el temporizador está activado."
+                },
+                "location": {
+                    "name": "Ubicación",
+                    "description": "Ubicación opcional en el mapa para el temporizador."
+                }
+            }
+        },
+        "update_smart_timer": {
+            "name": "Actualizar temporizador inteligente",
+            "description": "Actualiza un temporizador inteligente existente por índice. Solo se cambian los campos indicados; los campos omitidos mantienen su valor actual.",
+            "fields": {
+                "device_id": {
+                    "name": "Dispositivo",
+                    "description": "El dispositivo Webasto que tiene el temporizador."
+                },
+                "timer_index": {
+                    "name": "Índice del temporizador",
+                    "description": "Índice, empezando en cero, entre los temporizadores inteligentes de la salida."
+                },
+                "line": {
+                    "name": "Salida",
+                    "description": "La salida en la que está el temporizador. Calefacción por defecto si se deja vacío."
+                },
+                "departure_time": {
+                    "name": "Hora de salida",
+                    "description": "Hora local a la que el vehículo debe estar caliente (HH:MM). Los segundos son opcionales."
+                },
+                "max_duration_minutes": {
+                    "name": "Duración máxima",
+                    "description": "Tiempo máximo en minutos que la calefacción puede funcionar antes de la hora de salida (1 a 120)."
+                },
+                "comfort_level": {
+                    "name": "Nivel de confort",
+                    "description": "Nivel de confort del temporizador inteligente. Solo se ha observado 5 en la app de Webasto; otros valores no están verificados."
+                },
+                "repeat_days": {
+                    "name": "Días de repetición",
+                    "description": "Días en los que debe funcionar el temporizador. Déjalo vacío para un temporizador que no se repite."
+                },
+                "enabled": {
+                    "name": "Activado",
+                    "description": "Si el temporizador está activado."
+                },
+                "clear_location": {
+                    "name": "Borrar ubicación",
+                    "description": "Elimina la ubicación guardada del temporizador."
+                },
+                "location": {
+                    "name": "Ubicación",
+                    "description": "Ubicación opcional en el mapa para el temporizador. No se puede usar junto con Borrar ubicación."
                 }
             }
         }
@@ -163,6 +255,12 @@
             "options": {
                 "heater": "Calefacción",
                 "ventilation": "Ventilación"
+            }
+        },
+        "timer_type": {
+            "options": {
+                "simple": "Simple",
+                "smart": "Inteligente"
             }
         }
     },
@@ -336,6 +434,12 @@
         },
         "rate_limited": {
             "message": "La nube de Webasto está limitando el número de solicitudes. Inténtalo de nuevo más tarde."
+        },
+        "invalid_departure_time": {
+            "message": "Hora de salida {departure_time} no válida. Usa el formato HH:MM."
+        },
+        "missing_smart_timer_values": {
+            "message": "Un temporizador inteligente necesita una hora de salida, una duración máxima, un nivel de confort y días de repetición."
         }
     }
 }

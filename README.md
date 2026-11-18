@@ -65,7 +65,38 @@ but its meaning is not known yet, so no date is shown. The time is converted
 from UTC with today's offset, so around a daylight saving time change it can
 be off by an hour. Attributes: `line` (Heater or Ventilation), `type` (simple
 or smart), `time_utc` and `day_raw` (the raw `day` value). Compare it with the
-*Next start* sensor, which the integration calculates from the simple timers.
+*Next start* sensor, which the integration calculates from the simple and
+smart timers.
+
+## Smart timers
+
+Besides simple timers (a start time and a duration), the Webasto app can set
+*smart* timers: you set a departure time and the heater starts by itself
+before it, at most the maximum duration earlier. Smart timers are shown in
+the card and in the `timers` attribute of the *Next start* sensor
+(`type: smart`, `departure_hhmm_utc`, `max_duration` in seconds,
+`comfort_level`, `repeat` and `has_location`). For a smart timer,
+`next_run_utc` (and the sensor state, when it is the next timer) is the
+departure time, not the moment the heater starts.
+
+Actions:
+
+- `webastoconnect.create_smart_timer`: `departure_time` (local HH:MM),
+  `max_duration_minutes` (1 to 120), `comfort_level` (default 5), and
+  optionally `line`, `repeat_days`, `enabled` and `location`.
+- `webastoconnect.update_smart_timer`: the same fields, plus `timer_index`.
+- `webastoconnect.delete_timer` with `type: smart`.
+
+`timer_index` counts the timers of one type on one output: the index of a
+simple timer does not change when smart timers are added, and existing
+automations that use `update_timer` or `delete_timer` keep working. The
+`index` of each entry in the `timers` attribute is this index; pass the
+entry's line as `line` (and `type` for `delete_timer`).
+
+Only comfort level 5 has been seen in the Webasto app, so other values are
+accepted (1 to 10) but not verified. **Saving smart timers from Home
+Assistant has not been verified against a real device yet**: check the timer
+in the Webasto app after creating or changing one.
 
 ## Entity names and languages
 

@@ -134,7 +134,7 @@
         },
         "delete_timer": {
             "name": "Slet timer",
-            "description": "Sletter en timer ud fra indeks på den aktive udgang (varmer- eller ventilationstilstand).",
+            "description": "Sletter en timer efter indeks. Indekset tæller timerne af den valgte type på udgangen.",
             "fields": {
                 "device_id": {
                     "name": "Enhed",
@@ -142,7 +142,99 @@
                 },
                 "timer_index": {
                     "name": "Timerindeks",
-                    "description": "Nulbaseret indeks i timerlisten for den aktive udgang."
+                    "description": "Nulbaseret indeks blandt timerne af den valgte type på udgangen."
+                },
+                "line": {
+                    "name": "Udgang",
+                    "description": "Udgangen, timeren er på. Lad feltet være tomt for at bruge den aktive udgang (ventilation når ventilationstilstand er slået til, ellers varmer)."
+                },
+                "type": {
+                    "name": "Timertype",
+                    "description": "Typen af timeren, der skal slettes. Standard er simpel."
+                }
+            }
+        },
+        "create_smart_timer": {
+            "name": "Opret smart timer",
+            "description": "Opretter en smart timer med et afgangstidspunkt. Varmeren starter selv før afgangstidspunktet, højst den maksimale varighed før. Endnu ikke afprøvet med en rigtig enhed.",
+            "fields": {
+                "device_id": {
+                    "name": "Enhed",
+                    "description": "Webasto-enheden, som timeren oprettes for."
+                },
+                "line": {
+                    "name": "Udgang",
+                    "description": "Den udgang, timeren kører på. Lad feltet være tomt for at bruge den aktive udgang (ventilation, når ventilationstilstand er slået til, ellers varmer)."
+                },
+                "departure_time": {
+                    "name": "Afgangstidspunkt",
+                    "description": "Lokalt klokkeslæt, hvor køretøjet skal være varmt (TT:MM). Sekunder er valgfrie."
+                },
+                "max_duration_minutes": {
+                    "name": "Maksimal varighed",
+                    "description": "Længste tid i minutter, varmeren må køre før afgangstidspunktet (1 til 120)."
+                },
+                "comfort_level": {
+                    "name": "Komfortniveau",
+                    "description": "Komfortniveau for den smarte timer. Kun 5 er set i Webasto-appen; andre værdier er ikke afprøvet."
+                },
+                "repeat_days": {
+                    "name": "Gentagelsesdage",
+                    "description": "Dage, hvor timeren skal køre. Lad feltet være tomt for en timer, der ikke gentages."
+                },
+                "enabled": {
+                    "name": "Aktiveret",
+                    "description": "Om timeren er aktiveret."
+                },
+                "location": {
+                    "name": "Placering",
+                    "description": "Valgfri kortplacering for timeren."
+                }
+            }
+        },
+        "update_smart_timer": {
+            "name": "Opdater smart timer",
+            "description": "Opdaterer en eksisterende smart timer efter indeks. Kun de angivne felter ændres; udeladte felter beholder deres nuværende værdi.",
+            "fields": {
+                "device_id": {
+                    "name": "Enhed",
+                    "description": "Webasto-enheden med timeren."
+                },
+                "timer_index": {
+                    "name": "Timerindeks",
+                    "description": "Nulbaseret indeks blandt de smarte timere på udgangen."
+                },
+                "line": {
+                    "name": "Udgang",
+                    "description": "Den udgang, timeren er på. Standard er varmer, hvis feltet er tomt."
+                },
+                "departure_time": {
+                    "name": "Afgangstidspunkt",
+                    "description": "Lokalt klokkeslæt, hvor køretøjet skal være varmt (TT:MM). Sekunder er valgfrie."
+                },
+                "max_duration_minutes": {
+                    "name": "Maksimal varighed",
+                    "description": "Længste tid i minutter, varmeren må køre før afgangstidspunktet (1 til 120)."
+                },
+                "comfort_level": {
+                    "name": "Komfortniveau",
+                    "description": "Komfortniveau for den smarte timer. Kun 5 er set i Webasto-appen; andre værdier er ikke afprøvet."
+                },
+                "repeat_days": {
+                    "name": "Gentagelsesdage",
+                    "description": "Dage, hvor timeren skal køre. Lad feltet være tomt for en timer, der ikke gentages."
+                },
+                "enabled": {
+                    "name": "Aktiveret",
+                    "description": "Om timeren er aktiveret."
+                },
+                "clear_location": {
+                    "name": "Ryd placering",
+                    "description": "Fjern timerens gemte placering."
+                },
+                "location": {
+                    "name": "Placering",
+                    "description": "Valgfri kortplacering for timeren. Kan ikke bruges sammen med Ryd placering."
                 }
             }
         }
@@ -163,6 +255,12 @@
             "options": {
                 "heater": "Varmer",
                 "ventilation": "Ventilation"
+            }
+        },
+        "timer_type": {
+            "options": {
+                "simple": "Simpel",
+                "smart": "Smart"
             }
         }
     },
@@ -336,6 +434,12 @@
         },
         "rate_limited": {
             "message": "Webasto-skyen begrænser antallet af anmodninger. Prøv igen senere."
+        },
+        "invalid_departure_time": {
+            "message": "Ugyldigt afgangstidspunkt {departure_time}. Brug formatet TT:MM."
+        },
+        "missing_smart_timer_values": {
+            "message": "En smart timer kræver et afgangstidspunkt, en maksimal varighed, et komfortniveau og gentagelsesdage."
         }
     }
 }

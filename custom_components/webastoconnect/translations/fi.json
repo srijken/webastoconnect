@@ -134,7 +134,7 @@
         },
         "delete_timer": {
             "name": "Poista ajastin",
-            "description": "Poistaa ajastimen indeksin perusteella aktiiviselta lähdöltä (lämmitys- tai tuuletustila).",
+            "description": "Poistaa ajastimen indeksin perusteella. Indeksi laskee valitun tyypin ajastimet lähdössä.",
             "fields": {
                 "device_id": {
                     "name": "Laite",
@@ -142,7 +142,99 @@
                 },
                 "timer_index": {
                     "name": "Ajastimen indeksi",
-                    "description": "Nollasta alkava indeksi aktiivisen lähdön ajastinluettelossa."
+                    "description": "Nollasta alkava indeksi valitun tyypin ajastimien joukossa lähdössä."
+                },
+                "line": {
+                    "name": "Lähtö",
+                    "description": "Lähtö, jolla ajastin on. Jätä tyhjäksi käyttääksesi aktiivista lähtöä (tuuletus, kun tuuletustila on päällä, muuten lämmitin)."
+                },
+                "type": {
+                    "name": "Ajastimen tyyppi",
+                    "description": "Poistettavan ajastimen tyyppi. Oletus on yksinkertainen."
+                }
+            }
+        },
+        "create_smart_timer": {
+            "name": "Luo älyajastin",
+            "description": "Luo älyajastimen, jolla on lähtöaika. Lämmitin käynnistyy itse ennen lähtöaikaa, enintään enimmäiskeston verran aiemmin. Ei vielä testattu oikealla laitteella.",
+            "fields": {
+                "device_id": {
+                    "name": "Laite",
+                    "description": "Webasto-laite, jolle ajastin luodaan."
+                },
+                "line": {
+                    "name": "Lähtö",
+                    "description": "Lähtö, jolla ajastin toimii. Jätä tyhjäksi käyttääksesi aktiivista lähtöä (tuuletus, kun tuuletustila on päällä, muuten lämmitin)."
+                },
+                "departure_time": {
+                    "name": "Lähtöaika",
+                    "description": "Paikallinen kellonaika, jolloin ajoneuvon pitää olla lämmin (HH:MM). Sekunnit ovat valinnaisia."
+                },
+                "max_duration_minutes": {
+                    "name": "Enimmäiskesto",
+                    "description": "Pisin aika minuutteina, jonka lämmitin saa käydä ennen lähtöaikaa (1–120)."
+                },
+                "comfort_level": {
+                    "name": "Mukavuustaso",
+                    "description": "Älyajastimen mukavuustaso. Webasto-sovelluksessa on nähty vain arvo 5; muita arvoja ei ole testattu."
+                },
+                "repeat_days": {
+                    "name": "Toistopäivät",
+                    "description": "Päivät, joina ajastimen pitää toimia. Jätä tyhjäksi kertaluonteista ajastinta varten."
+                },
+                "enabled": {
+                    "name": "Käytössä",
+                    "description": "Onko ajastin käytössä."
+                },
+                "location": {
+                    "name": "Sijainti",
+                    "description": "Ajastimen valinnainen karttasijainti."
+                }
+            }
+        },
+        "update_smart_timer": {
+            "name": "Päivitä älyajastin",
+            "description": "Päivittää olemassa olevan älyajastimen indeksin perusteella. Vain annetut kentät muutetaan; pois jätetyt kentät säilyttävät nykyisen arvonsa.",
+            "fields": {
+                "device_id": {
+                    "name": "Laite",
+                    "description": "Webasto-laite, jolla ajastin on."
+                },
+                "timer_index": {
+                    "name": "Ajastimen indeksi",
+                    "description": "Nollasta alkava indeksi lähdön älyajastimien joukossa."
+                },
+                "line": {
+                    "name": "Lähtö",
+                    "description": "Lähtö, jolla ajastin on. Oletuksena lämmitin, jos kenttä jätetään tyhjäksi."
+                },
+                "departure_time": {
+                    "name": "Lähtöaika",
+                    "description": "Paikallinen kellonaika, jolloin ajoneuvon pitää olla lämmin (HH:MM). Sekunnit ovat valinnaisia."
+                },
+                "max_duration_minutes": {
+                    "name": "Enimmäiskesto",
+                    "description": "Pisin aika minuutteina, jonka lämmitin saa käydä ennen lähtöaikaa (1–120)."
+                },
+                "comfort_level": {
+                    "name": "Mukavuustaso",
+                    "description": "Älyajastimen mukavuustaso. Webasto-sovelluksessa on nähty vain arvo 5; muita arvoja ei ole testattu."
+                },
+                "repeat_days": {
+                    "name": "Toistopäivät",
+                    "description": "Päivät, joina ajastimen pitää toimia. Jätä tyhjäksi kertaluonteista ajastinta varten."
+                },
+                "enabled": {
+                    "name": "Käytössä",
+                    "description": "Onko ajastin käytössä."
+                },
+                "clear_location": {
+                    "name": "Tyhjennä sijainti",
+                    "description": "Poista ajastimen tallennettu sijainti."
+                },
+                "location": {
+                    "name": "Sijainti",
+                    "description": "Ajastimen valinnainen karttasijainti. Ei voi käyttää yhdessä Tyhjennä sijainti -valinnan kanssa."
                 }
             }
         }
@@ -163,6 +255,12 @@
             "options": {
                 "heater": "Lämmitin",
                 "ventilation": "Tuuletus"
+            }
+        },
+        "timer_type": {
+            "options": {
+                "simple": "Yksinkertainen",
+                "smart": "Älykäs"
             }
         }
     },
@@ -336,6 +434,12 @@
         },
         "rate_limited": {
             "message": "Webasto-pilvi rajoittaa pyyntöjen määrää. Yritä myöhemmin uudelleen."
+        },
+        "invalid_departure_time": {
+            "message": "Virheellinen lähtöaika {departure_time}. Käytä muotoa HH:MM."
+        },
+        "missing_smart_timer_values": {
+            "message": "Älyajastin tarvitsee lähtöajan, enimmäiskeston, mukavuustason ja toistopäivät."
         }
     }
 }

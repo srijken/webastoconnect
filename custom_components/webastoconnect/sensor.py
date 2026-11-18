@@ -116,8 +116,15 @@ def _main_output_end_placeholders(webasto) -> dict[str, str]:
     return {"output_name": MAIN_OUTPUT_FALLBACK_NAME}
 
 
-def _extract_simple_timers(webasto: Any) -> list[dict[str, Any]]:
-    """Extract `simple` timers (heater + ventilation) from latest API payload."""
+TIMER_TYPES = ("simple", "smart")
+
+
+def _extract_timers(webasto: Any) -> list[dict[str, Any]]:
+    """Extract `simple` and `smart` timers (heater + ventilation) from API data.
+
+    Timers keep the order of the API data. Timers of other types are left
+    out; they are not counted in any timer index.
+    """
     last_data = getattr(webasto, "last_data", None)
     if not isinstance(last_data, dict):
         return []
@@ -137,7 +144,7 @@ def _extract_simple_timers(webasto: Any) -> list[dict[str, Any]]:
             if not isinstance(output_timers, list):
                 continue
             for timer in output_timers:
-                if isinstance(timer, dict) and timer.get("type") == "simple":
+                if isinstance(timer, dict) and timer.get("type") in TIMER_TYPES:
                     timers.append(
                         {
                             **timer,
@@ -207,30 +214,64 @@ def _line_label(line: str | None) -> str | None:
     return line
 
 
+def _timer_values(timer: dict[str, Any]) -> dict[str, Any]:
+    """Return the type-specific attribute values of a timer.
+
+    Raises TypeError or ValueError for a malformed timer.
+    """
+    start = int(timer.get("start") or 0)
+    if timer.get("type") == "smart":
+        # `start` of a smart timer is the departure time; the heater starts
+        # by itself before it, at most `max_duration` seconds earlier.
+        return {
+            "departure": start,
+            "departure_hhmm_utc": _timer_start_hhmm(start) if start > 0 else None,
+            "max_duration": int(timer.get("maxDuration") or 0),
+            "comfort_level": int(timer.get("comfortLevel") or 0),
+        }
+    return {
+        "start": start,
+        "start_hhmm_utc": _timer_start_hhmm(start) if start > 0 else None,
+        "duration": int(timer.get("duration") or 0),
+    }
+
+
 def _next_timer_sensor_payload(
     webasto: Any,
     *,
     now_utc: datetime | None = None,
 ) -> tuple[datetime | None, dict[str, Any]]:
-    """Build state + attributes for next-enabled-timer sensor."""
+    """Build state + attributes for next-enabled-timer sensor.
+
+    `index` of a timer is its position among the timers of the same type on
+    the same line: the `timer_index` the actions use together with `line`
+    (and `type` for delete_timer). Simple timers keep the indexes they had
+    before smart timers were shown. For a smart timer `next_run_utc` is the
+    departure time; the heater starts earlier, up to `max_duration` before.
+    """
     now = now_utc or datetime.now(UTC)
-    timers = _extract_simple_timers(webasto)
+    timers = _extract_timers(webasto)
 
     timer_items: list[dict[str, Any]] = []
     next_index: int | None = None
     next_occurrence: datetime | None = None
     next_timer: dict[str, Any] | None = None
+    counters: dict[tuple[Any, Any], int] = {}
 
-    for index, timer in enumerate(timers):
+    for timer in timers:
+        timer_type = timer.get("type")
+        key = (timer.get("line"), timer_type)
+        index = counters.get(key, 0)
+        counters[key] = index + 1
         try:
-            start = int(timer.get("start") or 0)
+            values = _timer_values(timer)
             repeat = int(timer.get("repeat") or 0)
-            duration = int(timer.get("duration") or 0)
         except TypeError, ValueError:
             # Keep the index aligned with the timer services, but do not let
             # one malformed timer from the cloud break the whole sensor.
-            LOGGER.debug("Skipping malformed timer at index %s", index)
+            LOGGER.debug("Skipping malformed %s timer at index %s", timer_type, index)
             continue
+        start = values.get("start", values.get("departure", 0))
         enabled = bool(timer.get("enabled", False))
         location = timer.get("location")
         # Only expose whether a location is set: attributes end up in the
@@ -252,11 +293,10 @@ def _next_timer_sensor_payload(
 
         item = {
             "index": index,
+            "type": timer_type,
             "line": _line_label(timer.get("line")),
             "line_code": timer.get("line"),
-            "start": start,
-            "start_hhmm_utc": _timer_start_hhmm(start) if start > 0 else None,
-            "duration": duration,
+            **values,
             "repeat": repeat,
             "enabled": enabled,
             "has_location": has_location,
@@ -273,6 +313,7 @@ def _next_timer_sensor_payload(
 
     return next_occurrence, {
         "next_timer_index": next_index,
+        "next_timer_type": None if next_timer is None else next_timer["type"],
         "next_timer": next_timer,
         "timers": timer_items,
     }

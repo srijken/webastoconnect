@@ -120,3 +120,147 @@ delete_timer:
         number:
           min: 0
           mode: box
+    line:
+      required: false
+      selector:
+        select:
+          translation_key: timer_line
+          options:
+            - heater
+            - ventilation
+    type:
+      required: false
+      default: simple
+      selector:
+        select:
+          translation_key: timer_type
+          options:
+            - simple
+            - smart
+
+create_smart_timer:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: webastoconnect
+    line:
+      required: false
+      selector:
+        select:
+          translation_key: timer_line
+          options:
+            - heater
+            - ventilation
+    departure_time:
+      required: true
+      selector:
+        time:
+    max_duration_minutes:
+      required: true
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 120
+          unit_of_measurement: min
+          mode: box
+    comfort_level:
+      required: false
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 10
+          mode: box
+    repeat_days:
+      required: false
+      selector:
+        select:
+          multiple: true
+          translation_key: weekday
+          options:
+            - monday
+            - tuesday
+            - wednesday
+            - thursday
+            - friday
+            - saturday
+            - sunday
+    enabled:
+      required: false
+      default: true
+      selector:
+        boolean:
+    location:
+      required: false
+      selector:
+        location:
+
+update_smart_timer:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: webastoconnect
+    timer_index:
+      required: true
+      selector:
+        number:
+          min: 0
+          mode: box
+    line:
+      required: false
+      selector:
+        select:
+          translation_key: timer_line
+          options:
+            - heater
+            - ventilation
+    departure_time:
+      required: false
+      selector:
+        time:
+    max_duration_minutes:
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 120
+          unit_of_measurement: min
+          mode: box
+    comfort_level:
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 10
+          mode: box
+    repeat_days:
+      required: false
+      selector:
+        select:
+          multiple: true
+          translation_key: weekday
+          options:
+            - monday
+            - tuesday
+            - wednesday
+            - thursday
+            - friday
+            - saturday
+            - sunday
+    enabled:
+      required: false
+      selector:
+        boolean:
+    clear_location:
+      required: false
+      selector:
+        boolean:
+    location:
+      required: false
+      selector:
+        location:

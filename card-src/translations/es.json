@@ -43,7 +43,17 @@
       "day_thursday": "Jue",
       "day_friday": "Vie",
       "day_saturday": "Sáb",
-      "day_sunday": "Dom"
+      "day_sunday": "Dom",
+      "timer_type": "Tipo de temporizador",
+      "timer_type_simple": "Simple",
+      "timer_type_smart": "Inteligente",
+      "departure_time": "Hora de salida",
+      "max_duration_minutes": "Duración máx. (min)",
+      "comfort_level": "Nivel de confort",
+      "smart_timer_help": "La calefacción arranca por sí sola antes de la hora de salida, como máximo la duración máxima antes. Solo se ha observado el nivel de confort 5 en la app de Webasto.",
+      "timer_departure": "Salida {time}",
+      "timer_max_duration": "Máx. {minutes} min",
+      "timer_comfort": "Confort {level}"
     }
   }
 }

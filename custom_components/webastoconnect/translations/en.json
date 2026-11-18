@@ -134,7 +134,7 @@
         },
         "delete_timer": {
             "name": "Delete timer",
-            "description": "Deletes a timer by index on the active output line (heater or ventilation mode).",
+            "description": "Deletes a timer by index. The index counts the timers of the chosen type on the output.",
             "fields": {
                 "device_id": {
                     "name": "Device",
@@ -142,7 +142,99 @@
                 },
                 "timer_index": {
                     "name": "Timer index",
-                    "description": "Zero-based index in the timer list of the active output line."
+                    "description": "Zero-based index among the timers of the chosen type on the output."
+                },
+                "line": {
+                    "name": "Output",
+                    "description": "The output the timer is on. Leave empty to use the active output (ventilation when ventilation mode is on, otherwise heater)."
+                },
+                "type": {
+                    "name": "Timer type",
+                    "description": "Type of the timer to delete. Defaults to simple."
+                }
+            }
+        },
+        "create_smart_timer": {
+            "name": "Create smart timer",
+            "description": "Creates a smart timer with a departure time. The heater starts by itself before the departure time, at most the maximum duration earlier. Not yet verified against a real device.",
+            "fields": {
+                "device_id": {
+                    "name": "Device",
+                    "description": "The Webasto device to create the timer for."
+                },
+                "line": {
+                    "name": "Output",
+                    "description": "The output the timer runs on. Leave empty to use the active output (ventilation when ventilation mode is on, otherwise heater)."
+                },
+                "departure_time": {
+                    "name": "Departure time",
+                    "description": "Local clock time when the vehicle should be warm (HH:MM). Seconds are optional."
+                },
+                "max_duration_minutes": {
+                    "name": "Maximum duration",
+                    "description": "Longest time in minutes the heater may run before the departure time (1 to 120)."
+                },
+                "comfort_level": {
+                    "name": "Comfort level",
+                    "description": "Comfort level of the smart timer. Only 5 has been seen in the Webasto app; other values are not verified."
+                },
+                "repeat_days": {
+                    "name": "Repeat days",
+                    "description": "Days when the timer should run. Leave empty for a non-repeating timer."
+                },
+                "enabled": {
+                    "name": "Enabled",
+                    "description": "Whether the timer is enabled."
+                },
+                "location": {
+                    "name": "Location",
+                    "description": "Optional map location for the timer."
+                }
+            }
+        },
+        "update_smart_timer": {
+            "name": "Update smart timer",
+            "description": "Updates an existing smart timer by index. Only the fields provided in the action are changed; omitted fields keep their current value.",
+            "fields": {
+                "device_id": {
+                    "name": "Device",
+                    "description": "The Webasto device that has the timer."
+                },
+                "timer_index": {
+                    "name": "Timer index",
+                    "description": "Zero-based index among the smart timers on the output."
+                },
+                "line": {
+                    "name": "Output",
+                    "description": "The output the timer is on. Defaults to heater when left empty."
+                },
+                "departure_time": {
+                    "name": "Departure time",
+                    "description": "Local clock time when the vehicle should be warm (HH:MM). Seconds are optional."
+                },
+                "max_duration_minutes": {
+                    "name": "Maximum duration",
+                    "description": "Longest time in minutes the heater may run before the departure time (1 to 120)."
+                },
+                "comfort_level": {
+                    "name": "Comfort level",
+                    "description": "Comfort level of the smart timer. Only 5 has been seen in the Webasto app; other values are not verified."
+                },
+                "repeat_days": {
+                    "name": "Repeat days",
+                    "description": "Days when the timer should run. Leave empty for a non-repeating timer."
+                },
+                "enabled": {
+                    "name": "Enabled",
+                    "description": "Whether the timer is enabled."
+                },
+                "clear_location": {
+                    "name": "Clear location",
+                    "description": "Remove the stored timer location."
+                },
+                "location": {
+                    "name": "Location",
+                    "description": "Optional map location for the timer. Cannot be used with Clear location."
                 }
             }
         }
@@ -163,6 +255,12 @@
             "options": {
                 "heater": "Heater",
                 "ventilation": "Ventilation"
+            }
+        },
+        "timer_type": {
+            "options": {
+                "simple": "Simple",
+                "smart": "Smart"
             }
         }
     },
@@ -336,6 +434,12 @@
         },
         "rate_limited": {
             "message": "The Webasto cloud is limiting the number of requests. Try again later."
+        },
+        "invalid_departure_time": {
+            "message": "Invalid departure time {departure_time}. Use the format HH:MM."
+        },
+        "missing_smart_timer_values": {
+            "message": "A smart timer needs a departure time, a maximum duration, a comfort level and repeat days."
         }
     }
 }

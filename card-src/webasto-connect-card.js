@@ -332,8 +332,15 @@ class WebastoConnectCard extends HTMLElement {
   _defaultTimerDraft() {
     return {
       timer_index: null,
+      type: "simple",
+      line_code: null,
       start_time: "07:00",
       duration_minutes: "30",
+      // Smart timers: the heater starts by itself before the departure time,
+      // at most the maximum duration earlier.
+      departure_time: "07:30",
+      max_duration_minutes: "30",
+      comfort_level: "5",
       enabled: true,
       repeat_days: [],
       use_location: false,
@@ -367,10 +374,23 @@ class WebastoConnectCard extends HTMLElement {
   _draftFromTimer(timer) {
     const hasCoordinates = timer.latitude != null && timer.longitude != null;
     const hasLocation = Boolean(timer.has_location) || hasCoordinates;
+    const isSmart = timer.type === "smart";
+    const defaults = this._defaultTimerDraft();
     return {
       timer_index: timer.index,
-      start_time: this._formatTimerStart(timer),
-      duration_minutes: String(Math.max(1, Math.round(Number(timer.duration || 0) / 60))),
+      type: isSmart ? "smart" : "simple",
+      line_code: timer.line_code,
+      start_time: isSmart ? defaults.start_time : this._formatTimerStart(timer),
+      duration_minutes: isSmart
+        ? defaults.duration_minutes
+        : String(Math.max(1, Math.round(Number(timer.duration || 0) / 60))),
+      departure_time: isSmart ? this._formatTimerStart(timer) : defaults.departure_time,
+      max_duration_minutes: isSmart
+        ? String(Math.max(1, Math.round(Number(timer.max_duration || 0) / 60)))
+        : defaults.max_duration_minutes,
+      comfort_level: isSmart
+        ? String(Number(timer.comfort_level) || 5)
+        : defaults.comfort_level,
       enabled: Boolean(timer.enabled),
       repeat_days: this._repeatDaysFromMask(timer.repeat),
       use_location: hasLocation,
@@ -388,7 +408,15 @@ class WebastoConnectCard extends HTMLElement {
 
   _openTimerDraft(timer = null) {
     this._timerDraftOpen = true;
-    this._timerDraft = timer ? this._draftFromTimer(timer) : this._defaultTimerDraft();
+    if (timer) {
+      this._timerDraft = this._draftFromTimer(timer);
+    } else {
+      const ventilationMode = this._getState(this._resolveEntities().ventilation_mode_entity);
+      this._timerDraft = {
+        ...this._defaultTimerDraft(),
+        line_code: this._activeLine(ventilationMode),
+      };
+    }
     this._render();
   }
 
@@ -444,20 +472,40 @@ class WebastoConnectCard extends HTMLElement {
     this._render();
   }
 
+  _serviceLine(lineCode) {
+    return lineCode === "OUTV" ? "ventilation" : "heater";
+  }
+
   _saveTimerDraft() {
     const deviceId = this._config?.device_id;
     const draft = this._timerDraft;
-    if (!this._hass || !deviceId || !draft?.start_time || !draft?.duration_minutes) {
+    if (!this._hass || !deviceId || !draft) {
+      return;
+    }
+    const isSmart = draft.type === "smart";
+    if (isSmart && (!draft.departure_time || !draft.max_duration_minutes)) {
+      return;
+    }
+    if (!isSmart && (!draft.start_time || !draft.duration_minutes)) {
       return;
     }
 
     const serviceData = {
       device_id: deviceId,
-      start_time: draft.start_time,
-      duration_minutes: Number(draft.duration_minutes),
       enabled: Boolean(draft.enabled),
       repeat_days: draft.repeat_days || [],
     };
+    if (draft.line_code) {
+      serviceData.line = this._serviceLine(draft.line_code);
+    }
+    if (isSmart) {
+      serviceData.departure_time = draft.departure_time;
+      serviceData.max_duration_minutes = Number(draft.max_duration_minutes);
+      serviceData.comfort_level = Number(draft.comfort_level || 5);
+    } else {
+      serviceData.start_time = draft.start_time;
+      serviceData.duration_minutes = Number(draft.duration_minutes);
+    }
 
     if (
       draft.use_location &&
@@ -476,8 +524,11 @@ class WebastoConnectCard extends HTMLElement {
       serviceData.clear_location = true;
     }
 
-    const service = Number.isInteger(draft.timer_index) ? "update_timer" : "create_timer";
-    if (service === "update_timer") {
+    const isUpdate = Number.isInteger(draft.timer_index);
+    const service = isSmart
+      ? (isUpdate ? "update_smart_timer" : "create_smart_timer")
+      : (isUpdate ? "update_timer" : "create_timer");
+    if (isUpdate) {
       serviceData.timer_index = draft.timer_index;
     }
 
@@ -577,11 +628,16 @@ class WebastoConnectCard extends HTMLElement {
       return [];
     }
 
+    // `index` comes from the sensor: the position among the timers of the
+    // same type on the same line, as the actions expect it. `key` only
+    // identifies a row in this card.
     return timers
       .filter((timer) => timer && typeof timer === "object")
-      .map((timer, index) => ({
+      .map((timer, position) => ({
         ...timer,
-        index,
+        key: position,
+        index: Number.isInteger(timer.index) ? timer.index : position,
+        type: timer.type === "smart" ? "smart" : "simple",
         line_code: timer.line_code || timer.line || "OUTH",
       }));
   }
@@ -594,11 +650,26 @@ class WebastoConnectCard extends HTMLElement {
     if (!timer.repeat) {
       return localize(this._hass, "card.ui.timer_once");
     }
-    return localize(this._hass, "card.ui.timer_repeating");
+    const days = this._repeatDaysFromMask(timer.repeat);
+    const labels = new Map(this._weekdayOptions());
+    if (!days.length) {
+      return localize(this._hass, "card.ui.timer_repeating");
+    }
+    return days.map((day) => labels.get(day)).join(", ");
+  }
+
+  _formatSmartDetails(timer) {
+    const minutes = Math.max(0, Math.round(Number(timer.max_duration || 0) / 60));
+    return [
+      localize(this._hass, "card.ui.timer_max_duration", { minutes }),
+      localize(this._hass, "card.ui.timer_comfort", {
+        level: Number(timer.comfort_level) || "?",
+      }),
+    ].join(" · ");
   }
 
   _formatTimerStart(timer) {
-    const start = Number(timer?.start);
+    const start = Number(timer?.type === "smart" ? timer?.departure : timer?.start);
     if (!Number.isFinite(start) || start < 0) {
       return "--:--";
     }
@@ -645,9 +716,11 @@ class WebastoConnectCard extends HTMLElement {
       return;
     }
 
-    this._hass.callService("webastoconnect", "update_timer", {
+    const service = timer.type === "smart" ? "update_smart_timer" : "update_timer";
+    this._hass.callService("webastoconnect", service, {
       device_id: deviceId,
       timer_index: timer.index,
+      line: this._serviceLine(timer.line_code),
       enabled: !timer.enabled,
     });
   }
@@ -667,6 +740,8 @@ class WebastoConnectCard extends HTMLElement {
       this._hass.callService("webastoconnect", "delete_timer", {
         device_id: deviceId,
         timer_index: timer.index,
+        line: this._serviceLine(timer.line_code),
+        type: timer.type,
       })
     ).finally(() => {
       if (button?.isConnected) {
@@ -1178,6 +1253,42 @@ class WebastoConnectCard extends HTMLElement {
           grid-template-columns: 1fr 1fr;
           gap: 12px;
         }
+        .timer-type {
+          display: flex;
+          gap: 8px;
+        }
+        .timer-type-option {
+          flex: 1;
+          border: 1px solid var(--divider-color, #ddd);
+          border-radius: 12px;
+          padding: 8px 12px;
+          background: var(--card-background-color, #fff);
+          color: var(--primary-text-color, #111);
+          cursor: pointer;
+          font: inherit;
+        }
+        .timer-type-option.selected {
+          background: var(--primary-color, #03a9f4);
+          color: var(--text-primary-color, #fff);
+          border-color: var(--primary-color, #03a9f4);
+        }
+        .timer-type-option[disabled] {
+          cursor: default;
+        }
+        .timer-type-option[disabled]:not(.selected) {
+          opacity: 0.45;
+        }
+        .timer-badge {
+          display: inline-block;
+          margin-right: 8px;
+          padding: 2px 8px;
+          border-radius: 999px;
+          background: var(--primary-color, #03a9f4);
+          color: var(--text-primary-color, #fff);
+          font-size: 12px;
+          font-weight: 500;
+          vertical-align: middle;
+        }
         .timer-form label {
           display: flex;
           flex-direction: column;
@@ -1347,6 +1458,25 @@ class WebastoConnectCard extends HTMLElement {
           <div class="timers-modal-body">
             ${timerDraftOpen ? `
             <div class="timer-form">
+              <div class="timer-type" role="group" aria-label="${escapeAttr(localize(this._hass, "card.ui.timer_type"))}">
+                ${[["simple", "card.ui.timer_type_simple"], ["smart", "card.ui.timer_type_smart"]].map(([type, key]) => `
+                <button class="timer-type-option ${timerDraft.type === type ? "selected" : ""}" data-timer-type="${escapeAttr(type)}" type="button" aria-pressed="${timerDraft.type === type ? "true" : "false"}" ${Number.isInteger(timerDraft.timer_index) ? "disabled" : ""}>${escapeAttr(localize(this._hass, key))}</button>
+                `).join("")}
+              </div>
+              ${timerDraft.type === "smart" ? `
+              <div class="timer-form-grid">
+                <label>${escapeAttr(localize(this._hass, "card.ui.departure_time"))}
+                  <input id="timer-departure-time" type="time" value="${escapeAttr(timerDraft.departure_time)}">
+                </label>
+                <label>${escapeAttr(localize(this._hass, "card.ui.max_duration_minutes"))}
+                  <input id="timer-max-duration" type="number" min="1" max="120" value="${escapeAttr(timerDraft.max_duration_minutes)}">
+                </label>
+                <label>${escapeAttr(localize(this._hass, "card.ui.comfort_level"))}
+                  <input id="timer-comfort-level" type="number" min="1" max="10" value="${escapeAttr(timerDraft.comfort_level)}">
+                </label>
+              </div>
+              <div class="timer-location-help">${escapeAttr(localize(this._hass, "card.ui.smart_timer_help"))}</div>
+              ` : `
               <div class="timer-form-grid">
                 <label>${escapeAttr(localize(this._hass, "card.ui.start_time"))}
                   <input id="timer-start-time" type="time" value="${escapeAttr(timerDraft.start_time)}">
@@ -1354,7 +1484,7 @@ class WebastoConnectCard extends HTMLElement {
                 <label>${escapeAttr(localize(this._hass, "card.ui.duration_minutes"))}
                   <input id="timer-duration" type="number" min="1" max="1440" value="${escapeAttr(timerDraft.duration_minutes)}">
                 </label>
-              </div>
+              </div>`}
               <label class="timer-location-toggle">
                 <input id="timer-use-location" type="checkbox" ${timerDraft.use_location ? "checked" : ""}>
                 <span>${escapeAttr(localize(this._hass, "card.ui.timer_use_location"))}</span>
@@ -1385,13 +1515,14 @@ class WebastoConnectCard extends HTMLElement {
               ${timers.map((timer) => `
               <div class="timer-row">
                 <div class="timer-main">
-                  <div class="timer-title">${escapeAttr(this._formatTimerStart(timer))}</div>
+                  <div class="timer-title">${timer.type === "smart" ? `<span class="timer-badge">${escapeAttr(localize(this._hass, "card.ui.timer_type_smart"))}</span>${escapeAttr(localize(this._hass, "card.ui.timer_departure", { time: this._formatTimerStart(timer) }))}` : escapeAttr(this._formatTimerStart(timer))}</div>
+                  ${timer.type === "smart" ? `<div class="timer-meta">${escapeAttr(this._formatSmartDetails(timer))}</div>` : ""}
                   <div class="timer-meta">${escapeAttr(this._formatTimerRepeat(timer))} · ${timer.enabled ? escapeAttr(localize(this._hass, "card.ui.timer_enabled")) : escapeAttr(localize(this._hass, "card.ui.timer_disabled"))}</div>
                 </div>
                 <div class="timer-actions">
-                  <ha-switch class="timer-toggle" data-timer-index="${timer.index}" ${timer.enabled ? "checked" : ""} ${canManageTimers ? "" : "disabled"}></ha-switch>
-                  <button class="timer-edit" data-edit-index="${timer.index}" ${canManageTimers ? "" : "disabled"}>${escapeAttr(localize(this._hass, "card.ui.edit"))}</button>
-                  <button class="timer-delete" data-delete-index="${timer.index}" ${canManageTimers ? "" : "disabled"}>${escapeAttr(localize(this._hass, "card.ui.delete"))}</button>
+                  <ha-switch class="timer-toggle" data-timer-key="${escapeAttr(timer.key)}" ${timer.enabled ? "checked" : ""} ${canManageTimers ? "" : "disabled"}></ha-switch>
+                  <button class="timer-edit" data-timer-key="${escapeAttr(timer.key)}" ${canManageTimers ? "" : "disabled"}>${escapeAttr(localize(this._hass, "card.ui.edit"))}</button>
+                  <button class="timer-delete" data-timer-key="${escapeAttr(timer.key)}" ${canManageTimers ? "" : "disabled"}>${escapeAttr(localize(this._hass, "card.ui.delete"))}</button>
                 </div>
               </div>
               `).join("")}
@@ -1530,8 +1661,8 @@ class WebastoConnectCard extends HTMLElement {
 
       this.shadowRoot.querySelectorAll(".timer-toggle").forEach((toggle) => {
         toggle.addEventListener("change", (ev) => {
-          const index = Number(ev.currentTarget?.dataset?.timerIndex);
-          const timer = timers.find((item) => item.index === index);
+          const key = Number(ev.currentTarget?.dataset?.timerKey);
+          const timer = timers.find((item) => item.key === key);
           if (timer) {
             this._toggleTimerEnabled(timer);
           }
@@ -1540,8 +1671,8 @@ class WebastoConnectCard extends HTMLElement {
 
       this.shadowRoot.querySelectorAll(".timer-delete").forEach((button) => {
         button.addEventListener("click", (ev) => {
-          const index = Number(ev.currentTarget?.dataset?.deleteIndex);
-          const timer = timers.find((item) => item.index === index);
+          const key = Number(ev.currentTarget?.dataset?.timerKey);
+          const timer = timers.find((item) => item.key === key);
           if (timer) {
             this._deleteTimer(timer, ev.currentTarget);
           }
@@ -1550,8 +1681,8 @@ class WebastoConnectCard extends HTMLElement {
 
       this.shadowRoot.querySelectorAll(".timer-edit").forEach((button) => {
         button.addEventListener("click", (ev) => {
-          const index = Number(ev.currentTarget?.dataset?.editIndex);
-          const timer = timers.find((item) => item.index === index);
+          const key = Number(ev.currentTarget?.dataset?.timerKey);
+          const timer = timers.find((item) => item.key === key);
           if (timer) {
             this._openTimerDraft(timer);
           }
@@ -1576,6 +1707,28 @@ class WebastoConnectCard extends HTMLElement {
           this._setTimerDraftField("duration_minutes", ev.currentTarget.value);
         });
       }
+
+      [
+        ["timer-departure-time", "departure_time"],
+        ["timer-max-duration", "max_duration_minutes"],
+        ["timer-comfort-level", "comfort_level"],
+      ].forEach(([id, field]) => {
+        const input = this.shadowRoot.getElementById(id);
+        if (input) {
+          input.addEventListener("change", (ev) => {
+            this._setTimerDraftField(field, ev.currentTarget.value);
+          });
+        }
+      });
+
+      this.shadowRoot.querySelectorAll(".timer-type-option").forEach((button) => {
+        button.addEventListener("click", (ev) => {
+          const type = ev.currentTarget?.dataset?.timerType;
+          if (type && !Number.isInteger(this._timerDraft?.timer_index)) {
+            this._setTimerDraftField("type", type);
+          }
+        });
+      });
 
       const enabled = this.shadowRoot.getElementById("timer-enabled");
       if (enabled) {

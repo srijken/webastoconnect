@@ -134,7 +134,7 @@
         },
         "delete_timer": {
             "name": "Smazat časovač",
-            "description": "Smaže časovač podle indexu na aktivním výstupu (režim topení nebo ventilace).",
+            "description": "Smaže časovač podle indexu. Index počítá časovače zvoleného typu na výstupu.",
             "fields": {
                 "device_id": {
                     "name": "Zařízení",
@@ -142,7 +142,99 @@
                 },
                 "timer_index": {
                     "name": "Index časovače",
-                    "description": "Index v seznamu časovačů aktivního výstupu počítaný od nuly."
+                    "description": "Index od nuly mezi časovači zvoleného typu na výstupu."
+                },
+                "line": {
+                    "name": "Výstup",
+                    "description": "Výstup, na kterém časovač je. Ponechte prázdné pro aktivní výstup (ventilace při zapnutém režimu ventilace, jinak topení)."
+                },
+                "type": {
+                    "name": "Typ časovače",
+                    "description": "Typ časovače ke smazání. Výchozí je jednoduchý."
+                }
+            }
+        },
+        "create_smart_timer": {
+            "name": "Vytvořit chytrý časovač",
+            "description": "Vytvoří chytrý časovač s časem odjezdu. Topení se spustí samo před časem odjezdu, nejvýše o maximální dobu dříve. Zatím neověřeno na skutečném zařízení.",
+            "fields": {
+                "device_id": {
+                    "name": "Zařízení",
+                    "description": "Zařízení Webasto, pro které se časovač vytváří."
+                },
+                "line": {
+                    "name": "Výstup",
+                    "description": "Výstup, na kterém časovač běží. Ponechte prázdné pro použití aktivního výstupu (ventilace při zapnutém režimu ventilace, jinak topení)."
+                },
+                "departure_time": {
+                    "name": "Čas odjezdu",
+                    "description": "Místní čas, kdy má být vozidlo vyhřáté (HH:MM). Sekundy jsou volitelné."
+                },
+                "max_duration_minutes": {
+                    "name": "Maximální doba",
+                    "description": "Nejdelší doba v minutách, po kterou smí topení běžet před časem odjezdu (1 až 120)."
+                },
+                "comfort_level": {
+                    "name": "Úroveň komfortu",
+                    "description": "Úroveň komfortu chytrého časovače. V aplikaci Webasto byla zjištěna jen hodnota 5; jiné hodnoty nejsou ověřeny."
+                },
+                "repeat_days": {
+                    "name": "Dny opakování",
+                    "description": "Dny, kdy má časovač běžet. Pro jednorázový časovač ponechte prázdné."
+                },
+                "enabled": {
+                    "name": "Povoleno",
+                    "description": "Zda je časovač povolen."
+                },
+                "location": {
+                    "name": "Poloha",
+                    "description": "Volitelná poloha časovače na mapě."
+                }
+            }
+        },
+        "update_smart_timer": {
+            "name": "Upravit chytrý časovač",
+            "description": "Upraví existující chytrý časovač podle indexu. Mění se jen zadaná pole; vynechaná pole si ponechají současnou hodnotu.",
+            "fields": {
+                "device_id": {
+                    "name": "Zařízení",
+                    "description": "Zařízení Webasto, které má časovač."
+                },
+                "timer_index": {
+                    "name": "Index časovače",
+                    "description": "Index od nuly mezi chytrými časovači výstupu."
+                },
+                "line": {
+                    "name": "Výstup",
+                    "description": "Výstup, na kterém je časovač. Pokud zůstane prázdné, výchozí je topení."
+                },
+                "departure_time": {
+                    "name": "Čas odjezdu",
+                    "description": "Místní čas, kdy má být vozidlo vyhřáté (HH:MM). Sekundy jsou volitelné."
+                },
+                "max_duration_minutes": {
+                    "name": "Maximální doba",
+                    "description": "Nejdelší doba v minutách, po kterou smí topení běžet před časem odjezdu (1 až 120)."
+                },
+                "comfort_level": {
+                    "name": "Úroveň komfortu",
+                    "description": "Úroveň komfortu chytrého časovače. V aplikaci Webasto byla zjištěna jen hodnota 5; jiné hodnoty nejsou ověřeny."
+                },
+                "repeat_days": {
+                    "name": "Dny opakování",
+                    "description": "Dny, kdy má časovač běžet. Pro jednorázový časovač ponechte prázdné."
+                },
+                "enabled": {
+                    "name": "Povoleno",
+                    "description": "Zda je časovač povolen."
+                },
+                "clear_location": {
+                    "name": "Vymazat polohu",
+                    "description": "Odstraní uloženou polohu časovače."
+                },
+                "location": {
+                    "name": "Poloha",
+                    "description": "Volitelná poloha časovače na mapě. Nelze použít společně s možností Vymazat polohu."
                 }
             }
         }
@@ -163,6 +255,12 @@
             "options": {
                 "heater": "Topení",
                 "ventilation": "Ventilace"
+            }
+        },
+        "timer_type": {
+            "options": {
+                "simple": "Jednoduchý",
+                "smart": "Chytrý"
             }
         }
     },
@@ -336,6 +434,12 @@
         },
         "rate_limited": {
             "message": "Cloud Webasto omezuje počet požadavků. Zkuste to později."
+        },
+        "invalid_departure_time": {
+            "message": "Neplatný čas odjezdu {departure_time}. Použijte formát HH:MM."
+        },
+        "missing_smart_timer_values": {
+            "message": "Chytrý časovač potřebuje čas odjezdu, maximální dobu, úroveň komfortu a dny opakování."
         }
     }
 }

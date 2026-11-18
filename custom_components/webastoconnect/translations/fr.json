@@ -134,7 +134,7 @@
         },
         "delete_timer": {
             "name": "Supprimer une minuterie",
-            "description": "Supprime une minuterie selon son index sur la sortie active (mode chauffage ou ventilation).",
+            "description": "Supprime une minuterie par son index. L'index compte les minuteries du type choisi sur la sortie.",
             "fields": {
                 "device_id": {
                     "name": "Appareil",
@@ -142,7 +142,99 @@
                 },
                 "timer_index": {
                     "name": "Index de la minuterie",
-                    "description": "Index dans la liste des minuteries de la sortie active, à partir de zéro."
+                    "description": "Index, à partir de zéro, parmi les minuteries du type choisi sur la sortie."
+                },
+                "line": {
+                    "name": "Sortie",
+                    "description": "La sortie de la minuterie. Laisser vide pour utiliser la sortie active (ventilation si le mode ventilation est activé, sinon chauffage)."
+                },
+                "type": {
+                    "name": "Type de minuterie",
+                    "description": "Type de la minuterie à supprimer. Simple par défaut."
+                }
+            }
+        },
+        "create_smart_timer": {
+            "name": "Créer une minuterie intelligente",
+            "description": "Crée une minuterie intelligente avec une heure de départ. Le chauffage démarre de lui-même avant l'heure de départ, au plus tôt de la durée maximale. Pas encore vérifié avec un appareil réel.",
+            "fields": {
+                "device_id": {
+                    "name": "Appareil",
+                    "description": "L’appareil Webasto pour lequel la minuterie est créée."
+                },
+                "line": {
+                    "name": "Sortie",
+                    "description": "La sortie sur laquelle le minuteur fonctionne. Laissez vide pour utiliser la sortie active (ventilation si le mode ventilation est activé, sinon chauffage)."
+                },
+                "departure_time": {
+                    "name": "Heure de départ",
+                    "description": "Heure locale à laquelle le véhicule doit être chaud (HH:MM). Les secondes sont facultatives."
+                },
+                "max_duration_minutes": {
+                    "name": "Durée maximale",
+                    "description": "Durée la plus longue en minutes pendant laquelle le chauffage peut fonctionner avant l'heure de départ (1 à 120)."
+                },
+                "comfort_level": {
+                    "name": "Niveau de confort",
+                    "description": "Niveau de confort de la minuterie intelligente. Seule la valeur 5 a été observée dans l'application Webasto ; les autres valeurs ne sont pas vérifiées."
+                },
+                "repeat_days": {
+                    "name": "Jours de répétition",
+                    "description": "Jours où la minuterie doit fonctionner. Laissez vide pour une minuterie non répétitive."
+                },
+                "enabled": {
+                    "name": "Activée",
+                    "description": "Indique si la minuterie est activée."
+                },
+                "location": {
+                    "name": "Emplacement",
+                    "description": "Emplacement facultatif sur la carte pour la minuterie."
+                }
+            }
+        },
+        "update_smart_timer": {
+            "name": "Modifier une minuterie intelligente",
+            "description": "Modifie une minuterie intelligente existante par son index. Seuls les champs fournis sont modifiés ; les champs omis gardent leur valeur actuelle.",
+            "fields": {
+                "device_id": {
+                    "name": "Appareil",
+                    "description": "L’appareil Webasto qui possède la minuterie."
+                },
+                "timer_index": {
+                    "name": "Index de la minuterie",
+                    "description": "Index, à partir de zéro, parmi les minuteries intelligentes de la sortie."
+                },
+                "line": {
+                    "name": "Sortie",
+                    "description": "La sortie sur laquelle se trouve le minuteur. Chauffage par défaut si laissé vide."
+                },
+                "departure_time": {
+                    "name": "Heure de départ",
+                    "description": "Heure locale à laquelle le véhicule doit être chaud (HH:MM). Les secondes sont facultatives."
+                },
+                "max_duration_minutes": {
+                    "name": "Durée maximale",
+                    "description": "Durée la plus longue en minutes pendant laquelle le chauffage peut fonctionner avant l'heure de départ (1 à 120)."
+                },
+                "comfort_level": {
+                    "name": "Niveau de confort",
+                    "description": "Niveau de confort de la minuterie intelligente. Seule la valeur 5 a été observée dans l'application Webasto ; les autres valeurs ne sont pas vérifiées."
+                },
+                "repeat_days": {
+                    "name": "Jours de répétition",
+                    "description": "Jours où la minuterie doit fonctionner. Laissez vide pour une minuterie non répétitive."
+                },
+                "enabled": {
+                    "name": "Activée",
+                    "description": "Indique si la minuterie est activée."
+                },
+                "clear_location": {
+                    "name": "Effacer l’emplacement",
+                    "description": "Supprime l’emplacement enregistré de la minuterie."
+                },
+                "location": {
+                    "name": "Emplacement",
+                    "description": "Emplacement facultatif sur la carte pour la minuterie. Ne peut pas être utilisé avec Effacer l’emplacement."
                 }
             }
         }
@@ -163,6 +255,12 @@
             "options": {
                 "heater": "Chauffage",
                 "ventilation": "Ventilation"
+            }
+        },
+        "timer_type": {
+            "options": {
+                "simple": "Simple",
+                "smart": "Intelligente"
             }
         }
     },
@@ -336,6 +434,12 @@
         },
         "rate_limited": {
             "message": "Le cloud Webasto limite le nombre de requêtes. Réessayez plus tard."
+        },
+        "invalid_departure_time": {
+            "message": "Heure de départ {departure_time} invalide. Utilisez le format HH:MM."
+        },
+        "missing_smart_timer_values": {
+            "message": "Une minuterie intelligente nécessite une heure de départ, une durée maximale, un niveau de confort et des jours de répétition."
         }
     }
 }
