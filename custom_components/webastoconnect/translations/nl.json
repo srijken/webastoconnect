@@ -11,6 +11,14 @@
                     }
                 }
             }
+        },
+        "subscription_expiring": {
+            "title": "Webasto-abonnement van {device} verloopt binnenkort",
+            "description": "Het Webasto ThermoConnect-abonnement van {device} verloopt op {expiration_date} (nog {days_left} dagen). Het wordt niet automatisch verlengd: verleng het via My Webasto Connect. Als het verloopt, wordt de dienst opgeschort en worden heractiveringskosten in rekening gebracht."
+        },
+        "subscription_expired": {
+            "title": "Webasto-abonnement van {device} is verlopen",
+            "description": "Het Webasto ThermoConnect-abonnement van {device} is verlopen op {expiration_date}. De dienst is opgeschort totdat het via My Webasto Connect wordt verlengd; er worden heractiveringskosten in rekening gebracht."
         }
     },
     "config": {

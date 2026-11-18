@@ -11,6 +11,14 @@
                     }
                 }
             }
+        },
+        "subscription_expiring": {
+            "title": "Webasto-Abonnement für {device} läuft bald ab",
+            "description": "Das Webasto ThermoConnect-Abonnement von {device} läuft am {expiration_date} ab (noch {days_left} Tage). Es verlängert sich nicht automatisch: Verlängere es in My Webasto Connect. Läuft es ab, wird der Dienst gesperrt und eine Reaktivierungsgebühr fällig."
+        },
+        "subscription_expired": {
+            "title": "Webasto-Abonnement für {device} ist abgelaufen",
+            "description": "Das Webasto ThermoConnect-Abonnement von {device} ist am {expiration_date} abgelaufen. Der Dienst ist gesperrt, bis es in My Webasto Connect verlängert wird; dafür fällt eine Reaktivierungsgebühr an."
         }
     },
     "config": {

@@ -11,6 +11,14 @@
                     }
                 }
             }
+        },
+        "subscription_expiring": {
+            "title": "Webasto subscription for {device} expires soon",
+            "description": "The Webasto ThermoConnect subscription of {device} expires on {expiration_date} ({days_left} days left). It does not renew automatically: renew it on My Webasto Connect. If it lapses, the service is suspended and a reactivation fee applies."
+        },
+        "subscription_expired": {
+            "title": "Webasto subscription for {device} has expired",
+            "description": "The Webasto ThermoConnect subscription of {device} expired on {expiration_date}. The service is suspended until it is renewed on My Webasto Connect; a reactivation fee applies."
         }
     },
     "config": {
