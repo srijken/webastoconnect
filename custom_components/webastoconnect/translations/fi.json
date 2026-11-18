@@ -11,6 +11,14 @@
                     }
                 }
             }
+        },
+        "subscription_expiring": {
+            "title": "Laitteen {device} Webasto-tilaus päättyy pian",
+            "description": "Laitteen {device} Webasto ThermoConnect -tilaus päättyy {expiration_date} ({days_left} päivää jäljellä). Se ei uusiudu automaattisesti: uusi se My Webasto Connect -palvelussa. Jos tilaus päättyy, palvelu keskeytetään ja uudelleenaktivoinnista peritään maksu."
+        },
+        "subscription_expired": {
+            "title": "Laitteen {device} Webasto-tilaus on päättynyt",
+            "description": "Laitteen {device} Webasto ThermoConnect -tilaus päättyi {expiration_date}. Palvelu on keskeytetty, kunnes tilaus uusitaan My Webasto Connect -palvelussa; uudelleenaktivoinnista peritään maksu."
         }
     },
     "config": {

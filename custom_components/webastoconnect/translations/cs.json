@@ -11,6 +11,14 @@
                     }
                 }
             }
+        },
+        "subscription_expiring": {
+            "title": "Předplatné Webasto pro {device} brzy vyprší",
+            "description": "Předplatné Webasto ThermoConnect pro {device} vyprší {expiration_date} (zbývá dní: {days_left}). Neobnovuje se automaticky: obnovte ho na My Webasto Connect. Pokud vyprší, služba bude pozastavena a bude účtován poplatek za opětovnou aktivaci."
+        },
+        "subscription_expired": {
+            "title": "Předplatné Webasto pro {device} vypršelo",
+            "description": "Předplatné Webasto ThermoConnect pro {device} vypršelo {expiration_date}. Služba je pozastavena, dokud předplatné neobnovíte na My Webasto Connect; účtuje se poplatek za opětovnou aktivaci."
         }
     },
     "config": {

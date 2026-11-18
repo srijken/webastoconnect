@@ -27,6 +27,8 @@ def mock_issue_delete(monkeypatch) -> None:
     monkeypatch.setattr(
         integration, "_async_webapi_device_names", AsyncMock(return_value={})
     )
+    # Subscription issues are covered by tests/test_subscription_issues.py.
+    monkeypatch.setattr(integration, "SubscriptionIssueTracker", Mock())
 
 
 def _entry() -> SimpleNamespace:

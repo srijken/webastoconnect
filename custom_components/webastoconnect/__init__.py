@@ -40,6 +40,7 @@ from .migration import (
     async_migrate_to_key_unique_ids,
 )
 from .services import async_setup_services
+from .subscription import SubscriptionIssueTracker, async_delete_subscription_issues
 
 LOGGER = logging.getLogger(__name__)
 PENDING_APPROVAL_ISSUE_ID = "pending_approval"
@@ -256,6 +257,9 @@ async def _async_setup(
 
     ir.async_delete_issue(hass, DOMAIN, PENDING_APPROVAL_ISSUE_ID)
 
+    # Runs on the first data below and after every successful update.
+    SubscriptionIssueTracker(hass, entry, coordinator).async_start()
+
     if coordinator.cloud.devices:
         # connect() already hydrated device state, avoid an immediate duplicate update call.
         coordinator.async_set_updated_data(None)
@@ -273,7 +277,8 @@ async def _async_setup(
 
 
 async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Delete the stored app client credentials when the entry is removed."""
+    """Delete the stored app client credentials and the entry's issues."""
+    async_delete_subscription_issues(hass, entry)
     await async_remove_credentials(hass, entry)
 
 

@@ -11,6 +11,14 @@
                     }
                 }
             }
+        },
+        "subscription_expiring": {
+            "title": "La suscripción de Webasto de {device} caduca pronto",
+            "description": "La suscripción de Webasto ThermoConnect de {device} caduca el {expiration_date} (quedan {days_left} días). No se renueva automáticamente: renuévala en My Webasto Connect. Si caduca, el servicio se suspende y se aplica una tarifa de reactivación."
+        },
+        "subscription_expired": {
+            "title": "La suscripción de Webasto de {device} ha caducado",
+            "description": "La suscripción de Webasto ThermoConnect de {device} caducó el {expiration_date}. El servicio está suspendido hasta que se renueve en My Webasto Connect; se aplica una tarifa de reactivación."
         }
     },
     "config": {

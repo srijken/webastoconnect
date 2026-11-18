@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 import pytest_asyncio
@@ -124,9 +125,11 @@ async def test_legacy_file_is_kept_when_store_save_fails(
 
 @pytest.mark.asyncio
 async def test_remove_entry_deletes_store_and_legacy_file(
-    hass, entry, tmp_path: Path
+    hass, entry, tmp_path: Path, monkeypatch
 ) -> None:
     """Removing the entry deletes the Store data and any leftover old file."""
+    # Subscription issues are covered by tests/test_subscription_issues.py.
+    monkeypatch.setattr(integration, "async_delete_subscription_issues", Mock())
     _, credential_save = _credential_callbacks(hass, entry)
     await credential_save(SimpleNamespace(**CREDENTIALS))
     legacy = _write_legacy(tmp_path, CREDENTIALS)

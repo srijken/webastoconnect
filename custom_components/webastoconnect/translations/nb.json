@@ -11,6 +11,14 @@
                     }
                 }
             }
+        },
+        "subscription_expiring": {
+            "title": "Webasto-abonnementet for {device} utløper snart",
+            "description": "Webasto ThermoConnect-abonnementet for {device} utløper {expiration_date} ({days_left} dager igjen). Det fornyes ikke automatisk: forny det på My Webasto Connect. Hvis det utløper, blir tjenesten suspendert, og det påløper et reaktiveringsgebyr."
+        },
+        "subscription_expired": {
+            "title": "Webasto-abonnementet for {device} har utløpt",
+            "description": "Webasto ThermoConnect-abonnementet for {device} utløp {expiration_date}. Tjenesten er suspendert til det fornyes på My Webasto Connect; det påløper et reaktiveringsgebyr."
         }
     },
     "config": {
