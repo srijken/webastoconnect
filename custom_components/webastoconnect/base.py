@@ -84,6 +84,17 @@ class WebastoConnectNumberEntityDescription(
     unit_fn: Callable[[WebastoDevice], Any] | None = None
 
 
+def _version_string(value: Any) -> str | None:
+    """Return a version for the device registry, which requires strings.
+
+    The web API reports sw_version as an int (e.g. 152); Home Assistant
+    rejects non-string versions from 2026.12.
+    """
+    if value is None or value == "":
+        return None
+    return str(value)
+
+
 class WebastoBaseEntity(CoordinatorEntity[DataUpdateCoordinator[None]]):
     """Base Webasto Connect Entity."""
 
@@ -128,8 +139,8 @@ class WebastoBaseEntity(CoordinatorEntity[DataUpdateCoordinator[None]]):
             "name": self._device_name,
             "model": "ThermoConnect",
             "manufacturer": "Webasto",
-            "hw_version": settings.get("hw_version"),
-            "sw_version": settings.get("sw_version"),
+            "hw_version": _version_string(settings.get("hw_version")),
+            "sw_version": _version_string(settings.get("sw_version")),
             "configuration_url": "https://my.webastoconnect.com",
         }
 

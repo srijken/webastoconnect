@@ -108,13 +108,6 @@ async def test_switch_turn_on_sends_command(
     assert hass.states.get("switch.defender_heater").state == STATE_ON
 
 
-@pytest.mark.xfail(
-    reason=(
-        "The device info passes sw_version as an int (152 from the web API "
-        "settings); Home Assistant warns that this stops working in 2026.12"
-    ),
-    strict=True,
-)
 async def test_device_info_versions_are_strings(
     hass: HomeAssistant,
     fake_cloud: FakeWebastoCloud,
