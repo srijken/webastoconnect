@@ -46,8 +46,10 @@ def _hass_with_services() -> SimpleNamespace:
 
 
 @pytest.mark.asyncio
-async def test_async_setup_registers_each_action_once() -> None:
+async def test_async_setup_registers_each_action_once(monkeypatch) -> None:
     """async_setup registers the three actions with their schemas."""
+    monkeypatch.setattr(integration, "async_register_card", AsyncMock())
+    monkeypatch.setattr(integration, "async_remove_legacy_card", AsyncMock())
     hass = _hass_with_services()
 
     assert await integration.async_setup(hass, {}) is True
