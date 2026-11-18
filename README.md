@@ -56,6 +56,17 @@ version afterwards creates duplicate entities (with a `_2` suffix).
 
 The ThermoConnect subscription does not renew automatically. From 30 days before the expiration date (the *Subscription expiration* sensor), a repair issue in Home Assistant (Settings > System > Repairs) reminds you to renew it on [My Webasto Connect](https://my.webastoconnect.com); once it has expired the issue becomes an error, because the service is suspended and a reactivation fee applies. The issue goes away by itself after the renewal shows up in the cloud data. The *Subscription days left* sensor shows the same count of days (0 on the last day, negative once expired), for use in your own automations or dashboards.
 
+## Next event sensor
+
+The *Next event* diagnostic sensor (disabled by default) shows the next timer
+event as reported by the Webasto cloud itself. Its state is only a time of day
+(HH:MM, in the Home Assistant timezone): the cloud also sends a `day` value,
+but its meaning is not known yet, so no date is shown. The time is converted
+from UTC with today's offset, so around a daylight saving time change it can
+be off by an hour. Attributes: `line` (Heater or Ventilation), `type` (simple
+or smart), `time_utc` and `day_raw` (the raw `day` value). Compare it with the
+*Next start* sensor, which the integration calculates from the simple timers.
+
 ## Entity names and languages
 
 Entity names follow the Home Assistant language (Czech, Danish, Dutch,

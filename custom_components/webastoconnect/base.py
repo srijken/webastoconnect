@@ -57,6 +57,8 @@ class WebastoConnectSensorEntityDescription(SensorEntityDescription):
     unit_fn: Callable[[Any], Any] | None = None
     # Values for the placeholders in the translated entity name.
     placeholders_fn: Callable[[Any], Mapping[str, str]] | None = None
+    # Extra state attributes; None for no attributes.
+    attributes_fn: Callable[[Any], Mapping[str, Any] | None] | None = None
 
 
 @dataclass(frozen=True)

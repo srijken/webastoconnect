@@ -216,6 +216,23 @@
             "next_enabled_timer": {
                 "name": "Příští spuštění"
             },
+            "next_event": {
+                "name": "Příští událost",
+                "state_attributes": {
+                    "line": {
+                        "name": "Výstup"
+                    },
+                    "type": {
+                        "name": "Typ"
+                    },
+                    "time_utc": {
+                        "name": "Čas (UTC)"
+                    },
+                    "day_raw": {
+                        "name": "Den (nezpracovaná hodnota)"
+                    }
+                }
+            },
             "last_seen": {
                 "name": "Naposledy viděno"
             },

@@ -61,6 +61,9 @@
             "next_enabled_timer": {
                 "default": "mdi:calendar-clock"
             },
+            "next_event": {
+                "default": "mdi:calendar-arrow-right"
+            },
             "last_seen": {
                 "default": "mdi:clock-check-outline"
             },

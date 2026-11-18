@@ -216,6 +216,23 @@
             "next_enabled_timer": {
                 "name": "Próximo arranque"
             },
+            "next_event": {
+                "name": "Próximo evento",
+                "state_attributes": {
+                    "line": {
+                        "name": "Salida"
+                    },
+                    "type": {
+                        "name": "Tipo"
+                    },
+                    "time_utc": {
+                        "name": "Hora (UTC)"
+                    },
+                    "day_raw": {
+                        "name": "Día (valor sin procesar)"
+                    }
+                }
+            },
             "last_seen": {
                 "name": "Visto por última vez"
             },

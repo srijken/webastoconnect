@@ -216,6 +216,23 @@
             "next_enabled_timer": {
                 "name": "Volgende start"
             },
+            "next_event": {
+                "name": "Volgende gebeurtenis",
+                "state_attributes": {
+                    "line": {
+                        "name": "Uitgang"
+                    },
+                    "type": {
+                        "name": "Type"
+                    },
+                    "time_utc": {
+                        "name": "Tijd (UTC)"
+                    },
+                    "day_raw": {
+                        "name": "Dag (ruwe waarde)"
+                    }
+                }
+            },
             "last_seen": {
                 "name": "Laatst gezien"
             },
