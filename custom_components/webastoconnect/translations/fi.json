@@ -144,6 +144,93 @@
             }
         }
     },
+    "entity": {
+        "binary_sensor": {
+            "is_connected": {
+                "name": "Yhdistetty"
+            },
+            "allow_location": {
+                "name": "Salli sijaintipalvelut"
+            },
+            "low_voltage_warning": {
+                "name": "Matala akkujännite"
+            },
+            "geofence_enabled": {
+                "name": "Geoaita"
+            },
+            "signal_lost_shutdown_enabled": {
+                "name": "Sammuta signaalin katketessa"
+            }
+        },
+        "device_tracker": {
+            "devicetracker": {
+                "name": "Sijainti"
+            }
+        },
+        "number": {
+            "low_voltage_cutoff": {
+                "name": "Alijännitekatkaisu"
+            },
+            "ext_temp_comp": {
+                "name": "Lämpötilakompensointi"
+            }
+        },
+        "sensor": {
+            "temperature": {
+                "name": "Lämpötila"
+            },
+            "battery_voltage": {
+                "name": "Akku"
+            },
+            "subscription_expiration": {
+                "name": "Tilauksen päättyminen"
+            },
+            "main_output_end_time": {
+                "name": "{output_name} päättyy"
+            },
+            "next_enabled_timer": {
+                "name": "Seuraava käynnistys"
+            },
+            "last_seen": {
+                "name": "Viimeksi nähty"
+            },
+            "geofence_radius": {
+                "name": "Geoaidan säde"
+            },
+            "alarm_state": {
+                "name": "Hälytyksen tila"
+            },
+            "subscription_status": {
+                "name": "Tilauksen tila"
+            },
+            "default_output": {
+                "name": "Oletuslähtö"
+            },
+            "signal_lost_shutdown_minutes": {
+                "name": "Sammuta signaalin katkettua"
+            },
+            "emulation_mode": {
+                "name": "Emulointitila"
+            },
+            "software_external_version": {
+                "name": "Ulkoinen ohjelmistoversio"
+            }
+        },
+        "switch": {
+            "main_output": {
+                "name": "Lähtö"
+            },
+            "ventilation_mode": {
+                "name": "Tuuletustila"
+            },
+            "aux1_output": {
+                "name": "AUX1"
+            },
+            "aux2_output": {
+                "name": "AUX2"
+            }
+        }
+    },
     "exceptions": {
         "device_not_found": {
             "message": "Webasto-laitetta laitetunnuksella {device_id} ei löytynyt."

@@ -144,6 +144,93 @@
             }
         }
     },
+    "entity": {
+        "binary_sensor": {
+            "is_connected": {
+                "name": "Verbunden"
+            },
+            "allow_location": {
+                "name": "Standortdienste erlauben"
+            },
+            "low_voltage_warning": {
+                "name": "Niedrige Batteriespannung"
+            },
+            "geofence_enabled": {
+                "name": "Geofence"
+            },
+            "signal_lost_shutdown_enabled": {
+                "name": "Bei Signalverlust ausschalten"
+            }
+        },
+        "device_tracker": {
+            "devicetracker": {
+                "name": "Standort"
+            }
+        },
+        "number": {
+            "low_voltage_cutoff": {
+                "name": "Unterspannungsabschaltung"
+            },
+            "ext_temp_comp": {
+                "name": "Temperaturkompensation"
+            }
+        },
+        "sensor": {
+            "temperature": {
+                "name": "Temperatur"
+            },
+            "battery_voltage": {
+                "name": "Batterie"
+            },
+            "subscription_expiration": {
+                "name": "Ablauf des Abonnements"
+            },
+            "main_output_end_time": {
+                "name": "{output_name} endet"
+            },
+            "next_enabled_timer": {
+                "name": "Nächster Start"
+            },
+            "last_seen": {
+                "name": "Zuletzt gesehen"
+            },
+            "geofence_radius": {
+                "name": "Geofence-Radius"
+            },
+            "alarm_state": {
+                "name": "Alarmstatus"
+            },
+            "subscription_status": {
+                "name": "Abonnementstatus"
+            },
+            "default_output": {
+                "name": "Standardausgang"
+            },
+            "signal_lost_shutdown_minutes": {
+                "name": "Ausschalten nach Signalverlust"
+            },
+            "emulation_mode": {
+                "name": "Emulationsmodus"
+            },
+            "software_external_version": {
+                "name": "Externe Softwareversion"
+            }
+        },
+        "switch": {
+            "main_output": {
+                "name": "Ausgang"
+            },
+            "ventilation_mode": {
+                "name": "Lüftungsmodus"
+            },
+            "aux1_output": {
+                "name": "AUX1"
+            },
+            "aux2_output": {
+                "name": "AUX2"
+            }
+        }
+    },
     "exceptions": {
         "device_not_found": {
             "message": "Kein Webasto-Gerät mit der Geräte-ID {device_id} gefunden."

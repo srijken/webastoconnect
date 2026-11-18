@@ -27,7 +27,7 @@ def _supports_ventilation_mode(device: Any) -> bool:
 SWITCHES = [
     WebastoConnectSwitchEntityDescription(
         key="main_output",
-        name="Output",
+        translation_key="main_output",
         entity_category=None,
         value_fn=lambda webasto: cast(bool, webasto.output_main),
         command_fn=lambda webasto, id, state: webasto.set_output_main(id, state),
@@ -36,7 +36,7 @@ SWITCHES = [
     ),
     WebastoConnectSwitchEntityDescription(
         key="ventilation_mode",
-        name="Ventilation Mode",
+        translation_key="ventilation_mode",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda webasto: cast(bool, webasto.is_ventilation),
         command_fn=lambda webasto, id, state: webasto.ventilation_mode(id, state),
@@ -44,7 +44,7 @@ SWITCHES = [
     ),
     WebastoConnectSwitchEntityDescription(
         key="aux1_output",
-        name="AUX1",
+        translation_key="aux1_output",
         entity_category=None,
         value_fn=lambda webasto: cast(bool, webasto.output_aux1),
         command_fn=lambda webasto, id, state: webasto.set_output_aux1(id, state),
@@ -53,7 +53,7 @@ SWITCHES = [
     ),
     WebastoConnectSwitchEntityDescription(
         key="aux2_output",
-        name="AUX2",
+        translation_key="aux2_output",
         entity_category=None,
         value_fn=lambda webasto: cast(bool, webasto.output_aux2),
         command_fn=lambda webasto, id, state: webasto.set_output_aux2(id, state),
@@ -72,7 +72,7 @@ async def async_setup_entry(hass, entry: WebastoConfigEntry, async_add_devices):
     for id, device in coordinator.cloud.devices.items():
         LOGGER.debug("Setting up switches for device: %s", device.name)
         for swi in SWITCHES:
-            LOGGER.debug("Testing '%s'", swi.name)
+            LOGGER.debug("Testing '%s'", swi.key)
             if swi.key == "ventilation_mode" and not _supports_ventilation_mode(device):
                 LOGGER.debug("Skipping ventilation mode: not supported by device")
                 continue
@@ -81,9 +81,7 @@ async def async_setup_entry(hass, entry: WebastoConfigEntry, async_add_devices):
                 or swi.name_fn(coordinator.cloud.devices[id]) is not False
             ):
                 entity = WebastoConnectSwitch(id, swi, coordinator)
-                LOGGER.debug(
-                    "Adding switch '%s' with entity_id '%s'", swi.name, entity.entity_id
-                )
+                LOGGER.debug("Adding switch '%s'", swi.key)
                 switches.append(entity)
 
     async_add_devices(switches)
@@ -116,15 +114,16 @@ class WebastoConnectSwitch(WebastoBaseEntity, SwitchEntity):
 
     def _handle_states(self) -> None:
         """Handle the switch states."""
-        if not isinstance(self.entity_description.name_fn, type(None)):  # type: ignore
-            self._attr_name = self.entity_description.name_fn(  # type: ignore
-                self._device
-            )
+        self._update_name()
 
         self._attr_is_on = self.entity_description.value_fn(  # type: ignore
             self._device
         )
 
+        # The main output icon follows the heating or ventilation mode, not
+        # only the switch state. icons.json can only pick an icon by the
+        # entity's own state (or a fixed translation_key), so this one stays
+        # in code. The other switch icons are in icons.json.
         if self.entity_description.key == "main_output":
             if self._device.is_ventilation:
                 self._attr_icon = "mdi:fan" if self._attr_is_on else "mdi:fan-off"
@@ -132,8 +131,6 @@ class WebastoConnectSwitch(WebastoBaseEntity, SwitchEntity):
                 self._attr_icon = (
                     "mdi:radiator" if self._attr_is_on else "mdi:radiator-off"
                 )
-        elif self.entity_description.key == "ventilation_mode":
-            self._attr_icon = "mdi:fan" if self._attr_is_on else "mdi:fan-off"
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch."""

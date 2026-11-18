@@ -15,7 +15,7 @@ from custom_components.webastoconnect.sensor import WebastoConnectSensor
 from custom_components.webastoconnect.switch import WebastoConnectSwitch
 
 
-def test_sensor_skips_write_when_name_and_value_unchanged() -> None:
+def test_sensor_skips_write_when_placeholders_and_value_unchanged() -> None:
     """Sensor should avoid state write when neither name nor value changes."""
     entity = object.__new__(WebastoConnectSensor)
     entity._device_id = 1
@@ -26,9 +26,9 @@ def test_sensor_skips_write_when_name_and_value_unchanged() -> None:
         key="temperature",
         name="Temperature",
         value_fn=lambda dev: dev.value,
-        name_fn=lambda dev: dev.label,
+        placeholders_fn=lambda dev: {"output_name": dev.label},
     )
-    entity._attr_name = "Temp"
+    entity._attr_translation_placeholders = {"output_name": "Temp"}
     entity._attr_native_value = 21
     entity.async_write_ha_state = Mock()
 
@@ -48,9 +48,9 @@ def test_sensor_writes_when_value_changes() -> None:
         key="temperature",
         name="Temperature",
         value_fn=lambda dev: dev.value,
-        name_fn=lambda dev: dev.label,
+        placeholders_fn=lambda dev: {"output_name": dev.label},
     )
-    entity._attr_name = "Temp"
+    entity._attr_translation_placeholders = {"output_name": "Temp"}
     entity._attr_native_value = 21
     entity.async_write_ha_state = Mock()
 
@@ -217,7 +217,7 @@ def test_switch_is_available_when_connectivity_unknown() -> None:
 
 
 def test_binary_sensor_skips_write_when_state_unchanged() -> None:
-    """Binary sensor should avoid state write when state and icon are unchanged."""
+    """Binary sensor should avoid state write when state is unchanged."""
     entity = object.__new__(WebastoConnectBinarySensor)
     entity._device_id = 1
     entity._cloud = SimpleNamespace(devices={1: SimpleNamespace(allow_location=True)})
@@ -225,11 +225,8 @@ def test_binary_sensor_skips_write_when_state_unchanged() -> None:
         key="allow_location",
         name="Allow Location Services",
         value_fn=lambda dev: dev.allow_location,
-        icon_on="mdi:map-marker",
-        icon_off="mdi:map-marker-off",
     )
     entity._attr_is_on = True
-    entity._attr_icon = "mdi:map-marker"
     entity.async_write_ha_state = Mock()
 
     entity._handle_coordinator_update()
@@ -246,11 +243,8 @@ def test_binary_sensor_writes_when_state_changes() -> None:
         key="allow_location",
         name="Allow Location Services",
         value_fn=lambda dev: dev.allow_location,
-        icon_on="mdi:map-marker",
-        icon_off="mdi:map-marker-off",
     )
     entity._attr_is_on = True
-    entity._attr_icon = "mdi:map-marker"
     entity.async_write_ha_state = Mock()
 
     entity._handle_coordinator_update()
@@ -267,11 +261,8 @@ def test_connected_binary_sensor_skips_write_when_state_unchanged() -> None:
         key="is_connected",
         name="Connected",
         value_fn=lambda dev: dev.is_connected,
-        icon_on="mdi:wifi",
-        icon_off="mdi:wifi-off",
     )
     entity._attr_is_on = False
-    entity._attr_icon = "mdi:wifi-off"
     entity.async_write_ha_state = Mock()
 
     entity._handle_coordinator_update()
@@ -288,11 +279,8 @@ def test_connected_binary_sensor_writes_when_state_becomes_unknown() -> None:
         key="is_connected",
         name="Connected",
         value_fn=lambda dev: dev.is_connected,
-        icon_on="mdi:wifi",
-        icon_off="mdi:wifi-off",
     )
     entity._attr_is_on = True
-    entity._attr_icon = "mdi:wifi"
     entity.async_write_ha_state = Mock()
 
     entity._handle_coordinator_update()

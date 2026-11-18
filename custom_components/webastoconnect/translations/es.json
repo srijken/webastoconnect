@@ -144,6 +144,93 @@
             }
         }
     },
+    "entity": {
+        "binary_sensor": {
+            "is_connected": {
+                "name": "Conectado"
+            },
+            "allow_location": {
+                "name": "Permitir servicios de ubicación"
+            },
+            "low_voltage_warning": {
+                "name": "Tensión de batería baja"
+            },
+            "geofence_enabled": {
+                "name": "Geovalla"
+            },
+            "signal_lost_shutdown_enabled": {
+                "name": "Apagar al perder la señal"
+            }
+        },
+        "device_tracker": {
+            "devicetracker": {
+                "name": "Ubicación"
+            }
+        },
+        "number": {
+            "low_voltage_cutoff": {
+                "name": "Corte por baja tensión"
+            },
+            "ext_temp_comp": {
+                "name": "Compensación de temperatura"
+            }
+        },
+        "sensor": {
+            "temperature": {
+                "name": "Temperatura"
+            },
+            "battery_voltage": {
+                "name": "Batería"
+            },
+            "subscription_expiration": {
+                "name": "Vencimiento de la suscripción"
+            },
+            "main_output_end_time": {
+                "name": "Fin de {output_name}"
+            },
+            "next_enabled_timer": {
+                "name": "Próximo arranque"
+            },
+            "last_seen": {
+                "name": "Visto por última vez"
+            },
+            "geofence_radius": {
+                "name": "Radio de la geovalla"
+            },
+            "alarm_state": {
+                "name": "Estado de la alarma"
+            },
+            "subscription_status": {
+                "name": "Estado de la suscripción"
+            },
+            "default_output": {
+                "name": "Salida predeterminada"
+            },
+            "signal_lost_shutdown_minutes": {
+                "name": "Apagar tras pérdida de señal"
+            },
+            "emulation_mode": {
+                "name": "Modo de emulación"
+            },
+            "software_external_version": {
+                "name": "Versión del software externo"
+            }
+        },
+        "switch": {
+            "main_output": {
+                "name": "Salida"
+            },
+            "ventilation_mode": {
+                "name": "Modo ventilación"
+            },
+            "aux1_output": {
+                "name": "AUX1"
+            },
+            "aux2_output": {
+                "name": "AUX2"
+            }
+        }
+    },
     "exceptions": {
         "device_not_found": {
             "message": "No se encontró ningún dispositivo Webasto con el ID de dispositivo {device_id}."

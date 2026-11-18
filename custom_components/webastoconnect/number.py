@@ -17,7 +17,7 @@ PARALLEL_UPDATES = 1
 NUMBERS = [
     WebastoConnectNumberEntityDescription(
         key="low_voltage_cutoff",
-        name="Low Voltage Cutoff",
+        translation_key="low_voltage_cutoff",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda webasto: webasto.low_voltage_cutoff,
         set_fn=lambda webasto, device, state: webasto.set_low_voltage_cutoff(
@@ -29,11 +29,10 @@ NUMBERS = [
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=NumberDeviceClass.VOLTAGE,
         entity_registry_enabled_default=False,
-        icon="mdi:battery-off",
     ),
     WebastoConnectNumberEntityDescription(
         key="ext_temp_comp",
-        name="Temperature Compensation",
+        translation_key="ext_temp_comp",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda webasto: webasto.temperature_compensation,
         set_fn=lambda webasto, device, state: webasto.set_temperature_compensation(
@@ -44,7 +43,6 @@ NUMBERS = [
         native_step=0.5,
         unit_fn=lambda webasto: webasto.temperature_unit,
         entity_registry_enabled_default=False,
-        icon="mdi:thermometer-alert",
     ),
 ]
 
@@ -59,9 +57,7 @@ async def async_setup_entry(hass, entry: WebastoConfigEntry, async_add_devices):
         LOGGER.debug("Setting up numbers for device: %s", device.name)
         for num in NUMBERS:
             entity = WebastoConnectNumber(id, num, coordinator)
-            LOGGER.debug(
-                "Adding number '%s' with entity_id '%s'", num.name, entity.entity_id
-            )
+            LOGGER.debug("Adding number '%s'", num.key)
             numbers_list.append(entity)
 
     async_add_devices(numbers_list)

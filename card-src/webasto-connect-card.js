@@ -13,6 +13,18 @@ function entityDeviceClass(entry) {
   return entry?.device_class || entry?.original_device_class || null;
 }
 
+// Find an entity by its translation key. Entity names are translated, so the
+// English name only matches registry entries from before translation keys.
+function matchesEntity(entry, domainPrefix, translationKey, legacyName) {
+  if (!entry?.entity_id?.startsWith(domainPrefix)) {
+    return false;
+  }
+  if (entry.translation_key) {
+    return entry.translation_key === translationKey;
+  }
+  return entry.original_name === legacyName;
+}
+
 class WebastoConnectCard extends HTMLElement {
   static getConfigElement() {
     return document.createElement("webasto-connect-card-editor");
@@ -95,6 +107,7 @@ class WebastoConnectCard extends HTMLElement {
   _resolveEntities() {
     const entries = this._entriesForSelectedDevice();
     const overrides = this._config || {};
+    const auxKeys = ["aux1_output", "aux2_output"];
 
     return {
       main_output_entity:
@@ -103,17 +116,21 @@ class WebastoConnectCard extends HTMLElement {
           entries,
           (entry) =>
             entry.entity_id?.startsWith("switch.") &&
+            entry.translation_key === "main_output"
+        ) ||
+        this._pickEntry(
+          entries,
+          (entry) =>
+            entry.entity_id?.startsWith("switch.") &&
             entry.entity_category == null &&
+            !auxKeys.includes(entry.translation_key) &&
             entry.original_name !== "AUX1" &&
             entry.original_name !== "AUX2"
         ),
       ventilation_mode_entity:
         overrides.ventilation_mode_entity ||
-        this._pickEntry(
-          entries,
-          (entry) =>
-            entry.entity_id?.startsWith("switch.") &&
-            entry.original_name === "Ventilation Mode"
+        this._pickEntry(entries, (entry) =>
+          matchesEntity(entry, "switch.", "ventilation_mode", "Ventilation Mode")
         ),
       end_time_entity:
         overrides.end_time_entity ||
@@ -121,7 +138,14 @@ class WebastoConnectCard extends HTMLElement {
           entries,
           (entry) =>
             entry.entity_id?.startsWith("sensor.") &&
+            entry.translation_key === "main_output_end_time"
+        ) ||
+        this._pickEntry(
+          entries,
+          (entry) =>
+            entry.entity_id?.startsWith("sensor.") &&
             entityDeviceClass(entry) === "timestamp" &&
+            entry.translation_key !== "next_enabled_timer" &&
             entry.original_name !== "Next start"
         ),
       temperature_entity:
@@ -131,7 +155,7 @@ class WebastoConnectCard extends HTMLElement {
           (entry) =>
             entry.entity_id?.startsWith("sensor.") && (
               entityDeviceClass(entry) === "temperature" ||
-              entry.original_name === "Temperature"
+              matchesEntity(entry, "sensor.", "temperature", "Temperature")
             )
         ),
       battery_entity:
@@ -141,24 +165,18 @@ class WebastoConnectCard extends HTMLElement {
           (entry) =>
             entry.entity_id?.startsWith("sensor.") && (
               entityDeviceClass(entry) === "voltage" ||
-              entry.original_name === "Battery"
+              matchesEntity(entry, "sensor.", "battery_voltage", "Battery")
             )
         ),
       connected_entity:
         overrides.connected_entity ||
-        this._pickEntry(
-          entries,
-          (entry) =>
-            entry.entity_id?.startsWith("binary_sensor.") &&
-            entry.original_name === "Connected"
+        this._pickEntry(entries, (entry) =>
+          matchesEntity(entry, "binary_sensor.", "is_connected", "Connected")
         ),
       next_timer_entity:
         overrides.next_timer_entity ||
-        this._pickEntry(
-          entries,
-          (entry) =>
-            entry.entity_id?.startsWith("sensor.") &&
-            entry.original_name === "Next start"
+        this._pickEntry(entries, (entry) =>
+          matchesEntity(entry, "sensor.", "next_enabled_timer", "Next start")
         ),
       location_entity:
         overrides.location_entity ||

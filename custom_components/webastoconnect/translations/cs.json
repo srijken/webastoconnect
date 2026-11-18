@@ -144,6 +144,93 @@
             }
         }
     },
+    "entity": {
+        "binary_sensor": {
+            "is_connected": {
+                "name": "Připojeno"
+            },
+            "allow_location": {
+                "name": "Povolit služby určování polohy"
+            },
+            "low_voltage_warning": {
+                "name": "Nízké napětí baterie"
+            },
+            "geofence_enabled": {
+                "name": "Geofence"
+            },
+            "signal_lost_shutdown_enabled": {
+                "name": "Vypnout při ztrátě signálu"
+            }
+        },
+        "device_tracker": {
+            "devicetracker": {
+                "name": "Poloha"
+            }
+        },
+        "number": {
+            "low_voltage_cutoff": {
+                "name": "Odpojení při podpětí"
+            },
+            "ext_temp_comp": {
+                "name": "Teplotní kompenzace"
+            }
+        },
+        "sensor": {
+            "temperature": {
+                "name": "Teplota"
+            },
+            "battery_voltage": {
+                "name": "Baterie"
+            },
+            "subscription_expiration": {
+                "name": "Konec předplatného"
+            },
+            "main_output_end_time": {
+                "name": "Konec: {output_name}"
+            },
+            "next_enabled_timer": {
+                "name": "Příští spuštění"
+            },
+            "last_seen": {
+                "name": "Naposledy viděno"
+            },
+            "geofence_radius": {
+                "name": "Poloměr geofence"
+            },
+            "alarm_state": {
+                "name": "Stav alarmu"
+            },
+            "subscription_status": {
+                "name": "Stav předplatného"
+            },
+            "default_output": {
+                "name": "Výchozí výstup"
+            },
+            "signal_lost_shutdown_minutes": {
+                "name": "Vypnout po ztrátě signálu"
+            },
+            "emulation_mode": {
+                "name": "Režim emulace"
+            },
+            "software_external_version": {
+                "name": "Verze externího softwaru"
+            }
+        },
+        "switch": {
+            "main_output": {
+                "name": "Výstup"
+            },
+            "ventilation_mode": {
+                "name": "Režim ventilace"
+            },
+            "aux1_output": {
+                "name": "AUX1"
+            },
+            "aux2_output": {
+                "name": "AUX2"
+            }
+        }
+    },
     "exceptions": {
         "device_not_found": {
             "message": "Zařízení Webasto s ID zařízení {device_id} nebylo nalezeno."

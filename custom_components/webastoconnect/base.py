@@ -1,6 +1,6 @@
 """Base definitions."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -48,9 +48,6 @@ class WebastoConnectBinarySensorEntityDescription(
 ):
     """Describes a Webasto binary sensor."""
 
-    icon_on: str | None = None
-    icon_off: str | None = None
-
 
 @dataclass(frozen=True)
 class WebastoConnectSensorEntityDescription(SensorEntityDescription):
@@ -58,7 +55,8 @@ class WebastoConnectSensorEntityDescription(SensorEntityDescription):
 
     value_fn: Callable[[Any], Any | None] | None = None
     unit_fn: Callable[[Any], Any] | None = None
-    name_fn: Callable[[Any], str | bool] | None = None
+    # Values for the placeholders in the translated entity name.
+    placeholders_fn: Callable[[Any], Mapping[str, str]] | None = None
 
 
 @dataclass(frozen=True)
@@ -70,6 +68,8 @@ class WebastoConnectSwitchEntityDescription(
     # allow command_fn to accept (webasto, id, state) by using a variadic Callable
     command_fn: Callable[..., Any] | None = None
     type_fn: Callable[[WebastoConnect], None] | None = None
+    # Name set in the Webasto app. It wins over the translated name; False
+    # when the device has no such output.
     name_fn: Callable[[WebastoDevice], str | bool] | None = None
 
 
@@ -111,14 +111,9 @@ class WebastoBaseEntity(CoordinatorEntity[DataUpdateCoordinator[None]]):
         self._device_id = device_id
         self._cloud: WebastoConnect = coordinator.cloud
 
-        if hasattr(self.entity_description, "name_fn") and not isinstance(
-            self.entity_description.name_fn, type(None)
-        ):  # type: ignore
-            self._attr_name = self.entity_description.name_fn(  # type: ignore
-                self._cloud.devices[self._device_id]
-            )
-        else:
-            self._attr_name = self.entity_description.name  # type: ignore
+        # The name comes from translations (translation_key), except for
+        # outputs named in the Webasto app; see _update_name.
+        self._update_name()
 
         # Stable across output renames and heating/ventilation mode changes.
         self._attr_unique_id = key_unique_id(
@@ -137,6 +132,26 @@ class WebastoBaseEntity(CoordinatorEntity[DataUpdateCoordinator[None]]):
             "sw_version": settings.get("sw_version"),
             "configuration_url": "https://my.webastoconnect.com",
         }
+
+    def _update_name(self) -> bool:
+        """Apply the name set in the Webasto app, if any.
+
+        A non-empty name from the cloud is used as-is. Otherwise the entity
+        has no ``_attr_name`` and Home Assistant uses the translated name.
+        Return True when the name changed.
+        """
+        name_fn = getattr(self.entity_description, "name_fn", None)
+        if name_fn is None:
+            return False
+        name = name_fn(self._cloud.devices[self._device_id])
+        if isinstance(name, str) and name.strip():
+            changed = getattr(self, "_attr_name", None) != name
+            self._attr_name = name
+            return changed
+        if hasattr(self, "_attr_name"):
+            del self._attr_name
+            return True
+        return False
 
     @property
     def _device(self) -> WebastoDevice:
