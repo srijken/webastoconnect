@@ -101,7 +101,7 @@ class WebastoConnectConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """
 
     VERSION = 1
-    MINOR_VERSION = 2
+    MINOR_VERSION = 3
 
     async def async_step_user(self, user_input: Any | None = None):
         """Handle the initial config flow step."""

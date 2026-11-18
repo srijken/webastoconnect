@@ -14,11 +14,11 @@ from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
-from homeassistant.util import slugify as util_slugify
 from pywebasto import WebastoConnect, WebastoDevice
 
 from .api import WebastoConnectUpdateCoordinator
 from .const import DOMAIN
+from .migration import key_unique_id
 
 
 def webasto_device_name(device: WebastoDevice, fallback_name: str | None = None) -> str:
@@ -120,8 +120,10 @@ class WebastoBaseEntity(CoordinatorEntity[DataUpdateCoordinator[None]]):
         else:
             self._attr_name = self.entity_description.name  # type: ignore
 
-        self._attr_unique_id = util_slugify(
-            f"{self._cloud.devices[self._device_id].device_id}_{self._attr_name}"
+        # Stable across output renames and heating/ventilation mode changes.
+        self._attr_unique_id = key_unique_id(
+            self._cloud.devices[self._device_id].device_id,
+            self.entity_description.key,
         )
 
         settings = self._cloud.devices[self._device_id].settings or {}

@@ -41,6 +41,17 @@ Enter your Webasto account email and password
 
 To change the password later, open the integration and choose **Reconfigure**.
 
+## Upgrading: stable entity unique IDs
+
+Entity unique IDs no longer contain the entity name, so renaming an output in
+the Webasto app, or switching between heating and ventilation, no longer
+creates a new entity. On the first start after upgrading, existing entities
+are moved to the new unique IDs once; entity IDs, history and customisations
+are kept. Entities that cannot be matched (for example an orphaned entity left
+behind by an earlier output rename) are left unchanged and can be removed by
+hand. Make a Home Assistant backup before upgrading: going back to an older
+version afterwards creates duplicate entities (with a `_2` suffix).
+
 # Known Issues
 
 ## My heater doesn't show up
