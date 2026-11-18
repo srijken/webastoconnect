@@ -46,5 +46,167 @@
                 }
             }
         }
+    },
+    "services": {
+        "create_timer": {
+            "name": "Opprett tidsur",
+            "description": "Oppretter et nytt enkelt tidsur for en Webasto-enhet på den aktive utgangen (varmer eller ventilasjon).",
+            "fields": {
+                "device_id": {
+                    "name": "Enhet",
+                    "description": "Webasto-enheten tidsuret opprettes for."
+                },
+                "start_time": {
+                    "name": "Starttid",
+                    "description": "Lokal klokkeslett for start av tidsuret (TT:MM). Sekunder er valgfrie."
+                },
+                "duration_minutes": {
+                    "name": "Varighet",
+                    "description": "Varighet i minutter."
+                },
+                "repeat_days": {
+                    "name": "Gjentakelsesdager",
+                    "description": "Dager tidsuret skal kjøre. La feltet stå tomt for et tidsur som ikke gjentas."
+                },
+                "enabled": {
+                    "name": "Aktivert",
+                    "description": "Om tidsuret er aktivert."
+                },
+                "location": {
+                    "name": "Posisjon",
+                    "description": "Valgfri kartposisjon for tidsuret."
+                }
+            }
+        },
+        "update_timer": {
+            "name": "Oppdater tidsur",
+            "description": "Oppdaterer et eksisterende enkelt tidsur etter indeks. Bare feltene som oppgis i handlingen endres; utelatte felt beholder sin nåværende verdi.",
+            "fields": {
+                "device_id": {
+                    "name": "Enhet",
+                    "description": "Webasto-enheten som har tidsuret."
+                },
+                "timer_index": {
+                    "name": "Tidsurindeks",
+                    "description": "Nullbasert tidsurindeks."
+                },
+                "start_time": {
+                    "name": "Starttid",
+                    "description": "Lokal klokkeslett for start av tidsuret (TT:MM). Sekunder er valgfrie."
+                },
+                "duration_minutes": {
+                    "name": "Varighet",
+                    "description": "Varighet i minutter."
+                },
+                "repeat_days": {
+                    "name": "Gjentakelsesdager",
+                    "description": "Dager tidsuret skal kjøre. La feltet stå tomt for et tidsur som ikke gjentas."
+                },
+                "enabled": {
+                    "name": "Aktivert",
+                    "description": "Om tidsuret er aktivert."
+                },
+                "clear_location": {
+                    "name": "Fjern posisjon",
+                    "description": "Fjern den lagrede posisjonen for tidsuret."
+                },
+                "location": {
+                    "name": "Posisjon",
+                    "description": "Valgfri kartposisjon for tidsuret. Kan ikke brukes sammen med Fjern posisjon."
+                }
+            }
+        },
+        "delete_timer": {
+            "name": "Slett tidsur",
+            "description": "Sletter et tidsur etter indeks på den aktive utgangen (varmer- eller ventilasjonsmodus).",
+            "fields": {
+                "device_id": {
+                    "name": "Enhet",
+                    "description": "Webasto-enheten som har tidsuret."
+                },
+                "timer_index": {
+                    "name": "Tidsurindeks",
+                    "description": "Nullbasert indeks i tidsurlisten for den aktive utgangen."
+                }
+            }
+        }
+    },
+    "selector": {
+        "weekday": {
+            "options": {
+                "monday": "Mandag",
+                "tuesday": "Tirsdag",
+                "wednesday": "Onsdag",
+                "thursday": "Torsdag",
+                "friday": "Fredag",
+                "saturday": "Lørdag",
+                "sunday": "Søndag"
+            }
+        }
+    },
+    "exceptions": {
+        "device_not_found": {
+            "message": "Fant ingen Webasto-enhet med enhets-ID {device_id}."
+        },
+        "device_not_reported": {
+            "message": "Webasto-kontoen rapporterer ikke lenger enheten {device_name}."
+        },
+        "entry_not_loaded": {
+            "message": "Webasto Connect-oppføringen {entry_title} er ikke lastet inn. Kontroller integrasjonen og prøv igjen."
+        },
+        "timers_not_supported": {
+            "message": "Det installerte pywebasto-biblioteket støtter ikke tidsur. Oppdater integrasjonen."
+        },
+        "no_timers": {
+            "message": "Det finnes ingen tidsur å endre på denne enheten."
+        },
+        "invalid_timer_index": {
+            "message": "Ugyldig tidsurindeks {timer_index}. Gyldig område er 0 til {max_index} ({timer_count} tidsur)."
+        },
+        "invalid_start_time": {
+            "message": "Ugyldig starttid {start_time}. Bruk formatet TT:MM."
+        },
+        "invalid_repeat_days": {
+            "message": "Gjentakelsesdager må være en liste over ukedager."
+        },
+        "unsupported_weekday": {
+            "message": "Ukedagen {day} støttes ikke."
+        },
+        "invalid_location": {
+            "message": "Posisjonen må være en kartposisjon med breddegrad og lengdegrad."
+        },
+        "location_with_coordinates": {
+            "message": "Posisjon kan ikke brukes sammen med breddegrad og lengdegrad."
+        },
+        "clear_location_with_coordinates": {
+            "message": "Fjern posisjon kan ikke brukes sammen med breddegrad og lengdegrad."
+        },
+        "clear_location_with_location": {
+            "message": "Fjern posisjon kan ikke brukes sammen med posisjon."
+        },
+        "incomplete_coordinates": {
+            "message": "Breddegrad og lengdegrad må enten begge oppgis eller begge utelates."
+        },
+        "start_time_conversion_unavailable": {
+            "message": "Starttiden kan ikke regnes om uten tidssonen til Home Assistant."
+        },
+        "missing_timer_values": {
+            "message": "Et tidsur trenger en starttid, en varighet og gjentakelsesdager."
+        },
+        "invalid_timer": {
+            "message": "Tidsuret er ugyldig: {error}"
+        },
+        "create_timer_failed": {
+            "message": "Kunne ikke opprette tidsuret fordi forespørselen til Webasto-skyen mislyktes. Prøv igjen senere."
+        },
+        "update_timer_failed": {
+            "message": "Kunne ikke oppdatere tidsuret fordi forespørselen til Webasto-skyen mislyktes. Prøv igjen senere."
+        },
+        "delete_timer_failed": {
+            "message": "Kunne ikke slette tidsuret fordi forespørselen til Webasto-skyen mislyktes. Prøv igjen senere."
+        },
+        "rate_limited": {
+            "message": "Webasto-skyen begrenser antall forespørsler. Prøv igjen senere."
+        }
     }
 }

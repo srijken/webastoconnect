@@ -10,7 +10,7 @@ from homeassistant.components.lovelace.const import (
     LOVELACE_DATA,
     MODE_STORAGE,
 )
-from homeassistant.config_entries import ConfigEntry, ConfigEntryState
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD, CONF_TYPE, CONF_URL
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import (
@@ -18,8 +18,10 @@ from homeassistant.exceptions import (
     ConfigEntryError,
     ConfigEntryNotReady,
 )
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_integration
 from pywebasto.enums import Request
 from pywebasto.exceptions import InvalidRequestException, UnauthorizedException
@@ -43,10 +45,12 @@ from .migration import (
     KEY_UNIQUE_ID_MINOR_VERSION,
     async_migrate_to_key_unique_ids,
 )
-from .services import async_register_services, async_unregister_services
+from .services import async_setup_services
 
 LOGGER = logging.getLogger(__name__)
 PENDING_APPROVAL_ISSUE_ID = "pending_approval"
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 @dataclass(slots=True)
@@ -57,6 +61,12 @@ class WebastoRuntimeData:
 
 
 type WebastoConfigEntry = ConfigEntry[WebastoRuntimeData]
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up the integration actions; they stay registered while HA runs."""
+    async_setup_services(hass)
+    return True
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -87,7 +97,6 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: WebastoConfigEntry) -> bool:
     """Set up cloud API connector from a config entry."""
     coordinator = await _async_setup(hass, entry)
-    async_register_services(hass)
     # No update listener: the reauth and reconfigure flows schedule the reload.
     entry.runtime_data = WebastoRuntimeData(coordinator=coordinator)
 
@@ -377,12 +386,4 @@ async def async_unload_entry(hass: HomeAssistant, entry: WebastoConfigEntry) -> 
 
     if unload_ok:
         await entry.runtime_data.coordinator.cloud.close()
-        loaded_entries = [
-            config_entry
-            for config_entry in hass.config_entries.async_entries(DOMAIN)
-            if config_entry.state is ConfigEntryState.LOADED
-            and config_entry.entry_id != entry.entry_id
-        ]
-        if not loaded_entries:
-            async_unregister_services(hass)
     return unload_ok

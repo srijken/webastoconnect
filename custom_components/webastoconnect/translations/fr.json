@@ -46,5 +46,167 @@
                 }
             }
         }
+    },
+    "services": {
+        "create_timer": {
+            "name": "Créer une minuterie",
+            "description": "Crée une nouvelle minuterie simple pour un appareil Webasto sur sa sortie active (chauffage ou ventilation).",
+            "fields": {
+                "device_id": {
+                    "name": "Appareil",
+                    "description": "L’appareil Webasto pour lequel la minuterie est créée."
+                },
+                "start_time": {
+                    "name": "Heure de début",
+                    "description": "Heure locale de début de la minuterie (HH:MM). Les secondes sont facultatives."
+                },
+                "duration_minutes": {
+                    "name": "Durée",
+                    "description": "Durée en minutes."
+                },
+                "repeat_days": {
+                    "name": "Jours de répétition",
+                    "description": "Jours où la minuterie doit fonctionner. Laissez vide pour une minuterie non répétitive."
+                },
+                "enabled": {
+                    "name": "Activée",
+                    "description": "Indique si la minuterie est activée."
+                },
+                "location": {
+                    "name": "Emplacement",
+                    "description": "Emplacement facultatif sur la carte pour la minuterie."
+                }
+            }
+        },
+        "update_timer": {
+            "name": "Mettre à jour une minuterie",
+            "description": "Met à jour une minuterie simple existante selon son index. Seuls les champs fournis dans l’action sont modifiés ; les champs omis conservent leur valeur actuelle.",
+            "fields": {
+                "device_id": {
+                    "name": "Appareil",
+                    "description": "L’appareil Webasto qui possède la minuterie."
+                },
+                "timer_index": {
+                    "name": "Index de la minuterie",
+                    "description": "Index de la minuterie, à partir de zéro."
+                },
+                "start_time": {
+                    "name": "Heure de début",
+                    "description": "Heure locale de début de la minuterie (HH:MM). Les secondes sont facultatives."
+                },
+                "duration_minutes": {
+                    "name": "Durée",
+                    "description": "Durée en minutes."
+                },
+                "repeat_days": {
+                    "name": "Jours de répétition",
+                    "description": "Jours où la minuterie doit fonctionner. Laissez vide pour une minuterie non répétitive."
+                },
+                "enabled": {
+                    "name": "Activée",
+                    "description": "Indique si la minuterie est activée."
+                },
+                "clear_location": {
+                    "name": "Effacer l’emplacement",
+                    "description": "Supprime l’emplacement enregistré de la minuterie."
+                },
+                "location": {
+                    "name": "Emplacement",
+                    "description": "Emplacement facultatif sur la carte pour la minuterie. Ne peut pas être utilisé avec Effacer l’emplacement."
+                }
+            }
+        },
+        "delete_timer": {
+            "name": "Supprimer une minuterie",
+            "description": "Supprime une minuterie selon son index sur la sortie active (mode chauffage ou ventilation).",
+            "fields": {
+                "device_id": {
+                    "name": "Appareil",
+                    "description": "L’appareil Webasto qui possède la minuterie."
+                },
+                "timer_index": {
+                    "name": "Index de la minuterie",
+                    "description": "Index dans la liste des minuteries de la sortie active, à partir de zéro."
+                }
+            }
+        }
+    },
+    "selector": {
+        "weekday": {
+            "options": {
+                "monday": "Lundi",
+                "tuesday": "Mardi",
+                "wednesday": "Mercredi",
+                "thursday": "Jeudi",
+                "friday": "Vendredi",
+                "saturday": "Samedi",
+                "sunday": "Dimanche"
+            }
+        }
+    },
+    "exceptions": {
+        "device_not_found": {
+            "message": "Aucun appareil Webasto trouvé avec l’ID d’appareil {device_id}."
+        },
+        "device_not_reported": {
+            "message": "Le compte Webasto ne signale plus l’appareil {device_name}."
+        },
+        "entry_not_loaded": {
+            "message": "L’entrée Webasto Connect {entry_title} n’est pas chargée. Vérifiez l’intégration et réessayez."
+        },
+        "timers_not_supported": {
+            "message": "La bibliothèque pywebasto installée ne prend pas en charge les minuteries. Mettez à jour l’intégration."
+        },
+        "no_timers": {
+            "message": "Aucune minuterie à modifier sur cet appareil."
+        },
+        "invalid_timer_index": {
+            "message": "Index de minuterie {timer_index} non valide. La plage valide est de 0 à {max_index} ({timer_count} minuteries)."
+        },
+        "invalid_start_time": {
+            "message": "Heure de début {start_time} non valide. Utilisez le format HH:MM."
+        },
+        "invalid_repeat_days": {
+            "message": "Les jours de répétition doivent être une liste de jours de la semaine."
+        },
+        "unsupported_weekday": {
+            "message": "Jour de la semaine {day} non pris en charge."
+        },
+        "invalid_location": {
+            "message": "L’emplacement doit être un emplacement sur la carte avec une latitude et une longitude."
+        },
+        "location_with_coordinates": {
+            "message": "L’emplacement ne peut pas être utilisé avec la latitude et la longitude."
+        },
+        "clear_location_with_coordinates": {
+            "message": "Effacer l’emplacement ne peut pas être utilisé avec la latitude et la longitude."
+        },
+        "clear_location_with_location": {
+            "message": "Effacer l’emplacement ne peut pas être utilisé avec l’emplacement."
+        },
+        "incomplete_coordinates": {
+            "message": "La latitude et la longitude doivent être fournies ensemble ou omises ensemble."
+        },
+        "start_time_conversion_unavailable": {
+            "message": "L’heure de début ne peut pas être convertie sans le fuseau horaire de Home Assistant."
+        },
+        "missing_timer_values": {
+            "message": "Une minuterie nécessite une heure de début, une durée et des jours de répétition."
+        },
+        "invalid_timer": {
+            "message": "La minuterie n’est pas valide : {error}"
+        },
+        "create_timer_failed": {
+            "message": "Impossible de créer la minuterie, car la requête vers le cloud Webasto a échoué. Réessayez plus tard."
+        },
+        "update_timer_failed": {
+            "message": "Impossible de mettre à jour la minuterie, car la requête vers le cloud Webasto a échoué. Réessayez plus tard."
+        },
+        "delete_timer_failed": {
+            "message": "Impossible de supprimer la minuterie, car la requête vers le cloud Webasto a échoué. Réessayez plus tard."
+        },
+        "rate_limited": {
+            "message": "Le cloud Webasto limite le nombre de requêtes. Réessayez plus tard."
+        }
     }
 }

@@ -46,5 +46,167 @@
                 }
             }
         }
+    },
+    "services": {
+        "create_timer": {
+            "name": "Vytvořit časovač",
+            "description": "Vytvoří nový jednoduchý časovač pro zařízení Webasto na jeho aktivním výstupu (topení nebo ventilace).",
+            "fields": {
+                "device_id": {
+                    "name": "Zařízení",
+                    "description": "Zařízení Webasto, pro které se časovač vytváří."
+                },
+                "start_time": {
+                    "name": "Čas spuštění",
+                    "description": "Místní čas spuštění časovače (HH:MM). Sekundy jsou volitelné."
+                },
+                "duration_minutes": {
+                    "name": "Doba trvání",
+                    "description": "Doba trvání v minutách."
+                },
+                "repeat_days": {
+                    "name": "Dny opakování",
+                    "description": "Dny, kdy má časovač běžet. Pro jednorázový časovač ponechte prázdné."
+                },
+                "enabled": {
+                    "name": "Povoleno",
+                    "description": "Zda je časovač povolen."
+                },
+                "location": {
+                    "name": "Poloha",
+                    "description": "Volitelná poloha časovače na mapě."
+                }
+            }
+        },
+        "update_timer": {
+            "name": "Aktualizovat časovač",
+            "description": "Aktualizuje existující jednoduchý časovač podle indexu. Změní se pouze pole zadaná v akci; vynechaná pole si ponechají svou současnou hodnotu.",
+            "fields": {
+                "device_id": {
+                    "name": "Zařízení",
+                    "description": "Zařízení Webasto, které má časovač."
+                },
+                "timer_index": {
+                    "name": "Index časovače",
+                    "description": "Index časovače počítaný od nuly."
+                },
+                "start_time": {
+                    "name": "Čas spuštění",
+                    "description": "Místní čas spuštění časovače (HH:MM). Sekundy jsou volitelné."
+                },
+                "duration_minutes": {
+                    "name": "Doba trvání",
+                    "description": "Doba trvání v minutách."
+                },
+                "repeat_days": {
+                    "name": "Dny opakování",
+                    "description": "Dny, kdy má časovač běžet. Pro jednorázový časovač ponechte prázdné."
+                },
+                "enabled": {
+                    "name": "Povoleno",
+                    "description": "Zda je časovač povolen."
+                },
+                "clear_location": {
+                    "name": "Vymazat polohu",
+                    "description": "Odstraní uloženou polohu časovače."
+                },
+                "location": {
+                    "name": "Poloha",
+                    "description": "Volitelná poloha časovače na mapě. Nelze použít společně s možností Vymazat polohu."
+                }
+            }
+        },
+        "delete_timer": {
+            "name": "Smazat časovač",
+            "description": "Smaže časovač podle indexu na aktivním výstupu (režim topení nebo ventilace).",
+            "fields": {
+                "device_id": {
+                    "name": "Zařízení",
+                    "description": "Zařízení Webasto, které má časovač."
+                },
+                "timer_index": {
+                    "name": "Index časovače",
+                    "description": "Index v seznamu časovačů aktivního výstupu počítaný od nuly."
+                }
+            }
+        }
+    },
+    "selector": {
+        "weekday": {
+            "options": {
+                "monday": "Pondělí",
+                "tuesday": "Úterý",
+                "wednesday": "Středa",
+                "thursday": "Čtvrtek",
+                "friday": "Pátek",
+                "saturday": "Sobota",
+                "sunday": "Neděle"
+            }
+        }
+    },
+    "exceptions": {
+        "device_not_found": {
+            "message": "Zařízení Webasto s ID zařízení {device_id} nebylo nalezeno."
+        },
+        "device_not_reported": {
+            "message": "Účet Webasto již nehlásí zařízení {device_name}."
+        },
+        "entry_not_loaded": {
+            "message": "Položka Webasto Connect {entry_title} není načtena. Zkontrolujte integraci a zkuste to znovu."
+        },
+        "timers_not_supported": {
+            "message": "Nainstalovaná knihovna pywebasto nepodporuje časovače. Aktualizujte integraci."
+        },
+        "no_timers": {
+            "message": "Na tomto zařízení nejsou žádné časovače ke změně."
+        },
+        "invalid_timer_index": {
+            "message": "Neplatný index časovače {timer_index}. Platný rozsah je 0 až {max_index} (počet časovačů: {timer_count})."
+        },
+        "invalid_start_time": {
+            "message": "Neplatný čas spuštění {start_time}. Použijte formát HH:MM."
+        },
+        "invalid_repeat_days": {
+            "message": "Dny opakování musí být seznam dnů v týdnu."
+        },
+        "unsupported_weekday": {
+            "message": "Nepodporovaný den v týdnu {day}."
+        },
+        "invalid_location": {
+            "message": "Poloha musí být poloha na mapě se zeměpisnou šířkou a délkou."
+        },
+        "location_with_coordinates": {
+            "message": "Polohu nelze použít společně se zeměpisnou šířkou a délkou."
+        },
+        "clear_location_with_coordinates": {
+            "message": "Možnost Vymazat polohu nelze použít společně se zeměpisnou šířkou a délkou."
+        },
+        "clear_location_with_location": {
+            "message": "Možnost Vymazat polohu nelze použít společně s polohou."
+        },
+        "incomplete_coordinates": {
+            "message": "Zeměpisná šířka a délka musí být zadány obě, nebo obě vynechány."
+        },
+        "start_time_conversion_unavailable": {
+            "message": "Čas spuštění nelze převést bez časového pásma Home Assistant."
+        },
+        "missing_timer_values": {
+            "message": "Časovač potřebuje čas spuštění, dobu trvání a dny opakování."
+        },
+        "invalid_timer": {
+            "message": "Časovač není platný: {error}"
+        },
+        "create_timer_failed": {
+            "message": "Časovač nelze vytvořit, protože požadavek do cloudu Webasto selhal. Zkuste to později."
+        },
+        "update_timer_failed": {
+            "message": "Časovač nelze aktualizovat, protože požadavek do cloudu Webasto selhal. Zkuste to později."
+        },
+        "delete_timer_failed": {
+            "message": "Časovač nelze smazat, protože požadavek do cloudu Webasto selhal. Zkuste to později."
+        },
+        "rate_limited": {
+            "message": "Cloud Webasto omezuje počet požadavků. Zkuste to později."
+        }
     }
 }
