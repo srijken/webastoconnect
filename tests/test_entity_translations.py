@@ -91,7 +91,7 @@ EXPECTED_ENTITY_IDS = {
     ("switch", "main_output"): "switch.camper_heater",
     ("switch", "ventilation_mode"): "switch.camper_ventilation_mode",
     ("switch", "aux1_output"): "switch.camper_extra",
-    ("switch", "geofence"): "switch.camper_geofence",
+    ("switch", "geofence"): "switch.camper_geofence_active",
     ("number", "low_voltage_cutoff"): "number.camper_low_voltage_cutoff",
     ("number", "ext_temp_comp"): "number.camper_temperature_compensation",
     ("device_tracker", "devicetracker"): "device_tracker.camper_location",
