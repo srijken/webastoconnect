@@ -101,7 +101,7 @@ in the Webasto app after creating or changing one.
 ## Geofence (experimental)
 
 Devices whose cloud data has an alarm control output (`OUTA`, "Alarm
-control" in the Webasto portal) get a *Geofence* switch, like the geofence
+control" in the Webasto portal) get a *Geofence active* switch, like the geofence
 button in the Webasto app. When the geofence is active the device position is
 locked; if the vehicle leaves the radius set in the Webasto portal, Webasto
 sends an app notification, an SMS and (ThermoConnect 1 only) a phone call.
