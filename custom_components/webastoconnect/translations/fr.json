@@ -370,7 +370,7 @@
                 "name": "AUX2"
             },
             "geofence": {
-                "name": "Géorepérage"
+                "name": "Géorepérage actif"
             }
         }
     },

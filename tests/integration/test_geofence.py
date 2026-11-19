@@ -12,7 +12,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from .fake_webasto import DEVICE_ID, FakeWebastoCloud, FakeWebastoConnect
 
-GEOFENCE = "switch.camper_geofence"
+GEOFENCE = "switch.camper_geofence_active"
 CMD_PATH = f"/remote/client/fake-client-id/device/{DEVICE_ID}/cmd"
 # Shaped like the OUTA output in `/all?api_v=8` (2026-11-18, sanitized).
 ALARM_OUTPUT = {"line": "OUTA", "name": "", "icon": "alert_on", "state": "ON"}
@@ -72,13 +72,20 @@ async def test_geofence_state_is_inverse_of_alarm_output(
     state = hass.states.get(GEOFENCE)
     assert state is not None
     assert state.state == expected
-    assert state.attributes["friendly_name"] == "Camper Geofence"
+    assert state.attributes["friendly_name"] == "Camper Geofence active"
 
 
-async def test_geofence_is_read_only_with_pywebasto_3_1_1(
-    hass: HomeAssistant, fake_cloud: FakeWebastoCloud, config_entry: MockConfigEntry
+async def test_geofence_is_read_only_without_set_geofence(
+    hass: HomeAssistant,
+    fake_cloud: FakeWebastoCloud,
+    config_entry: MockConfigEntry,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Without set_geofence in pywebasto, switching raises and sends nothing."""
+    """Without set_geofence in pywebasto (< 3.2.0), switching raises and sends nothing."""
+    from pywebasto import WebastoConnect
+
+    if hasattr(WebastoConnect, "set_geofence"):
+        monkeypatch.delattr(WebastoConnect, "set_geofence")
     _add_alarm_output(fake_cloud)
     await _setup(hass, config_entry)
     assert not hasattr(config_entry.runtime_data.coordinator.cloud, "set_geofence")
